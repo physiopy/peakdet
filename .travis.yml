@@ -28,7 +28,6 @@ before_install:
 - conda update conda
 - conda info -a
 - conda config --add channels conda-forge
-- conda create -n $PYTHON_ENV python=$PYTHON_VERSION
 - source activate $PYTHON_ENV
 
 install:

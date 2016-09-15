@@ -6,9 +6,8 @@ import pytest
 from peakdet import Physio
 
 def test_PhysioClass():
-    file = op.join(op.dirname(__file__),'data','ECG1.1D')
+    file = op.join(op.dirname(__file__),'data','PPG.1D')
     data = np.loadtxt(file)
-
     p = Physio(file)
 
     assert p.fname == file

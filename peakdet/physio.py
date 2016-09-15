@@ -9,11 +9,10 @@ class Physio():
 
     def __init__(self, file, fs=None):
         self.fname = file
+        self.data = np.loadtxt(file)
 
         if fs: self.fs = fs
 
-        try: self.data = np.loadtxt(file)
-        except: self.data = np.loadtxt(file,delimiter=',')
 
 def bandpass_filt(signal,fs,flims):
     """Runs bandpass filter on `signal` of sampling rate `fs`
