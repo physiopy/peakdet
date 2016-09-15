@@ -2,7 +2,7 @@ sudo: false
 
 env:
   global:
-    - CONDA_DEPS="pip pytest numpy scipy"
+    - CONDA_DEPS="pip"
 
 matrix:
   include:
@@ -10,10 +10,12 @@ matrix:
       env:
          - PYTHON_VERSION=3.5
          - MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh"
+         - PYTHON_ENV="py35"
     - os: linux
       env:
          - PYTHON_VERSION=2.7
          - MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh"
+         - PYTHON_ENV="py27"
 
 before_install:
 - export MINICONDA=$HOME/miniconda
@@ -26,17 +28,19 @@ before_install:
 - conda update conda
 - conda info -a
 - conda config --add channels conda-forge
-- conda install python=$PYTHON_VERSION $CONDA_DEPS
+- conda create -n $PYTHON_ENV python=$PYTHON_VERSION
+- source activate $PYTHON_ENV
 
 install:
 - pip install -r requirements.txt
-- pip install coveralls pytest-cov
+- pip install coveralls pytest-cov pytest
 
 script:
 - py.test --pyargs peakdet --cov-report term-missing --cov=peakdet
 
 after_success:
 - coveralls
+- source deactivate
 
 before_cache:
 # clean unused packages & installed files from conda cache
