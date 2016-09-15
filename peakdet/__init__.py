@@ -1,3 +1,3 @@
 __all__ = ['physio']
 
-from .physio import Physio
+from .physio import (Physio, ScaledPhysio, FilteredPhysio)
