@@ -19,24 +19,37 @@ def test_Physio():
 def test_ScaledPhysio():
     p = peakdet.ScaledPhysio(file, fs=40)
 
-    assert p.fname == file
-    assert p.fs == 40.
-    
     assert p.data.max() <= 1.0
     assert p.data.min() >= 0.0
-    assert len(p.data) == len(data)
 
 
 def test_FilteredPhysio():
-    p = peakdet.FilteredPhysio(file, fs=40)
+    p1 = peakdet.FilteredPhysio(file, fs=40)
+    p2 = peakdet.FilteredPhysio(file, fs=40)
+    assert (p2.flims == p1.flims)
 
-    p.bandpass([0.5,2.0])
-    assert len(p.filtsig) == len(p.data)
-    assert not np.all(p.filtsig == p.data)
+    p1.bandpass()
+    assert not np.all(p1.filtsig == p1.data)
+    p2.bandpass([0.5,2.0])
+    assert not np.all(p2.filtsig == p1.filtsig)
 
-    p.reset()
-    assert np.all(p.filtsig == p.data)
+    p1.reset()
+    p2.reset()
+    assert np.all(p1.filtsig == p1.data)
 
-    p.median(kernel=12)
-    assert len(p.filtsig) == len(p.data)
-    assert not np.all(p.filtsig == p.data)
+    p1.lowpass()
+    assert not np.all(p1.filtsig == p1.data)
+    p2.lowpass(0.5)
+    assert not np.all(p2.filtsig == p1.filtsig)
+
+
+file = op.join(op.dirname(__file__),'data','Resp.1D')
+data = np.loadtxt(file)
+
+def test_InterpolatedPhysio():
+    p1 = peakdet.InterpolatedPhysio(file,fs=40)
+    p2 = peakdet.FilteredPhysio(file,fs=40)
+
+    assert len(p1.data) > len(data)
+    assert p1.fs == 40. * 2.
+    assert not np.all(p1.flims == p2.flims)
