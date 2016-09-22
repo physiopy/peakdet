@@ -12,7 +12,7 @@ class Physio(object):
 
     def __init__(self, file, fs):
         self.fname = file
-        self.fs = fs
+        self.fs = float(fs)
         self.data = np.loadtxt(self.fname)
 
 
