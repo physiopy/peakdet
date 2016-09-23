@@ -7,3 +7,4 @@ dist
 dist/*
 *.egg-info
 .cache
+.coverage
