@@ -90,6 +90,7 @@ def test_PeakFinder():
     p1.get_peaks(troughs=True)
     assert hasattr(p1,'peakinds')
     assert hasattr(p1,'rrint')
+    assert hasattr(p1,'rrtime')
     assert len(p1.peakinds) > 0
     assert len(p1.peakinds)-1 == len(p1.rrint)
     assert np.all(p1.filtsig[p1.peakinds] > p1.filtsig.mean())
@@ -97,4 +98,3 @@ def test_PeakFinder():
     assert hasattr(p1,'troughinds')
     assert len(p1.troughinds) > 0
     assert np.all(p1.filtsig[p1.troughinds] < p1.filtsig.mean())
-

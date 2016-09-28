@@ -17,8 +17,7 @@ class Physio(object):
         elif isinstance(file,(list,np.ndarray)): self.fname = None
         else: raise TypeError("File input must be string or data array.")
 
-        try: self.data = np.loadtxt(self.fname)
-        except: self.data = np.asarray(file)
+        self.data = np.loadtxt(file)
 
 
 class ScaledPhysio(Physio):
@@ -67,11 +66,10 @@ class InterpolatedPhysio(FilteredPhysio):
 
     def __init__(self, file, fs):
         super(InterpolatedPhysio,self).__init__(file,fs)
+        self.rawdata, self.rawfs = self.data.copy(), self.fs
 
     def interpolate(self, order=2):
         """Interpolates data to `order` * `fs`"""
-        self.rawdata, self.rawfs = self.data.copy(), self.fs
-
         t = np.arange(0, self.data.size/self.fs, 1./self.fs)
         tn = np.arange(0, t[-1], 1./(self.fs*order))
         i = InterpolatedUnivariateSpline(t,self.data)
@@ -82,7 +80,10 @@ class InterpolatedPhysio(FilteredPhysio):
 
     def reset(self,hard=False):
         if hard:
-            super(InterpolatedPhysio,self).__init__(self.fname,self.rawfs)
+            try:
+                super(InterpolatedPhysio,self).__init__(self.fname,self.rawfs)
+            except TypeError:
+                super(InterpolatedPhysio,self).__init__(self.rawdata,self.rawfs)
         else:
             super(InterpolatedPhysio,self).reset()
 
@@ -99,18 +100,20 @@ class PeakFinder(InterpolatedPhysio):
 
         inds = raw_inds[comp_lists(filt_inds, raw_inds)]
         self.peakinds = inds[self.filtsig[inds] > self.filtsig.mean()]
-        self.rrint = self.peakinds[1:] - self.peakinds[:-1]
+        self.rrtime = self.peakinds[1:]/self.fs
+        self.rrint = (self.peakinds[1:] - self.peakinds[:-1])/self.fs
 
         if troughs: self.get_troughs()
 
     def get_troughs(self, order=2):
+        if not hasattr(self,'peakinds'): self.get_peaks()
+
         filt_inds = scipy.signal.argrelmin(self.filtsig,order=order)[0]
         raw_inds = scipy.signal.argrelmin(self.data,order=order)[0]
 
         inds = raw_inds[comp_lists(filt_inds, raw_inds)]
         self.troughinds = inds[self.filtsig[inds] < self.filtsig.mean()]
 
-        if not hasattr(self,'peakinds'): self.get_peaks()
 
 
 def comp_lists(l1,l2,k=2):
@@ -121,7 +124,7 @@ def comp_lists(l1,l2,k=2):
     l1, l2 : array-like, sorted
         Indices to compare
     k : int
-        How close indices should be in list
+        How close indices should be in lists
 
     Returns
     -------
@@ -144,7 +147,7 @@ def comp_lists(l1,l2,k=2):
 
 
 def flat_signal(signal):
-    """Checks if >1D array can be flattened without data loss"""
+    """Checks if >1D array can be flattened without data loss; flattens"""
 
     if signal.ndim > 1:
         if signal.shape[-1] == 1:
@@ -178,23 +181,22 @@ def gen_flims(signal,fs):
 
 def bandpass_filt(signal,fs,flims=None,btype='bandpass'):
     """Runs `btype` filter on `signal` of sampling rate `fs`
-
-    `flims` are the bounds of the filter. Utilizes butterworth filter
-    from scipy.signal
     
     Parameters
     ----------
     signal : array-like
     fs : float
-    flims : list-of-two
-    btype : type of filter
+    flims : array-like
+        Bounds of filter
+    btype : str
+        Type of filter; from ['band','low','high']
     """
     
     signal = flat_signal(signal)
     if not flims: flims = [0,fs]
 
     nyq_freq = fs*0.5
-    nyq_cutoff = np.array(flims)/nyq_freq
+    nyq_cutoff = np.asarray(flims)/nyq_freq
     b, a = scipy.signal.butter(3, nyq_cutoff, btype=btype)
     fsig = scipy.signal.filtfilt(b, a, signal)
     
