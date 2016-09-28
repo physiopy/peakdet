@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-import os
 import numpy as np
 import scipy.signal
-import scipy.spatial
+from scipy.spatial import cKDTree
 from scipy.interpolate import InterpolatedUnivariateSpline
 from sklearn.preprocessing import MinMaxScaler
 
@@ -12,9 +11,14 @@ class Physio(object):
     """Class to handle an instance of physiological data"""
 
     def __init__(self, file, fs):
-        self.fname = file
         self.fs = float(fs)
-        self.data = np.loadtxt(self.fname)
+
+        if isinstance(file,str): self.fname = file
+        elif isinstance(file,(list,np.ndarray)): self.fname = None
+        else: raise TypeError("File input must be string or data array.")
+
+        try: self.data = np.loadtxt(self.fname)
+        except: self.data = np.asarray(file)
 
 
 class ScaledPhysio(Physio):
@@ -59,7 +63,7 @@ class FilteredPhysio(ScaledPhysio):
 
 
 class InterpolatedPhysio(FilteredPhysio):
-    """Class with data can be interpolation method"""
+    """Class with interpolation method"""
 
     def __init__(self, file, fs):
         super(InterpolatedPhysio,self).__init__(file,fs)
@@ -82,32 +86,51 @@ class InterpolatedPhysio(FilteredPhysio):
         else:
             super(InterpolatedPhysio,self).reset()
 
-    def get_peaks(self, order=2):
+
+class PeakFinder(InterpolatedPhysio):
+    """Class with peak (and trough) finding method(s)"""
+
+    def __init__(self, file, fs):
+        super(PeakFinder,self).__init__(file, fs)
+
+    def get_peaks(self, order=2, troughs=False):
         filt_inds = scipy.signal.argrelmax(self.filtsig,order=order)[0]
         raw_inds = scipy.signal.argrelmax(self.data,order=order)[0]
 
-        peakinds = raw_inds[comp_peaks(filt_inds, raw_inds)]
-        self.peakinds = peakinds[self.filtsig[peakinds] > self.filtsig.mean()]
+        inds = raw_inds[comp_lists(filt_inds, raw_inds)]
+        self.peakinds = inds[self.filtsig[inds] > self.filtsig.mean()]
+        self.rrint = self.peakinds[1:] - self.peakinds[:-1]
+
+        if troughs: self.get_troughs()
+
+    def get_troughs(self, order=2):
+        filt_inds = scipy.signal.argrelmin(self.filtsig,order=order)[0]
+        raw_inds = scipy.signal.argrelmin(self.data,order=order)[0]
+
+        inds = raw_inds[comp_lists(filt_inds, raw_inds)]
+        self.troughinds = inds[self.filtsig[inds] < self.filtsig.mean()]
+
+        if not hasattr(self,'peakinds'): self.get_peaks()
 
 
-def comp_peaks(p1,p2,k=2):
-    """Compares lists of two indices to determine closest matches from `p1` in `p2`
+def comp_lists(l1,l2,k=2):
+    """Compares lists of two indices to determine closest matches from `l1` in `l2`
 
     Parameters
     ----------
-    p1, p2 : array-like, sorted
-        Indices for comparing
+    l1, l2 : array-like, sorted
+        Indices to compare
     k : int
         How close indices should be in list
 
     Returns
     -------
-    array : indices from `p2` that are closest to those in `p1`
+    array : indices from `l2` that are closest to those in `l1`
     """
 
-    kd = scipy.spatial.cKDTree(p2[:,None])
-    on = kd.query(p1[:,None], k)[1]
-    nn = np.ones((p1.shape[0],),dtype='int64') * -1
+    kd = cKDTree(l2[:,None])
+    on = kd.query(l1[:,None], k)[1]
+    nn = np.ones((l1.shape[0],),dtype='int64') * -1
     used = set()
 
     for j, nj in enumerate(on):

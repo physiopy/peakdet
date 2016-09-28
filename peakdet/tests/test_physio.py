@@ -15,6 +15,15 @@ def test_Physio():
     assert p.fs == 40.
     assert np.all(p.data == data)
 
+    p = peakdet.Physio(data, fs=40)
+    assert p.fname == None
+    assert np.all(p.data == data)
+
+    try:
+        p = peakdet.Physio(40,fs=40.)
+    except TypeError:
+        pass
+
 
 def test_ScaledPhysio():
     p = peakdet.ScaledPhysio(file, fs=40)
@@ -52,6 +61,7 @@ def test_FilteredPhysio():
 file = op.join(op.dirname(__file__),'data','Resp.1D')
 data = np.loadtxt(file)
 
+
 def test_InterpolatedPhysio():
     p1 = peakdet.InterpolatedPhysio(file,fs=40)
     p2 = peakdet.FilteredPhysio(file,fs=40)
@@ -71,8 +81,20 @@ def test_InterpolatedPhysio():
     assert len(p1.data) > len(data)
     assert p1.fs == p2.fs * 2.
 
+
+def test_PeakFinder():
+    p1 = peakdet.PeakFinder(file, fs=40)
+
+    p1.interpolate()
     p1.lowpass()
-    p1.get_peaks()
+    p1.get_peaks(troughs=True)
     assert hasattr(p1,'peakinds')
+    assert hasattr(p1,'rrint')
     assert len(p1.peakinds) > 0
+    assert len(p1.peakinds)-1 == len(p1.rrint)
     assert np.all(p1.filtsig[p1.peakinds] > p1.filtsig.mean())
+
+    assert hasattr(p1,'troughinds')
+    assert len(p1.troughinds) > 0
+    assert np.all(p1.filtsig[p1.troughinds] < p1.filtsig.mean())
+

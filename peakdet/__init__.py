@@ -1,3 +1,5 @@
 __all__ = ['physio']
 
-from .physio import (Physio, ScaledPhysio, FilteredPhysio, InterpolatedPhysio)
+from .physio import (Physio, ScaledPhysio, 
+                    FilteredPhysio, InterpolatedPhysio, 
+                    PeakFinder)
