@@ -87,24 +87,3 @@ def test_InterpolatedPhysio():
     p1.interpolate()
     assert len(p1.data) > len(data)
     assert p1.fs == p2.fs * 2.
-
-
-def test_PeakFinder():
-    file = op.join(op.dirname(__file__),'data','Resp.1D')
-
-    p1 = peakdet.PeakFinder(file, fs=40)
-    assert p1.rrint == []
-    assert p1.rrtime == []
-
-    p1.interpolate()
-    p1.lowpass()
-    p1.get_peaks(troughs=True)
-    assert len(p1.rrint) > 0
-    assert len(p1.rrtime) > 0
-    assert len(p1.peakinds) > 0
-    assert len(p1.peakinds)-1 == len(p1.rrint)
-    assert np.all(p1.filtsig[p1.peakinds] > p1.filtsig.mean())
-
-    assert hasattr(p1,'troughinds')
-    assert len(p1.troughinds) > 0
-    assert np.all(p1.filtsig[p1.troughinds] < p1.filtsig.mean())

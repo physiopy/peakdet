@@ -4,6 +4,28 @@ import numpy as np
 import scipy.signal
 from scipy.spatial import cKDTree
 
+def comp_peaks(raw_data, filtered_data, order=2, comparator=scipy.signal.argrelmax):
+    """Finds peaks/troughs in raw/filtered data; returns peaks in raw data closest to those in filtered
+
+    Parameters
+    ----------
+    raw_data : array-like
+    filtered_data : array-like
+    order : int
+    comparator : function
+        Choose from scipy.signal.argrelmax, scipy.signal.argrelmin
+    """
+    if comparator != scipy.signal.argrelmax and comparator != scipy.signal.argrelmin:
+        raise TypeError("Comparator is not a valid selection")
+
+    filtered_inds = comparator(filtered_data,order=order)[0]
+    raw_inds = comparator(raw_data, order=order)[0]
+
+    inds = raw_inds[comp_lists(filtered_inds, raw_inds)]
+
+    return inds
+
+
 def comp_lists(l1,l2,k=2):
     """Compares lists of two indices to determine closest matches from `l1` in `l2`
 

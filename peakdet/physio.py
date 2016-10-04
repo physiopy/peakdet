@@ -5,7 +5,7 @@ import numpy as np
 import scipy.signal
 from scipy.interpolate import InterpolatedUnivariateSpline
 from sklearn.preprocessing import MinMaxScaler
-from .utils import *
+from .utils import gen_flims, bandpass_filt
 
 class Physio(object):
     """Class to handle an instance of physiological data"""
@@ -108,52 +108,3 @@ class InterpolatedPhysio(FilteredPhysio):
             super(InterpolatedPhysio,self).__init__(self._dinput,self._rawfs)
         else:
             super(InterpolatedPhysio,self).reset()
-
-
-class PeakFinder(InterpolatedPhysio):
-    """Class with peak (and trough) finding method(s)"""
-
-    def __init__(self, data, fs):
-        super(PeakFinder,self).__init__(data, fs)
-        self._peakinds = []
-        self._troughinds = []
-
-    @property
-    def rrtime(self):
-        if len(self.peakinds): 
-            return self._peakinds[1:]/self.fs
-        else: 
-            return []
-
-    @property
-    def rrint(self):
-        if len(self.peakinds): 
-            return (self.peakinds[1:] - self.peakinds[:-1])/self.fs
-        else: 
-            return []
-
-    @property
-    def peakinds(self):
-        return self._peakinds
-
-    @property
-    def troughinds(self):
-        return self._troughinds
-
-    def get_peaks(self, order=2, troughs=False):
-        filt_inds = scipy.signal.argrelmax(self.filtsig,order=order)[0]
-        raw_inds = scipy.signal.argrelmax(self.data,order=order)[0]
-
-        inds = raw_inds[comp_lists(filt_inds, raw_inds)]
-        self._peakinds = inds[self.filtsig[inds] > self.filtsig.mean()]
-
-        if troughs: self.get_troughs()
-
-    def get_troughs(self, order=2):
-        if not hasattr(self,'peakinds'): self.get_peaks()
-
-        filt_inds = scipy.signal.argrelmin(self.filtsig,order=order)[0]
-        raw_inds = scipy.signal.argrelmin(self.data,order=order)[0]
-
-        inds = raw_inds[comp_lists(filt_inds, raw_inds)]
-        self._troughinds = inds[self.filtsig[inds] < self.filtsig.mean()]

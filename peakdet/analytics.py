@@ -5,40 +5,117 @@ import scipy.signal
 from scipy.interpolate import interp1d
 
 class HRV():
+    """Class designed purely for housing calculation of various HRV statistics
+    
+    Parameters
+    ----------
+    rrtime : array-like
+        Times at which RR-intervals occured
+    rrint : array-like
+        RR-intervals
+
+    Notes
+    -----
+    Uses scipy.signal.welch for calculation of frequency-based statistics
+    """
+    
     def __init__(self, rrtime, rrint):
-        self.rrtime = rrtime
-        self.rrint = rrint
+        self._rrtime = rrtime
+        self._rrint = rrint
 
-        self.time_domain()
-        self.freq_domain()
+        func = interp1d(self._rrtime, self._rrint, kind='cubic')
+        irrt = np.arange(self._rrtime[0], self._rrtime[-1], 1./4.)
+        self._irri = func(irrt)
 
-    def time_domain(self):
-        sd = self.rrint[1:]-self.rrint[:-1]
+    @property
+    def _sd(self):
+        return self._rrint[1:]-self._rrint[:-1]
 
-        self.avgnn = self.rrint.mean()
-        self.sdnn = self.rrint.std()
-        self.rmssd = np.sqrt((sd**2).mean())
-        self.sdsd = sd.std()
-        self.nn50 = np.where(sd>50.)[0].size
-        self.pnn50 = self.nn50/self.rrint.size
-        self.nn20 = np.where(sd>20.)[0].size
-        self.pnn20 = self.nn20/self.rrint.size
+    @property
+    def _fft(self):
+        return scipy.signal.welch(self._irri, nperseg=120, fs=4.0)
 
-    def freq_domain(self):
-        func = interp1d(self.rrtime, self.rrint, kind='cubic')
-        irrt = np.arange(self.rrtime[0], self.rrtime[-1], 1./4.)
-        irri = func(irrt)
+    @property
+    def avgnn(self):
+        return self._rrint.mean()
 
-        fx, px = scipy.signal.welch(irri,nperseg=120,fs=4.0)
-        hf = px[np.logical_and(fx>=.15, fx<.40)]
-        lf = px[np.logical_and(fx>=.04, fx<.15)]
+    @property
+    def sdnn(self):
+        return self._rrint.std()
 
-        self.hf = sum(hf)
-        self.lf = sum(lf)
-        self.vlf = sum(px[np.logical_and(fx>=0., fx<.04)])
-        self.hf_log = np.log(self.hf)
-        self.lf_log = np.log(self.lf)
-        self.vlf_log = np.log(self.vlf)
-        self.hf_peak = fx[np.argmax(hf)]
-        self.lf_peak = fx[np.argmax(lf)]
-        self.hf_lf = self.lf/self.hf
+    @property
+    def rmssd(self):
+        return np.sqrt((self._sd**2).mean())
+
+    @property
+    def sdsd(self):
+        return self._sd.std()
+
+    @property
+    def nn50(self):
+        return np.where(self._sd>50.)[0].size
+
+    @property
+    def pnn50(self):
+        return self.nn50/self._rrint.size
+
+    @property
+    def nn20(self):
+        return np.where(self._sd>20.)[0].size
+
+    @property
+    def pnn20(self):
+        return self.nn20/self._rrint.size
+
+    @property
+    def _hf(self):
+        fx, px = self._fft
+        return px[np.logical_and(fx>=.15, fx<.40)]
+
+    @property
+    def _lf(self):
+        fx, px = self._fft
+        return px[np.logical_and(fx>=.04, fx<.15)]
+    
+    @property
+    def _vlf(self):
+        fx, px = self._fft
+        return px[np.logical_and(fx>=0., fx<.04)]
+
+    @property
+    def hf(self):
+        return sum(self._hf)
+
+    @property
+    def hf_log(self):
+        return np.log(self.hf)
+
+    @property
+    def lf(self):
+        return sum(self._lf)
+
+    @property
+    def lf_log(self):
+        return np.log(self.lf)
+    
+    @property
+    def vlf(self):
+        return sum(self._vlf)
+
+    @property
+    def vlf_log(self):
+        return np.log(self.vlf)
+
+    @property
+    def lftohf(self):
+        return self.lf/self.hf
+
+    @property
+    def hf_peak(self):
+        fx, px = self._fft
+        return fx[np.argmax(self._hf)]
+
+    @property
+    def lf_peak(self):
+        fx, px = self._fft
+        return fx[np.argmax(self._lf)]
