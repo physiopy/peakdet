@@ -59,7 +59,7 @@ class FilteredPhysio(ScaledPhysio):
 
     @property
     def flims(self):
-        return gen_flims(self.data, self.fs)
+        return gen_flims(self.filtsig, self.fs)
 
     @property
     def filtsig(self):

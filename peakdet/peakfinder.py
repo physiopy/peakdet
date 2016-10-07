@@ -42,10 +42,8 @@ class PeakFinder(InterpolatedPhysio):
                             order=order, 
                             comparator=scipy.signal.argrelmax   )
 
-        self._peakinds = inds[self.filtsig[inds] > self.filtsig.mean()]
-
-        clf = DBSCAN()
-        classes = clf.fit_predict(self._peaksig)
+        self._peakinds = np.unique(inds[self.filtsig[inds] > self.filtsig.mean()])
+        self._peakinds.sort()
 
         if troughs: self.get_troughs()
 
@@ -57,7 +55,8 @@ class PeakFinder(InterpolatedPhysio):
                             order=order, 
                             comparator=scipy.signal.argrelmin   )
 
-        self._troughinds = inds[self.filtsig[inds] < self.filtsig.mean()]
+        self._troughinds = np.unique(inds[self.filtsig[inds] < self.filtsig.mean()])
+        self._troughinds.sort()
         
     @property
     def _peaksig(self):
@@ -65,13 +64,13 @@ class PeakFinder(InterpolatedPhysio):
         peaksig = np.zeros((self.peakinds.shape[0],rravg))
 
         for n, p in enumerate(self.peakinds):
-            sig = self.data[int(p-rravg/2):int(p+rravg/2)]
+            sig = self.data[int(p-rravg):int(p)]
             if sig.shape[0] < rravg: continue
             else: peaksig[n] = sig
 
         return peaksig
 
-    def hard_thresh(self, sd=2.0, thresh=0.90):
+    def hard_thresh(self, sd=2.0, thresh=0.75):
         high = self._peaksig.mean(axis=0) + sd*self._peaksig.std(axis=0)
         low = self._peaksig.mean(axis=0) - sd*self._peaksig.std(axis=0)
         keep = np.ones(self._peaksig.shape[0], dtype='bool')
@@ -83,7 +82,7 @@ class PeakFinder(InterpolatedPhysio):
         self._peakinds = self.peakinds[keep]
 
     def classify(self):
-        clf = DBSCAN()
+        clf = DBSCAN(eps=1.0)
         classes = clf.fit_predict(self._peaksig)
         return classes
 
