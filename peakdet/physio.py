@@ -77,13 +77,13 @@ class FilteredPhysio(ScaledPhysio):
     def lowpass(self, flims=None):
         """Lowpass filters signal"""
         if not flims: flims = self.flims
-        if hasattr(flims,'__len__') and len(flims) > 1: flims = flims[-1]
+        if hasattr(flims,'__len__') and len(flims) > 1: flims = flims[0]
         self._filtsig = bandpass_filt(self._filtsig, self.fs, flims, btype='low')
 
     def highpass(self, flims=None):
         """Highpass filters signal"""
         if not flims: flims = self.flims
-        if hasattr(flims,'__len__') and len(flims) > 1: flims = flims[0]
+        if hasattr(flims,'__len__') and len(flims) > 1: flims = flims[-1]
         self._filtsig = bandpass_filt(self._filtsig, self.fs, flims, btype='high')
 
 

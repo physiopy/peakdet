@@ -38,11 +38,11 @@ class PeakFinder(InterpolatedPhysio):
     
     @property
     def _peaksig(self):
-        rravg = int(self.rrint.mean()*self.fs)
+        rravg = int((self.rrint.mean()*self.fs)/2)
         peaksig = np.zeros((self.peakinds.shape[0],rravg))
 
         for n, p in enumerate(self.peakinds):
-            sig = self.data[int(p-rravg)/2:int(p)]
+            sig = self.data[int(p-rravg):int(p)]
             if sig.shape[0] < rravg: continue
             else: peaksig[n] = sig
 

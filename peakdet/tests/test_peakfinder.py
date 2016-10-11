@@ -22,12 +22,9 @@ def test_PeakFinder():
     assert np.all(p.filtsig[p.peakinds] > p.filtsig.mean())
 
     assert len(p.troughinds) > 0
-    assert np.all(p.filtsig[p.troughinds] < p.filtsig.mean())
-
     assert len(p._peaksig) == len(p.peakinds)
     
     p.hard_thresh()
     classes = p.classify()
 
     p.plot_data(_test=True)
-    
