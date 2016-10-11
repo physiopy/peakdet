@@ -4,7 +4,7 @@ import numpy as np
 import scipy.signal
 from scipy.spatial import cKDTree
 
-def comp_peaks(raw_data, filtered_data, order=2, comparator=scipy.signal.argrelmax):
+def comp_peaks(raw_data, filtered_data, order=2, k=2, comparator=scipy.signal.argrelmax):
     """Finds peaks/troughs in raw/filtered data; returns peaks in raw data closest to those in filtered
 
     Parameters
@@ -21,7 +21,7 @@ def comp_peaks(raw_data, filtered_data, order=2, comparator=scipy.signal.argrelm
     filtered_inds = comparator(filtered_data,order=order)[0]
     raw_inds = comparator(raw_data, order=order)[0]
 
-    inds = raw_inds[comp_lists(filtered_inds, raw_inds)]
+    inds = raw_inds[comp_lists(filtered_inds, raw_inds, k=k)]
 
     return inds
 
