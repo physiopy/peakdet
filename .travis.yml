@@ -34,6 +34,11 @@ install:
 - pip install -r requirements.txt
 - pip install coveralls pytest-cov pytest
 
+before_script:
+- "export DISPLAY=:99.0"
+- "sh -e /etc/init.d/xvfb start"
+- sleep 3
+
 script:
 - py.test --pyargs peakdet --cov-report term-missing --cov=peakdet
 
