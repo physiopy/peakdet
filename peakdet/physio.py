@@ -4,8 +4,7 @@ import os
 import numpy as np
 import scipy.signal
 from scipy.interpolate import InterpolatedUnivariateSpline
-from sklearn.preprocessing import MinMaxScaler
-from .utils import gen_flims, bandpass_filt
+from .utils import gen_flims, bandpass_filt, normalize
 
 class Physio(object):
     """Class to handle an instance of physiological data"""
@@ -38,8 +37,7 @@ class ScaledPhysio(Physio):
 
     def __init__(self, data, fs):
         super(ScaledPhysio,self).__init__(data,fs)
-        scaler = MinMaxScaler(feature_range=(0,1))
-        self._data = scaler.fit_transform(self.rawdata.reshape(-1,1))
+        self._data = normalize(self.rawdata)
 
     @property
     def data(self):

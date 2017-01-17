@@ -98,6 +98,23 @@ def gen_flims(signal,fs):
     return [mfreq/2, mfreq*2]
 
 
+def normalize(data):
+    """Normalizes `data` (subtract mean and divides by sd)
+
+    Parameters
+    ----------
+    data : array-like
+
+    Returns
+    -------
+    array: normalized data
+    """
+
+    if data.ndim > 1:
+        raise IndexError("Input must be one-dimensional.")
+    return (data - data.mean()) / data.std()
+
+
 def bandpass_filt(signal,fs,flims=None,btype='bandpass'):
     """Runs `btype` filter on `signal` of sampling rate `fs`
     

@@ -1,5 +1,4 @@
 *.pyc
-peakdet/gui.py
 *.DS_Store
 *~
 build/
