@@ -11,22 +11,17 @@ class PeakFinder(InterpolatedPhysio):
 
     def __init__(self, data, fs):
         super(PeakFinder,self).__init__(data, fs)
-        self._peakinds = []
-        self._troughinds = []
+        self._peakinds, self._troughinds = [], []
 
     @property
     def rrtime(self):
-        if len(self.peakinds): 
-            return self._peakinds[1:]/self.fs
-        else: 
-            return []
+        if len(self.peakinds): return self._peakinds[1:]/self.fs
+        else: return
 
     @property
     def rrint(self):
-        if len(self.peakinds): 
-            return (self.peakinds[1:] - self.peakinds[:-1])/self.fs
-        else: 
-            return []
+        if len(self.peakinds): return np.diff(self.peakinds)/self.fs
+        else: return
 
     @property
     def peakinds(self):
@@ -35,7 +30,7 @@ class PeakFinder(InterpolatedPhysio):
     @property
     def troughinds(self):
         return self._troughinds
-    
+
     @property
     def _peaksig(self):
         rravg = int((self.rrint.mean()*self.fs)/2)
@@ -47,12 +42,12 @@ class PeakFinder(InterpolatedPhysio):
             else: peaksig[n] = sig
 
         return peaksig
-    
+
     def get_peaks(self, order=2, troughs=False):
-        inds = comp_peaks(  self.data, 
-                            self.filtsig, 
-                            order=order, 
-                            comparator=scipy.signal.argrelmax   )
+        inds = comp_peaks(self.data,
+                          self.filtsig,
+                          order=order,
+                          comparator=scipy.signal.argrelmax)
 
         self._peakinds = np.unique(inds[self.filtsig[inds] > self.filtsig.mean()])
         self._peakinds.sort()
@@ -60,21 +55,22 @@ class PeakFinder(InterpolatedPhysio):
         if troughs: self.get_troughs(order=order)
 
     def get_troughs(self, order=2):
-        if not hasattr(self,'peakinds'): self.get_peaks(order=order, troughs=False)
+        if not hasattr(self,'peakinds'):
+            self.get_peaks(order=order, troughs=False)
 
-        inds = comp_peaks(  self.data, 
-                            self.filtsig, 
-                            order=order, 
-                            comparator=scipy.signal.argrelmin,
-                            k=3   )
+        inds = comp_peaks(self.data,
+                          self.filtsig,
+                          order=order,
+                          comparator=scipy.signal.argrelmin,
+                          k=3)
 
         self._troughinds = np.unique(inds[self.filtsig[inds] < self.filtsig.mean()])
         self._check_troughs()
 
     def _check_troughs(self):
         for n in np.arange(1,self.peakinds.size):
-            snip = np.logical_and(  self.troughinds >  self.peakinds[n-1],
-                                    self.troughinds <= self.peakinds[n])
+            snip = np.logical_and(self.troughinds > self.peakinds[n-1],
+                                  self.troughinds <= self.peakinds[n])
             troughs = self.troughinds[snip]
 
             if len(troughs) < 1:
@@ -84,9 +80,9 @@ class PeakFinder(InterpolatedPhysio):
             elif troughs.size > 1:
                 trough_amp = self.filtsig[troughs]
                 rej = troughs[np.where(trough_amp > trough_amp.min())[0]]
-                for t in rej: 
+                for t in rej:
                     self._troughinds = np.delete(self.troughinds,
-                                                    np.where(self.troughinds == t)[0])
+                                            np.where(self.troughinds == t)[0])
 
         self._troughinds.sort()
 
@@ -98,7 +94,7 @@ class PeakFinder(InterpolatedPhysio):
         for n, p in enumerate(self._peaksig):
             overlap = p[np.logical_and(p>low,p<high)].size
             if overlap < int(self._peaksig.shape[1]*thresh): keep[n] = 0
-        
+
         self._peakinds = self.peakinds[keep]
 
     def classify(self):
