@@ -22,5 +22,3 @@ def test_PeakFinder():
 
     assert len(p.troughinds) > 0
     assert p._peaksig.shape[0] == p.peakinds.size-2
-
-    p.plot_data(_test=True)

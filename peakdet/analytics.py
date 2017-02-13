@@ -4,9 +4,10 @@ import numpy as np
 import scipy.signal
 from scipy.interpolate import interp1d
 
+
 class HRV():
     """Class designed purely for housing calculation of various HRV statistics
-    
+
     Parameters
     ----------
     rrtime : array-like
@@ -18,7 +19,7 @@ class HRV():
     -----
     Uses scipy.signal.welch for calculation of frequency-based statistics
     """
-    
+
     def __init__(self, rrtime, rrint):
         self._rrtime = rrtime
         self._rrint = rrint
@@ -29,7 +30,7 @@ class HRV():
 
     @property
     def _sd(self):
-        return self._rrint[1:]-self._rrint[:-1]
+        return np.diff(self._rrint)
 
     @property
     def _fft(self):
@@ -76,7 +77,7 @@ class HRV():
     def _lf(self):
         fx, px = self._fft
         return px[np.logical_and(fx>=.04, fx<.15)]
-    
+
     @property
     def _vlf(self):
         fx, px = self._fft
@@ -97,7 +98,7 @@ class HRV():
     @property
     def lf_log(self):
         return np.log(self.lf)
-    
+
     @property
     def vlf(self):
         return sum(self._vlf)
