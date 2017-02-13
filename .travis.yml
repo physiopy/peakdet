@@ -1,57 +1,26 @@
-sudo: false
+sudo: true
 
-env:
-  global:
-    - CONDA_DEPS="pip"
+language: python
 
-matrix:
-  include:
-    - os: linux
-      env:
-         - PYTHON_VERSION=3.5
-         - MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh"
-         - PYTHON_ENV="py35"
-    - os: linux
-      env:
-         - PYTHON_VERSION=2.7
-         - MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh"
-         - PYTHON_ENV="py27"
-
+python:
+- "2.7"
+- "3.5"
+    
 before_install:
-- export MINICONDA=$HOME/miniconda
-- export PATH="$MINICONDA/bin:$PATH"
-- hash -r
-- echo $MINICONDA_URL
-- wget $MINICONDA_URL -O miniconda.sh;
-- bash miniconda.sh -b -f -p $MINICONDA;
-- conda config --set always_yes yes
-- conda update conda
-- conda info -a
-- conda config --add channels conda-forge
-- source activate $PYTHON_ENV
+- sudo apt-get install libblas-dev
+- sudo apt-get install liblapack-dev
+- sudo apt-get install gfortran
 
 install:
+- pip install pytest pytest-cov
+- pip install coveralls
 - pip install -r requirements.txt
-- pip install coveralls pytest-cov pytest
 
 before_script:
-- "export DISPLAY=:99.0"
-- "sh -e /etc/init.d/xvfb start"
-- sleep 3
+- python setup.py install
 
-script:
-- py.test --pyargs peakdet --cov-report term-missing --cov=peakdet
+script: 
+- py.test --cov-report term-missing --cov=peakdet
 
 after_success:
 - coveralls
-- source deactivate
-
-before_cache:
-# clean unused packages & installed files from conda cache
-# this makes the cache rebuilt less frequently
-- conda clean --tarballs --packages --index-cache
-- rm -rf $HOME/miniconda/pkgs/cache
-
-cache:
-  directories:
-    - $HOME/miniconda
