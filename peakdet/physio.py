@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import os
 import numpy as np
-import scipy.signal
 from scipy.interpolate import InterpolatedUnivariateSpline
 from .utils import gen_flims, bandpass_filt, normalize
+
 
 class Physio(object):
     """Class to handle an instance of physiological data"""
@@ -33,7 +32,7 @@ class Physio(object):
 
 
 class ScaledPhysio(Physio):
-    """Class that scales input data to [0.0, 1.0]"""
+    """Class that normalizes input data"""
 
     def __init__(self, data, fs):
         super(ScaledPhysio,self).__init__(data,fs)
@@ -50,7 +49,7 @@ class ScaledPhysio(Physio):
 
 class FilteredPhysio(ScaledPhysio):
     """Class with bandpass filter method"""
-    
+
     def __init__(self, data, fs):
         super(FilteredPhysio,self).__init__(data,fs)
         self._filtsig = self.data.copy()

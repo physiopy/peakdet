@@ -3,7 +3,7 @@
 import os.path as op
 import numpy as np
 import pytest
-import peakdet  
+import peakdet
 
 
 def test_Physio():
@@ -21,8 +21,7 @@ def test_Physio():
     assert p.fs == 10.
 
     p = peakdet.Physio(40,fs=40.)
-    with pytest.raises(TypeError):
-        p.rawdata
+    with pytest.raises(TypeError): p.rawdata
 
     file = op.join(op.dirname(__file__),'data','header.1D')
     p = peakdet.Physio(file,fs=40.)
@@ -34,16 +33,13 @@ def test_ScaledPhysio():
 
     p = peakdet.ScaledPhysio(file, fs=40)
 
-    assert p.data.max() <= 1.0
-    assert p.data.min() >= 0.0
-
 
 def test_FilteredPhysio():
     file = op.join(op.dirname(__file__),'data','PPG.1D')
 
     p1 = peakdet.FilteredPhysio(file, fs=40)
     p2 = peakdet.FilteredPhysio(file, fs=40)
-    assert (p2.flims == p1.flims)
+    assert np.all(p2.flims == p1.flims)
 
     p1.bandpass()
     assert not np.all(p1.filtsig == p1.data)

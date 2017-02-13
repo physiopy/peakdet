@@ -2,64 +2,6 @@
 
 import numpy as np
 import scipy.signal
-from scipy.spatial import cKDTree
-
-def comp_peaks(raw_data, filtered_data,
-               order=2, k=2, comparator=scipy.signal.argrelmax):
-    """
-    Finds peaks/troughs in raw/filtered data
-
-    Returns peaks in raw data closest to those in filtered
-
-    Parameters
-    ----------
-    raw_data : array-like
-    filtered_data : array-like
-    order : int
-    comparator : function
-        Choose from scipy.signal.argrelmax, scipy.signal.argrelmin
-    """
-
-    if comparator not in [scipy.signal.argrelmax,scipy.signal.argrelmin]:
-        raise TypeError("Comparator is not a valid selection")
-
-    filtered_inds = comparator(filtered_data,order=order)[0]
-    raw_inds = comparator(raw_data, order=order)[0]
-
-    inds = raw_inds[comp_lists(filtered_inds, raw_inds, k=k)]
-
-    return inds
-
-
-def comp_lists(l1, l2, k=2):
-    """
-    Compares `l1` and `l2` determine closest matches between lists
-
-    Parameters
-    ----------
-    l1, l2 : array-like, sorted
-        Indices to compare
-    k : int
-        How close indices should be in lists
-
-    Returns
-    -------
-    array : indices from `l2` that are closest to those in `l1`
-    """
-
-    kd = cKDTree(l2[:,None])
-    on = kd.query(l1[:,None], k)[1]
-    nn = np.ones((l1.shape[0],),dtype='int64') * -1
-    used = set()
-
-    for j, nj in enumerate(on):
-        for k in nj:
-            if k not in used:
-                nn[j] = k
-                used.add(k)
-                break
-
-    return nn
 
 
 def gen_flims(signal, fs):
@@ -77,10 +19,11 @@ def gen_flims(signal, fs):
     """
 
     signal = np.squeeze(signal)
-    inds = peakfinder(signal)
-    inds = peakfinder(signal,dist=np.ceil(np.diff(inds).mean())/2)/fs
+    inds = peakfinder(signal,dist=int(fs/4))
+    inds = peakfinder(signal,dist=np.ceil(np.diff(inds).mean())/2)
+    freq = np.diff(inds).mean()/fs
 
-    return [inds/2,inds*2]
+    return np.asarray([freq/2,freq*2])
 
 
 def bandpass_filt(signal, fs, flims=None, btype='bandpass'):
@@ -95,10 +38,14 @@ def bandpass_filt(signal, fs, flims=None, btype='bandpass'):
         Bounds of filter
     btype : str
         Type of filter; one of ['band','low','high']
+
+    Returns
+    -------
+    array : filtered signal
     """
 
     signal = np.squeeze(signal)
-    if not flims: flims = [0,fs]
+    if flims is None: flims = [0,fs]
 
     nyq_freq = fs*0.5
     nyq_cutoff = np.asarray(flims)/nyq_freq
@@ -110,7 +57,7 @@ def bandpass_filt(signal, fs, flims=None, btype='bandpass'):
 
 def normalize(data):
     """
-    Normalizes `data` (subtract mean and divides by std)
+    Normalizes `data` (subtracts mean and divides by std)
 
     Parameters
     ----------
@@ -144,8 +91,8 @@ def get_extrema(data, peaks=True, thresh=0.4):
 
     if thresh < 0 or thresh > 1: raise ValueError("Thresh must be in (0,1).")
 
-    if peaks: Indx = np.where(data > data.max()*thresh)
-    else: Indx = np.where(data < data.min()*thresh)
+    if peaks: Indx = np.where(data > data.max()*thresh)[0]
+    else: Indx = np.where(data < data.min()*thresh)[0]
 
     trend = np.sign(np.diff(data))
     idx = np.where(trend==0)[0]
@@ -233,7 +180,7 @@ def troughfinder(data,thresh=0.4,dist=250):
 
 def check_troughs(data,troughs,peaks):
     """
-    Confirms that a trough exists between every set of peaks
+    Confirms that a trough exists between every set of `peaks` in `data`
 
     Parameters
     ----------
@@ -249,7 +196,7 @@ def check_troughs(data,troughs,peaks):
     """
 
     trough_first = troughs.min() < peaks.min()
-    trough_last = troughs.max() > peaks.max()
+    trough_last  = troughs.max() > peaks.max()
 
     all_troughs = np.zeros(peaks.size-1 + trough_first + trough_last,
                            dtype='int64')
@@ -272,25 +219,36 @@ def check_troughs(data,troughs,peaks):
     return all_troughs
 
 
-def gen_temp(data,factor=0.5,thresh=0.4):
+def gen_temp(data,locs,factor=0.5):
     """
-    Generate template array from `data
+    Generate waveform template array from `data`
+
+    Waveforms are taken from ~ `locs`
+
+    Parameters
+    ----------
+    data : array-like
+    locs : peak locations
+    factor: float (0,1)
+
+    Returns
+    -------
+    array : peak waveforms
     """
 
-    avgrate = round(np.diff(peakfinder(data,thresh=thresh)).mean())
-    locs = peakfinder(data,thresh=thresh,dist=round(avgrate*factor))
+    avgrate = round(np.diff(locs).mean())
 
-    THW = int(round(factor*(avgrate/2)))
+    THW       = int(round(factor*(avgrate/2)))
     nsamptemp = THW*2 + 1
-    npulse = locs.size
-    temp = np.zeros([npulse-3,nsamptemp])
+    npulse    = locs.size
+    template  = np.zeros([npulse-2,nsamptemp])
 
-    for n in range(1,npulse-3):
-        temp[n] = data[locs[n]-THW:locs[n]+THW+1]
-        temp[n] = temp[n] - temp[n].mean()
-        temp[n] = temp[n]/max(abs(temp[n]))
+    for n in range(1,npulse-1):
+        template[n-1] = data[locs[n]-THW:locs[n]+THW+1]
+        template[n-1] = template[n-1] - template[n-1].mean()
+        template[n-1] = template[n-1]/max(abs(template[n-1]))
 
-    return temp[1:,:]
+    return template
 
 
 def z_transform(z):
@@ -299,14 +257,14 @@ def z_transform(z):
     """
 
     z = z - z.sum()/z.size
-    z = z/np.sqrt(z.T @ z * 1/(z.size-1))
+    z = z/np.sqrt(np.dot(z.T,z) * (1/(z.size-1)))
 
     return z
 
 
 def corr(x,y,z_tran=[False,False]):
     """
-    Returns correlation of and y
+    Returns correlation of `x` and `y`
     """
 
     if x.ndim > 1: x = x.flatten()
@@ -315,11 +273,15 @@ def corr(x,y,z_tran=[False,False]):
     if not z_tran[0]: x = z_transform(x)
     if not z_tran[1]: y = z_transform(y)
 
-    if x.size == y.size: return x.T @ y * (1/(x.size-1))
+    if x.size == y.size: return np.dot(x.T,y) * (1/(x.size-1))
     else: return None
 
 
 def corr_template(data, thresh=0.4, sim=0.95):
+    """
+    Generates single waveform template from `data`
+    """
+
     temp = gen_temp(data,thresh=thresh)
     mean_temp = z_transform(temp.mean(axis=0))
     sim_to_temp = np.zeros((temp.shape[0],1))
@@ -333,6 +295,10 @@ def corr_template(data, thresh=0.4, sim=0.95):
 
 
 def match_temp(data):
+    """
+    This currently doesn't work at all don't use this
+    """
+
     locs = peakfinder(data,dist=round(np.diff(peakfinder(data)).mean())*0.5)
     avgrate = round(np.diff(locs).mean())
     temp = corr_template(data)
