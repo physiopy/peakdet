@@ -1,8 +1,8 @@
-__all__ = ['physio','analytics','peakfinder','utils']
+__all__ = ['physio','analytics','modalities','utils']
 
 from .physio import (Physio,
                      ScaledPhysio,
                      FilteredPhysio,
-                     InterpolatedPhysio)
-from .peakfinder import (PeakFinder)
+                     InterpolatedPhysio,
+                     PeakFinder)
 from .analytics import (HRV)

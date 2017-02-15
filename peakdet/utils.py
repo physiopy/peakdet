@@ -21,7 +21,7 @@ def gen_flims(signal, fs):
     signal = np.squeeze(signal)
     inds = peakfinder(signal,dist=int(fs/4))
     inds = peakfinder(signal,dist=np.ceil(np.diff(inds).mean())/2)
-    freq = np.diff(inds).mean()/fs
+    freq = np.diff(inds).mean()/fs  # frequency of detected peaks
 
     return np.asarray([freq/2,freq*2])
 
@@ -68,8 +68,7 @@ def normalize(data):
     array: normalized data
     """
 
-    if data.ndim > 1:
-        raise IndexError("Input must be one-dimensional.")
+    if data.ndim > 1: raise IndexError("Input must be one-dimensional.")
     return (data - data.mean()) / data.std()
 
 
@@ -81,7 +80,7 @@ def get_extrema(data, peaks=True, thresh=0.4):
     ----------
     data : array-like
     peaks : bool
-        Whether to find peaks or troughs
+        Whether to look for peaks (True) or troughs (False)
     thresh : float (0,1)
 
     Returns
@@ -115,11 +114,12 @@ def min_peak_dist(locs, data, peaks=True, dist=250):
     Parameters
     ----------
     locs : array-like
-        Extrema, typically from get_extrma()
+        Extrema, typically from get_extrema()
     data : array-like
     peaks : bool
+        Whether to look for peaks (True) or troughs (False)
     dist : int
-        Minimum distance (in datapoints) b/w `locs`
+        Minimum required distance (in datapoints) b/w `locs`
 
     Returns
     -------
@@ -147,6 +147,9 @@ def peakfinder(data, thresh=0.4, dist=250):
     Parameters
     ----------
     data : array-like
+    thresh : float (0,1)
+    dist : int
+        Minimum required distance (in datapoints) b/w peaks
 
     Returns
     -------
@@ -159,13 +162,16 @@ def peakfinder(data, thresh=0.4, dist=250):
     return np.array(sorted(locs))
 
 
-def troughfinder(data,thresh=0.4,dist=250):
+def troughfinder(data, thresh=0.4, dist=250):
     """
     Finds troughs in `data`
 
     Parameters
     ----------
     data : array-like
+    thresh : float (0,1)
+    dist : int
+        Minimum required distance (in datapoints) b/w troughs
 
     Returns
     -------
@@ -178,7 +184,7 @@ def troughfinder(data,thresh=0.4,dist=250):
     return np.array(sorted(locs))
 
 
-def check_troughs(data,troughs,peaks):
+def check_troughs(data, troughs, peaks):
     """
     Confirms that a trough exists between every set of `peaks` in `data`
 
@@ -219,7 +225,7 @@ def check_troughs(data,troughs,peaks):
     return all_troughs
 
 
-def gen_temp(data,locs,factor=0.5):
+def gen_temp(data, locs, factor=0.5):
     """
     Generate waveform template array from `data`
 
@@ -254,6 +260,14 @@ def gen_temp(data,locs,factor=0.5):
 def z_transform(z):
     """
     Z-transform `z`
+
+    Parameters
+    ----------
+    z : array-like
+
+    Returns
+    -------
+    array : z-transformed input
     """
 
     z = z - z.sum()/z.size
@@ -262,9 +276,20 @@ def z_transform(z):
     return z
 
 
-def corr(x,y,z_tran=[False,False]):
+def corr(x, y, z_tran=[False,False]):
     """
     Returns correlation of `x` and `y`
+
+    Parameters
+    ----------
+    x : array, n x 1
+    y : array, n x 1
+    z_tran : [bool, bool]
+        Whether x and y, respectively, have been z-transformed already
+
+    Returns
+    -------
+    float : [0,1] correlation between `x` and `y`
     """
 
     if x.ndim > 1: x = x.flatten()
@@ -277,12 +302,21 @@ def corr(x,y,z_tran=[False,False]):
     else: return None
 
 
-def corr_template(data, thresh=0.4, sim=0.95):
+def corr_template(temp, sim=0.95):
     """
-    Generates single waveform template from `data`
+    Generates single waveform template from `temp` array
+
+    Parameters
+    ----------
+    temp : array of waveforms
+    sim : float (0,1)
+        Cutoff for correlation of waveforms to average template
+
+    Returns
+    -------
+    array : template waveform
     """
 
-    temp = gen_temp(data,thresh=thresh)
     mean_temp = z_transform(temp.mean(axis=0))
     sim_to_temp = np.zeros((temp.shape[0],1))
 
