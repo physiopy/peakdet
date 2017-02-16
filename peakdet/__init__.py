@@ -6,3 +6,4 @@ from .physio import (Physio,
                      InterpolatedPhysio,
                      PeakFinder)
 from .analytics import (HRV)
+from .modalities import (ECG, PPG, RESP)

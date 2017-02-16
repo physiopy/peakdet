@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline
-from . import utils
+from peakdet import utils
 
 
 class Physio(object):
-    """Class to handle an instance of physiological data"""
+    """
+    Class to handle an instance of physiological data
+    """
 
     def __init__(self, data, fs):
         self._fs = float(fs)
@@ -32,7 +35,9 @@ class Physio(object):
 
 
 class ScaledPhysio(Physio):
-    """Class that normalizes input data"""
+    """
+    Class that normalizes input data
+    """
 
     def __init__(self, data, fs):
         super(ScaledPhysio,self).__init__(data,fs)
@@ -48,7 +53,7 @@ class ScaledPhysio(Physio):
 
 
 class FilteredPhysio(ScaledPhysio):
-    """Class with bandpass filter method"""
+    """Class with filtering method"""
 
     def __init__(self, data, fs):
         super(FilteredPhysio,self).__init__(data,fs)
@@ -64,19 +69,25 @@ class FilteredPhysio(ScaledPhysio):
         else: return self.data
 
     def reset(self):
-        """Resets self.filtsig to original (scaled) data series"""
+        """
+        Resets self.filtsig to original (scaled) data series
+        """
         self._filtsig = self.data.copy()
 
     def bandpass(self, flims=None):
-        """Bandpass filters signal"""
-        if not flims: flims = self.flims
+        """
+        Bandpass filters signal with frequency cutoffs `flims`
+        """
+        if flims is None: flims = self.flims
         self._filtsig = utils.bandpass_filt(self._filtsig,
                                             self.fs,
                                             flims)
 
     def lowpass(self, flims=None):
-        """Lowpass filters signal"""
-        if not flims: flims = self.flims
+        """
+        Lowpass filters signal with frequency cutoff `flims`
+        """
+        if flims is None: flims = self.flims
         if hasattr(flims,'__len__') and len(flims) > 1: flims = flims[0]
         self._filtsig = utils.bandpass_filt(self._filtsig,
                                             self.fs,
@@ -84,8 +95,10 @@ class FilteredPhysio(ScaledPhysio):
                                             btype='low')
 
     def highpass(self, flims=None):
-        """Highpass filters signal"""
-        if not flims: flims = self.flims
+        """
+        Highpass filters signal with frequency cutoff `flims`
+        """
+        if flims is None: flims = self.flims
         if hasattr(flims,'__len__') and len(flims) > 1: flims = flims[-1]
         self._filtsig = utils.bandpass_filt(self._filtsig,
                                             self.fs,
@@ -94,14 +107,18 @@ class FilteredPhysio(ScaledPhysio):
 
 
 class InterpolatedPhysio(FilteredPhysio):
-    """Class with interpolation method"""
+    """
+    Class with interpolation method
+    """
 
     def __init__(self, data, fs):
         super(InterpolatedPhysio,self).__init__(data,fs)
         self._rawfs = fs
 
     def interpolate(self, order=2):
-        """Interpolates data to `order` * `fs`"""
+        """
+        Interpolates self.data to sampling rate `order` * self.fs
+        """
         t = np.arange(0, self.data.size/self.fs, 1./self.fs)
         tn = np.arange(0, t[-1], 1./(self.fs*order))
         i = InterpolatedUnivariateSpline(t,self.data)
@@ -117,7 +134,9 @@ class InterpolatedPhysio(FilteredPhysio):
 
 
 class PeakFinder(InterpolatedPhysio):
-    """Class with peak (and trough) finding method(s)"""
+    """
+    Class with peak (and trough) finding method(s)
+    """
 
     def __init__(self, data, fs):
         super(PeakFinder,self).__init__(data, fs)

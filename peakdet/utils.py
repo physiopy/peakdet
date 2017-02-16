@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
-import scipy.signal
+from scipy.signal import butter, filtfilt, gaussian
 
 
 def gen_flims(signal, fs):
@@ -49,8 +49,8 @@ def bandpass_filt(signal, fs, flims=None, btype='bandpass'):
 
     nyq_freq = fs*0.5
     nyq_cutoff = np.asarray(flims)/nyq_freq
-    b, a = scipy.signal.butter(3, nyq_cutoff, btype=btype)
-    fsig = scipy.signal.filtfilt(b, a, signal)
+    b, a = butter(3, nyq_cutoff, btype=btype)
+    fsig = filtfilt(b, a, signal)
 
     return fsig
 
@@ -328,6 +328,10 @@ def corr_template(temp, sim=0.95):
     return clean_temp.mean(axis=0)
 
 
+def update_match_temp(data,locs,temp):
+
+    pass
+
 def match_temp(data):
     """
     This currently doesn't work at all don't use this
@@ -391,8 +395,8 @@ def match_temp(data):
     peak_num = 0
     cpulse = np.zeros(data.size)
     search_steps_tot = round(0.5*avgrate)
-    location_weight = scipy.signal.gaussian(2*search_steps_tot+1,
-                                            std=(2*search_steps_tot-1)/5)
+    location_weight = gaussian(2*search_steps_tot+1,
+                               std=(2*search_steps_tot-1)/5)
     nlimit = data_padded.size - THW - search_pos
 
     while n < nlimit:
