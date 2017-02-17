@@ -170,21 +170,25 @@ class PeakFinder(InterpolatedPhysio):
         if self.rrtime is None: return
         else: return utils.corr_template(self._peaksig)
 
-    def get_peaks(self):
-        locs = utils.peakfinder(self.filtsig,dist=int(self.fs/4))
-        avgrate = round(np.diff(locs).mean())
-
-        self._peakinds = utils.peakfinder(self.filtsig,dist=avgrate/2)
+    def get_peaks(self, thresh=0.4):
+        locs = utils.peakfinder(self.filtsig,
+                                dist=int(self.fs/4),
+                                thresh=thresh)
+        self._peakinds = utils.peakfinder(self.filtsig,
+                                          dist=round(np.diff(locs).mean())/2,
+                                          thresh=thresh)
 
         self.get_troughs()
 
-    def get_troughs(self):
-        if self.rrtime is None: self.get_peaks()
+    def get_troughs(self, thresh=0.4):
+        if self.rrtime is None: self.get_peaks(thresh=thresh)
 
-        locs = utils.troughfinder(self.filtsig,dist=int(self.fs/4))
-        avgrate = round(np.diff(locs).mean())
-
-        troughinds = utils.troughfinder(self.filtsig,dist=avgrate/2,)
+        locs = utils.troughfinder(self.filtsig,
+                                  dist=int(self.fs/4),
+                                  thresh=thresh)
+        troughinds = utils.troughfinder(self.filtsig,
+                                        dist=round(np.diff(locs).mean())/2,
+                                        thresh=thresh)
         self._troughinds = utils.check_troughs(self.filtsig,
                                                troughinds,
                                                self.peakinds)
