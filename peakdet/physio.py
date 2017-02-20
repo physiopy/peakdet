@@ -120,6 +120,8 @@ class InterpolatedPhysio(FilteredPhysio):
         Interpolates self.data to sampling rate `order` * self.fs
         """
         t = np.arange(0, self.data.size/self.fs, 1./self.fs)
+        if t.size != self.data.size: t = t[:self.data.size]
+
         tn = np.arange(0, t[-1], 1./(self.fs*order))
         i = InterpolatedUnivariateSpline(t,self.data)
 
