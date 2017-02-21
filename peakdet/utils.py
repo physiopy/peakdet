@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
-import scipy.signal
+from scipy.signal import butter, filtfilt, gaussian
 from decimal import Decimal, ROUND_HALF_UP
 
 
@@ -128,7 +128,7 @@ def min_peak_dist(locs, data, peaks=True, dist=250):
     """
     if not any(np.diff(sorted(locs))<=250):
         return locs
-    
+
     # sort peaks from largest to smallest and return the corresponding locs
     if peaks: idx = data[locs].argsort()[::-1][:]
     else: idx = data[locs].argsort()[:]
@@ -220,13 +220,15 @@ def check_troughs(data, troughs, peaks):
 
     for f in range(peaks.size-1):
         curr = np.logical_and(troughs>peaks[f],troughs<peaks[f+1])
-        # if there is no trough between two pks, find the lowest point between the two pks and assign it trough
+        # if there is no trough between two pks, find the lowest point
+        # between the two pks and assign it trough
         if not np.any(curr):
             dp = data[peaks[f]:peaks[f+1]]
             idx = peaks[f] + np.where(dp == dp.min())[0][0]
         else:
             idx = troughs[curr]
-            # if there are more than 1 trough between two pks, only keep the first one?
+            # if there are more than 1 trough between two pks
+            # only keep the first one?
             if idx.size > 1: idx = idx[0]
 
         if trough_first: all_troughs[f+1] = idx
@@ -253,20 +255,19 @@ def gen_temp(data, locs, factor=0.5):
     """
 
     avgrate = round(np.diff(locs).mean())
-    locs2 = peakfinder(data,dist = round(factor*avgrate))
 
-    THW       = int(Decimal(factor*(avgrate/2)).quantize(0,ROUND_HALF_UP))
+    THW       = int(np.ceil(factor*(avgrate/2)))
     nsamptemp = THW*2 + 1
-    npulse    = locs2.size
-    template  = np.zeros([npulse-3,nsamptemp])
-    
+    npulse    = locs.size
+    template  = np.zeros([npulse-2,nsamptemp])
+
     # find a template around each peak
-    for n in range(1,npulse-2):
-        template[n-1] = data[locs2[n]-THW:locs2[n]+THW+1]
+    for n in range(1,npulse-1):
+        template[n-1] = data[locs[n]-THW:locs[n]+THW+1]
         template[n-1] = template[n-1] - template[n-1].mean()
         template[n-1] = template[n-1]/max(abs(template[n-1]))
 
-    return template, npulse
+    return template
 
 
 def z_transform(z):
@@ -314,7 +315,7 @@ def corr(x, y, z_tran=[False,False]):
     else: return None
 
 
-def corr_template(data, locs,thresh=0.4, sim=0.95):
+def corr_template(data,locs,thresh=0.4,sim=0.95):
     """
     Generates single waveform template from `temp` array
 
@@ -329,26 +330,24 @@ def corr_template(data, locs,thresh=0.4, sim=0.95):
     array : template waveform
     """
 
-    temp, npulse = gen_temp(data,locs)
-    
+    temp = gen_temp(data,locs)
+    npulse = locs.size
+
     # average all temps
     mean_temp = z_transform(temp.mean(axis=0))
     sim_to_temp = np.zeros((temp.shape[0],1))
-    # compare each template with mean temp, only keep the ones with high similarity, 
-    # and generate a mean temp based on these
+
+    # compare each template with mean temp, only keep the ones with high
+    # similarity, and generate a mean temp based on these
     for n in range(temp.shape[0]):
         sim_to_temp[n] = corr(temp[n],mean_temp,[False,True])
 
     if len(np.where(sim_to_temp>sim)[0]) >= np.ceil(npulse*0.1):
         clean_temp = temp[np.where(sim_to_temp>sim)[0]]
-    else: clean_temp = temp[np.where(sim_to_temp>(1-np.ceil(npulse*0.1)/npulse))[0]]
+    else:
+        clean_temp = temp[np.where(sim_to_temp>(1-np.ceil(npulse*0.1)/npulse))[0]]
 
     return clean_temp.mean(axis=0)
-
-
-def update_match_temp(data,locs,temp):
-
-    pass
 
 
 def match_temp(data):
@@ -362,16 +361,16 @@ def match_temp(data):
     temp = corr_template(data,locs)
 
     idx = [0,20]
-	  # template half width in samples
+    # template half width in samples
     THW = int(np.floor(temp.size/2))
-    #z_temp = z_transform(temp)[:int(THW*2)]
+    # z_temp = z_transform(temp)[:int(THW*2)]
     z_temp = z_transform(temp)
     is_z_trans = [0,1]
 
     c_samp_start = int(round(2*THW+1))-1
     try: c_samp_end = int(locs2[idx[1]-1])
     except: c_samp_end = int(locs2[-1]-1)
-    
+
     sim_to_temp = np.zeros(c_samp_end+1)
     for n in np.arange(c_samp_start,c_samp_end+1):
         i_sig_start = n - THW
@@ -384,7 +383,7 @@ def match_temp(data):
 
     peak_num = 0
     search_steps_tot = int(Decimal(0.5*avgrate).quantize(0,ROUND_HALF_UP))
-    
+
     n_samp_pad = THW + search_steps_tot + 1
     data_padded = np.hstack((np.zeros(int(n_samp_pad)),
                              data,
@@ -392,7 +391,7 @@ def match_temp(data):
     n = int(i_best_match + n_samp_pad)
     sim_to_temp = np.zeros(data_padded.size)
 
-    while n > 1+search_steps_tot+THW:     
+    while n > 1+search_steps_tot+THW:
         for search_pos in np.arange(-search_steps_tot-1,search_steps_tot,dtype='int64'):
             index_search_start= n - THW + search_pos + 1
             index_search_end   = n + THW + search_pos + 1
@@ -415,9 +414,9 @@ def match_temp(data):
     peak_num = 0
     cpulse = np.zeros(data.size)
 
-    #search_steps_tot = round(0.5*avgrate)
-    location_weight = scipy.signal.gaussian(2*search_steps_tot+1,
-                                            std=(2*search_steps_tot)/5)
+    # search_steps_tot = round(0.5*avgrate)
+    location_weight = gaussian(2*search_steps_tot+1,
+                               std=(2*search_steps_tot)/5)
     nlimit = data_padded.size - THW - search_pos - 1
 
     while n < nlimit:
