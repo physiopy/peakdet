@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 import numpy as np
-import scipy.signal
+from scipy.signal import welch
 from scipy.interpolate import interp1d
 
 
 class HRV():
-    """Class designed purely for housing calculation of various HRV statistics
+    """
+    Class designed purely for housing calculation of various HRV statistics
 
     Parameters
     ----------
@@ -34,7 +35,7 @@ class HRV():
 
     @property
     def _fft(self):
-        return scipy.signal.welch(self._irri, nperseg=120, fs=4.0)
+        return welch(self._irri, nperseg=120, fs=4.0)
 
     @property
     def avgnn(self):
