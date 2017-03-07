@@ -178,10 +178,10 @@ class PeakFinder(InterpolatedPhysio):
                                 thresh=thresh)
         self._peakinds = utils.peakfinder(self.filtsig,
                                           dist=round(np.diff(locs).mean())/2,
-                                          thresh=thresh)
-        self._peakinds = utils.match_temp(self.filtsig,
-                                          self._peakinds,
-                                          self.template)
+                                          thresh=thresh).astype('int64')
+        # self._peakinds = utils.match_temp(self.filtsig,
+        #                                   self._peakinds,
+        #                                   self.template)
 
         self.get_troughs()
 
