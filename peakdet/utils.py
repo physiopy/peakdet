@@ -124,6 +124,7 @@ def min_peak_dist(locs, data, peaks=True, dist=250):
     -------
     array : extrema separated by at least `dist`
     """
+
     if not any(np.diff(sorted(locs))<=250):
         return locs
 

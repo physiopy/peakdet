@@ -198,15 +198,17 @@ class PeakFinder(InterpolatedPhysio):
                                                troughinds,
                                                self.peakinds)
 
-    def plot_data(self, _test=False):
+    def plot_data(self):
         import matplotlib.pyplot as plt
+
         t = np.arange(0,self.filtsig.size/self.fs, 1./self.fs)
-        fig = plt.figure()
-        ax = fig.add_subplot(111)
+        fig, ax = plt.subplots(1)
+
         ax.plot(t, self.filtsig,'b')
-        if hasattr(self, 'peakinds'):
+
+        if len(self.peakinds)>0:
             ax.plot(t[self.peakinds], self.filtsig[self.peakinds],'.r')
-        if hasattr(self, 'troughinds'):
+        if len(self.troughinds)>0:
             ax.plot(t[self.troughinds], self.filtsig[self.troughinds],'.g')
-        if not _test: plt.show()
-        else: plt.close()
+
+        plt.show()
