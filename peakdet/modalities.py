@@ -2,7 +2,6 @@
 
 from __future__ import absolute_import
 from peakdet import physio
-from scipy.interpolate import interp1d
 
 
 class ECG(physio.PeakFinder):
@@ -24,6 +23,9 @@ class PPG(physio.PeakFinder):
         super(PPG,self).__init__(data, fs)
         self.lowpass([2.0])
 
+    def get_peaks(self, thresh=0.1):
+        super(PPG,self).get_peaks(thresh)
+
 
 class RESP(physio.PeakFinder):
     """
@@ -43,10 +45,11 @@ class RESP(physio.PeakFinder):
     def TR(self, value):
         self._TR = float(value)
 
-    @property
     def RVT(self, TR=None):
         if TR is not None: self.TR = TR
         if self.TR is None: raise ValueError('TR needs to be set!')
 
-        peaks   = self.rawdata[self.peakinds]
-        heights = self.rawdata[self.troughinds]
+        peaks   = self.filtsig[self.peakinds]
+        troughs = self.filtsig[self.troughinds]
+
+        peak_first = self.peakinds[0] < self.troughinds[0]

@@ -68,7 +68,9 @@ def normalize(data):
     array: normalized data
     """
 
+    data = np.squeeze(np.asarray(data))
     if data.ndim > 1: raise IndexError("Input must be one-dimensional.")
+    if data.std() == 0: return data - data.mean()
     return (data - data.mean()) / data.std()
 
 
@@ -85,13 +87,17 @@ def get_extrema(data, peaks=True, thresh=0.4):
 
     Returns
     -------
-    array : indices of extrema from `data`
+    array : indices of extrema from `data`ex
     """
 
     if thresh < 0 or thresh > 1: raise ValueError("Thresh must be in (0,1).")
 
-    if peaks: Indx = np.where(data > data.max()*thresh)[0]
-    else: Indx = np.where(data < data.min()*thresh)[0]
+    if peaks:
+        uthresh = (thresh*(data.max() - data.min())) + data.min()
+        Indx = np.where(data > uthresh)[0]
+    else:
+        uthresh = (thresh*(data.min() - data.max())) + data.max()
+        Indx = np.where(data < uthresh)[0]
 
     trend = np.sign(np.diff(data))
     idx = np.where(trend==0)[0]

@@ -31,7 +31,7 @@ def test_Physio():
 def test_ScaledPhysio():
     file = op.join(op.dirname(__file__),'data','PPG.1D')
 
-    p = peakdet.ScaledPhysio(file, fs=40)
+    peakdet.ScaledPhysio(file, fs=40)
 
 
 def test_FilteredPhysio():
@@ -39,7 +39,7 @@ def test_FilteredPhysio():
 
     p1 = peakdet.FilteredPhysio(file, fs=40)
     p2 = peakdet.FilteredPhysio(file, fs=40)
-    assert np.all(p2.flims == p1.flims)
+    assert np.all(p2._flims == p1._flims)
 
     p1.bandpass()
     assert not np.all(p1.filtsig == p1.data)
@@ -73,7 +73,7 @@ def test_InterpolatedPhysio():
     p1.interpolate(order=order)
     assert len(p1.data) > len(data)
     assert p1.fs == p2.fs * order
-    assert not np.all(p1.flims == p2.flims)
+    assert not np.all(p1._flims == p2._flims)
 
     p1.reset()
     assert len(p1.data) > len(data)
@@ -99,6 +99,8 @@ def test_PeakFinder():
     assert len(p.rrtime) > 0
     assert len(p.peakinds) > 0
     assert len(p.peakinds)-1 == len(p.rrint)
+    assert len(p._template) > 0
+    assert len(p.time) == len(p.filtsig)
 
     assert len(p.troughinds) > 0
     assert p._peaksig.shape[0] == p.peakinds.size-2

@@ -16,4 +16,4 @@ Cloning the repo from GitHub and running the usual `python setup.py install` sho
 
 ## Credit
 
-Many of the behind-the-scenes functions in `peakdet` are translated from the [physIO](http://www.translationalneuromodeling.org/tnu-checkphysretroicor-toolbox/) MATLAB toolbox. Consider this an imperfect translation and wrapping of their code [Kasper et al., 2017](http://www.sciencedirect.com/science/article/pii/S016502701630259X).
+Many of the behind-the-scenes functions in `peakdet` are translated from the [physIO](http://www.translationalneuromodeling.org/tnu-checkphysretroicor-toolbox/) MATLAB toolbox. Consider this an imperfect translation and wrapping of their code, and cite their code: [Kasper et al., 2017](http://www.sciencedirect.com/science/article/pii/S016502701630259X).
