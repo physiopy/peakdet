@@ -55,7 +55,7 @@ class HRV():
 
     @property
     def nn50(self):
-        return np.where(self._sd>50.)[0].size
+        return np.argwhere(self._sd>50.).size
 
     @property
     def pnn50(self):
@@ -63,7 +63,7 @@ class HRV():
 
     @property
     def nn20(self):
-        return np.where(self._sd>20.)[0].size
+        return np.argwhere(self._sd>20.).size
 
     @property
     def pnn20(self):

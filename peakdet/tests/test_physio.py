@@ -42,24 +42,20 @@ def test_FilteredPhysio():
     assert np.all(p2._flims == p1._flims)
 
     p1.bandpass()
-    assert not np.all(p1.filtsig == p1.data)
     p2.bandpass([0.5,2.0])
-    assert not np.all(p2.filtsig == p1.filtsig)
+    assert not np.all(p2.data == p1.data)
 
     for f in [p1, p2]: f.reset()
-    assert np.all(p1.filtsig == p1.data)
 
     p1.lowpass()
-    assert not np.all(p1.filtsig == p1.data)
     p2.lowpass(2.0)
-    assert not np.all(p2.filtsig == p1.filtsig)
+    assert not np.all(p2.data == p1.data)
 
     for f in [p1, p2]: f.reset()
 
     p1.highpass()
-    assert not np.all(p1.filtsig == p1.data)
     p2.highpass(0.5)
-    assert not np.all(p2.filtsig == p1.filtsig)
+    assert not np.all(p2.data == p1.data)
 
 
 def test_InterpolatedPhysio():
@@ -77,6 +73,7 @@ def test_InterpolatedPhysio():
 
     p1.reset()
     assert len(p1.data) > len(data)
+
     p1.reset(hard=True)
     assert len(p1.data) == len(data)
 
@@ -100,7 +97,7 @@ def test_PeakFinder():
     assert len(p.peakinds) > 0
     assert len(p.peakinds)-1 == len(p.rrint)
     assert len(p._template) > 0
-    assert len(p.time) == len(p.filtsig)
+    assert len(p.time) == len(p.data)
 
     assert len(p.troughinds) > 0
     assert p._peaksig.shape[0] == p.peakinds.size-2

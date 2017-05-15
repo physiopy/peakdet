@@ -21,6 +21,7 @@ class PeakEditor(object):
             raise TypeError("Input must be a sub-class of peakdet.PeakFinder")
         self.peakfinder = input
         self.master = tk.Tk()
+        self.master.title("Interactive peak editor")
         self.master.bind_all("<Control-q>",self.done)
         self.master.bind_all("<Control-z>",self.undo)
 
@@ -65,15 +66,15 @@ class PeakEditor(object):
 
     def plot_signals(self):
         if self.plot: lim = self.ax.get_xlim(), self.ax.get_ylim()
-        else: self.plot, lim = True, ((-50, None),(None,None))
+        else: self.plot, lim = True, ((-5, None),(None,None))
 
         self.ax.clear()
         self.ax.plot(self.peakfinder.time,
-                     self.peakfinder.filtsig, 'b',
+                     self.peakfinder.data, 'b',
                      self.peakfinder.time[self.peakfinder.peakinds],
-                     self.peakfinder.filtsig[self.peakfinder.peakinds],'.r',
+                     self.peakfinder.data[self.peakfinder.peakinds],'.r',
                      self.peakfinder.time[self.peakfinder.troughinds],
-                     self.peakfinder.filtsig[self.peakfinder.troughinds],'.g')
+                     self.peakfinder.data[self.peakfinder.troughinds],'.g')
         self.ax.set(xlim=lim[0], ylim=lim[1], yticklabels='')
 
         self.canvas.draw()
@@ -89,16 +90,19 @@ class PeakEditor(object):
         remove = np.arange(imin, imax, dtype='int')
 
         self.last_removed = self.peakfinder.peakinds[remove]
-        self.peakfinder._peakinds = np.delete(self.peakfinder.peakinds,
-                                              remove)
+        self.peakfinder._rejected = np.append(self.peakfinder._rejected,
+                                              self.last_removed)
+
         self.peakfinder.get_troughs(thresh=0)
         self.plot_signals()
 
     def undo(self,event=None):
         if self.last_removed is not None:
-            self.peakfinder._peakinds = np.append(self.peakfinder.peakinds,
-                                                  self.last_removed)
-            self.peakfinder._peakinds.sort()
+            self.peakfinder._rejected = np.setdiff1d(self.peakfinder._rejected,
+                                                     self.last_removed)
+            # self.peakfinder._peakinds = np.append(self.peakfinder.peakinds,
+            #                                       self.last_removed)
+            # self.peakfinder._peakinds.sort()
             self.peakfinder.get_troughs(thresh=0)
             self.last_removed = None
             self.plot_signals()

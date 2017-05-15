@@ -49,7 +49,7 @@ class RESP(physio.PeakFinder):
         if TR is not None: self.TR = TR
         if self.TR is None: raise ValueError('TR needs to be set!')
 
-        peaks   = self.filtsig[self.peakinds]
-        troughs = self.filtsig[self.troughinds]
+        peaks   = self.data[self.peakinds]
+        troughs = self.data[self.troughinds]
 
         peak_first = self.peakinds[0] < self.troughinds[0]

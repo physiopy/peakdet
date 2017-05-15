@@ -230,6 +230,8 @@ def check_troughs(data, troughs, peaks):
         if trough_first: all_troughs[f+1] = idx
         else: all_troughs[f] = idx
 
+    if trough_first: all_troughs = np.delete(all_troughs,0)
+
     return all_troughs
 
 

@@ -22,4 +22,4 @@ def test_matchtemp():
 
     p = peakdet.PeakFinder(file, fs=40)
     p.get_peaks()
-    peakdet.utils.match_temp(p.filtsig, p.peakinds, p._template)
+    peakdet.utils.match_temp(p.data, p.peakinds, p._template)

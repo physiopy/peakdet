@@ -9,8 +9,6 @@ def test_HRV():
     file = op.join(op.dirname(__file__),'data','PPG.1D')
     p = peakdet.PeakFinder(file,fs=40)
 
-    p.interpolate()
-    p.lowpass()
     p.get_peaks()
 
     h = peakdet.HRV(p.rrtime, p.rrint)
