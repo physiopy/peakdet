@@ -327,9 +327,9 @@ class PeakFinder(InterpolatedPhysio):
         #                                   self.peakinds,
         #                                   self._template)
 
-        self.get_troughs()
+        self.get_troughs(thresh=thresh, dist=dist)
 
-    def get_troughs(self, thresh=0.4):
+    def get_troughs(self, thresh=0.4, dist=None):
         """
         Detects troughs in data
 
@@ -339,10 +339,11 @@ class PeakFinder(InterpolatedPhysio):
             determines relative height of data to be considered a trough
         """
 
-        if self.rrtime is None: self.get_peaks(thresh=thresh)
+        if dist is None: dist = int(self.fs/4)
+        if self.rrtime is None: self.get_peaks(thresh=thresh, dist=dist)
 
         locs = utils.troughfinder(self.data,
-                                  dist=int(self.fs/4),
+                                  dist=dist,
                                   thresh=thresh)
         troughinds = utils.troughfinder(self.data,
                                         dist=round(np.diff(locs).mean())/2,

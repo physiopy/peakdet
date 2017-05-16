@@ -24,7 +24,9 @@ class PeakEditor(object):
         self.master.title("Interactive peak editor")
         self.master.bind_all("<Control-q>",self.done)
         self.master.bind_all("<Control-z>",self.undo)
-
+        self.master.geometry('%dx%d+%d+%d' % (self.master.winfo_screenwidth(),
+                                              self.master.winfo_screenheight(),
+                                              0, 0))
         self.create_main()
         self.master.update()
         self.master.mainloop()
