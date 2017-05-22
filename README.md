@@ -4,7 +4,6 @@ Physiological peak detection in Python
 
 ## Status
 [![Build Status](https://travis-ci.org/rmarkello/peakdet.svg?branch=master)](https://travis-ci.org/rmarkello/peakdet)
-[![Coverage Status](https://coveralls.io/repos/github/rmarkello/peakdet/badge.svg?branch=master)](https://coveralls.io/github/rmarkello/peakdet?branch=master)
 
 ## Overview
 
