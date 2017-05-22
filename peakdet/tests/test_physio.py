@@ -2,6 +2,7 @@
 
 import os.path as op
 import numpy as np
+import matplotlib.pyplot as plt
 import pytest
 import peakdet
 
@@ -31,7 +32,9 @@ def test_Physio():
 def test_ScaledPhysio():
     file = op.join(op.dirname(__file__),'data','PPG.1D')
 
-    peakdet.ScaledPhysio(file, fs=40)
+    p = peakdet.ScaledPhysio(file, fs=40)
+    p.data
+    p.data = np.loadtxt(file)
 
 
 def test_FilteredPhysio():
@@ -101,3 +104,5 @@ def test_PeakFinder():
 
     assert len(p.troughinds) > 0
     assert p._peaksig.shape[0] == p.peakinds.size-2
+    fig = p.plot(_debug=True)
+    plt.close(fig)

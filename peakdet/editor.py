@@ -15,7 +15,7 @@ class PeakEditor(object):
     Class for editing detected peaks
     """
 
-    def __init__(self, input):
+    def __init__(self, input, _debug=False):
 
         if not isinstance(input, peakdet.PeakFinder):
             raise TypeError("Input must be a sub-class of peakdet.PeakFinder")
@@ -29,7 +29,7 @@ class PeakEditor(object):
                                               0, 0))
         self.create_main()
         self.master.update()
-        self.master.mainloop()
+        if not _debug: self.master.mainloop()
 
     def create_main(self):
         frame = ttk.Frame(self.master)

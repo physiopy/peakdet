@@ -9,10 +9,9 @@ setup(
     maintainer="Ross Markello",
     maintainer_email="rossmarkello@gmail.com",
     url="http://github.com/rmarkello/peakdet",
-    install_requires=['numpy','scipy'],
+    install_requires=['numpy','scipy','matplotlib'],
     packages=find_packages(exclude=['peakdet/tests']),
-    package_data={'peakdet' : ['data/*'],
-                  'peakdet.tests' : ['data/*']},
+    package_data={'peakdet.tests' : ['data/*']},
     tests_require=['pytest'],
     download_url="https://github.com/rmarkello/peakdet/archive/{0}.tar.gz".format(__version__),
     license='MIT')

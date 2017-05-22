@@ -210,12 +210,12 @@ class InterpolatedPhysio(FilteredPhysio):
 
     def reset(self, hard=False):
         """
-        Resets data
+        Removes filtering from data
 
         Parameters
         ----------
         hard : bool (False)
-            causes data reset to remove interpolation
+            also remove interpolation from data
         """
 
         if hard:
@@ -295,12 +295,12 @@ class PeakFinder(InterpolatedPhysio):
 
     def reset(self, hard=False):
         """
-        Resets data
+        Removes filtering and peak-finding from data
 
         Parameters
         ----------
         hard : bool (False)
-            causes data reset to remove interpolation
+            also remove interpolation from data
         """
 
         self._peakinds, self._troughinds = [], []
@@ -322,7 +322,7 @@ class PeakFinder(InterpolatedPhysio):
                                 thresh=thresh)
         self._peakinds = utils.peakfinder(self.data,
                                           dist=round(np.diff(locs).mean())/2,
-                                          thresh=thresh).astype('int64')
+                                          thresh=thresh).astype('int')
         # self._peakinds = utils.match_temp(self.data,
         #                                   self.peakinds,
         #                                   self._template)
@@ -352,7 +352,7 @@ class PeakFinder(InterpolatedPhysio):
                                                troughinds,
                                                self.peakinds)
 
-    def plot(self):
+    def plot(self,_debug=False):
         """
         Generates plot of data with detected peaks/troughs (if any)
         """
@@ -363,14 +363,16 @@ class PeakFinder(InterpolatedPhysio):
 
         ax.plot(self.time, self.data,'b')
 
-        if len(self.peakinds)>0:
+        if len(self.peakinds):
             ax.plot(self.time[self.peakinds],
                     self.data[self.peakinds],'.r')
-        if len(self.troughinds)>0:
+        if len(self.troughinds):
             ax.plot(self.time[self.troughinds],
                     self.data[self.troughinds],'.g')
 
-        plt.show()
+        if not _debug: plt.show()
+
+        return fig
 
     def edit_peaks(self):
         """

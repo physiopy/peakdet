@@ -18,8 +18,14 @@ def test_corr():
 
 
 def test_matchtemp():
-    file = op.join(op.dirname(__file__),'data','Resp.1D')
+    file = op.join(op.dirname(__file__),'data','PPG.1D')
 
     p = peakdet.PeakFinder(file, fs=40)
+    p.get_peaks()
+    peakdet.utils.match_temp(p.data, p.peakinds, p._template)
+
+    data = np.loadtxt(file)
+    data = data[:200]
+    p = peakdet.PeakFinder(data, fs=40)
     p.get_peaks()
     peakdet.utils.match_temp(p.data, p.peakinds, p._template)

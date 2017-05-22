@@ -209,28 +209,20 @@ def check_troughs(data, troughs, peaks):
     array : troughs
     """
 
-    trough_first = troughs.min() < peaks.min()
-    trough_last  = troughs.max() > peaks.max()
-
-    all_troughs = np.zeros(peaks.size-1 + trough_first + trough_last,
-                           dtype='int64')
-
-    if trough_first: all_troughs[0] = troughs[0]
-    if trough_last: all_troughs[-1] = troughs[-1]
+    all_troughs = np.zeros(peaks.size-1,
+                           dtype='int')
 
     for f in range(peaks.size-1):
-        curr = np.logical_and(troughs>peaks[f],troughs<peaks[f+1])
+        curr = np.logical_and(troughs>peaks[f],
+                              troughs<peaks[f+1])
         if not np.any(curr):
             dp  = data[peaks[f]:peaks[f+1]]
-            idx = peaks[f] + np.where(dp == dp.min())[0][0]
+            idx = peaks[f] + np.argwhere(dp == dp.min())[0]
         else:
             idx = troughs[curr]
             if idx.size > 1: idx = idx[0]
 
-        if trough_first: all_troughs[f+1] = idx
-        else: all_troughs[f] = idx
-
-    if trough_first: all_troughs = np.delete(all_troughs,0)
+        all_troughs[f] = idx
 
     return all_troughs
 
@@ -281,7 +273,7 @@ def z_transform(z):
     """
 
     z = z - z.sum()/z.size
-    z = z/np.sqrt(np.dot(z.T,z) * (1/(z.size-1)))
+    z = z/np.sqrt(np.dot(z.T,z) * (1./(z.size-1)))
 
     return z
 
@@ -310,7 +302,7 @@ def corr(x, y, z_tran=[False,False]):
     if not z_tran[0]: x = z_transform(x)
     if not z_tran[1]: y = z_transform(y)
 
-    if x.size == y.size: return np.dot(x.T,y) * (1/(x.size-1))
+    if x.size == y.size: return np.dot(x.T,y) * (1./(x.size-1))
     else: return None
 
 
@@ -376,7 +368,7 @@ def match_temp(data, locs, temp):
     z_temp     = z_transform(temp)
     is_z_trans = [False,True]
 
-    c_samp_start = int(round(2*THW+1))-1
+    c_samp_start = int(round(2.0*THW+1))-1
     try:    c_samp_end = int(locs[19])
     except: c_samp_end = int(locs[-1]-1)
 
@@ -402,7 +394,7 @@ def match_temp(data, locs, temp):
 
     while n > 1+search_steps_tot+THW:
         search_pos_array = np.arange(-search_steps_tot-1, search_steps_tot,
-                                     dtype='int64')
+                                     dtype='int')
         for search_pos in search_pos_array:
             index_search_start = int(n - THW + search_pos + 1)
             index_search_end   = int(n + THW + search_pos + 1)
@@ -416,7 +408,7 @@ def match_temp(data, locs, temp):
         index_search_end   = int(n + search_steps_tot)
         index_search_range = np.arange(index_search_start,
                                        index_search_end+1,
-                                       dtype='int64')
+                                       dtype='int')
 
         search_range_values = sim_to_temp[index_search_range]
         c_best_match = np.nanmax(search_range_values)
@@ -433,7 +425,7 @@ def match_temp(data, locs, temp):
 
     while n < nlimit:
         search_pos_array = np.arange(-search_steps_tot-1, search_steps_tot,
-                                     dtype='int64')
+                                     dtype='int')
         for search_pos in search_pos_array:
             index_search_start = int(max(0, n - THW + search_pos) + 1)
             index_search_end   = int(n + THW + search_pos + 1)
@@ -448,7 +440,7 @@ def match_temp(data, locs, temp):
         index_search_end   = n + search_steps_tot
         index_search_range = np.arange(index_search_start,
                                        index_search_end+1,
-                                       dtype='int64')
+                                       dtype='int')
 
         search_range_values = sim_to_temp[index_search_range]
         c_best_match = np.nanmax(search_range_values)
