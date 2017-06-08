@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import
 import numpy as np
-from peakdet import physio
+from peakdet import physio, editor
 
 
 class BaseModality(physio.PeakFinder):
@@ -55,12 +55,11 @@ class HRModality():
         if end is None: end = self.rrtime[-1]
 
         mod   = self.TR * (step//2)
-        time  = np.arange(start-mod, end+mod+1,
-                          self.TR, dtype='int')
+        time  = np.arange(start-mod, end+mod+1, self.TR, dtype='int')
         HR    = np.zeros(len(time)-step)
 
         for l in range(step,time.size):
-            inds     = np.logical_and(self.rrtime>time[l-step],
+            inds     = np.logical_and(self.rrtime>=time[l-step],
                                       self.rrtime<time[l])
             relevant = self.rrint[inds]
 
@@ -99,6 +98,22 @@ class ECG(BaseModality, HRModality):
         super(ECG,self).reset(hard=hard)
         self.bandpass([5.,15.])
 
+    def edit_peaks(self):
+        """
+        Opens up peakdet.editor.PeakEditor window
+
+        This is for interactive editing of detected peaks (i.e., is to be used
+        to remove components of the data stream contaminated by artifact). To
+        use, simply drag the cursor over parts of the data to remove them from
+        consideration.
+
+        Accepted inputs
+        ---------------
+        <ctrl-z> : undo last edit
+        <ctrl-q> : stop interactive peak editing
+        """
+        editor.PeakEditor(self, _xlim=150)
+
 
 class PPG(BaseModality, HRModality):
     """
@@ -126,8 +141,24 @@ class PPG(BaseModality, HRModality):
         super(PPG,self).reset(hard=hard)
         self.lowpass([2.0])
 
-    def get_peaks(self, thresh=0.1):
+    def get_peaks(self, thresh=0.2):
         super(PPG,self).get_peaks(thresh)
+
+    def edit_peaks(self):
+        """
+        Opens up peakdet.editor.PeakEditor window
+
+        This is for interactive editing of detected peaks (i.e., is to be used
+        to remove components of the data stream contaminated by artifact). To
+        use, simply drag the cursor over parts of the data to remove them from
+        consideration.
+
+        Accepted inputs
+        ---------------
+        <ctrl-z> : undo last edit
+        <ctrl-q> : stop interactive peak editing
+        """
+        editor.PeakEditor(self, _xlim=200)
 
 
 class RESP(BaseModality):
@@ -140,6 +171,9 @@ class RESP(BaseModality):
     def __init__(self, data, fs, TR=None):
         super(RESP,self).__init__(data, fs, TR)
         self.bandpass([0.05,0.5])
+
+    def get_peaks(self, thresh=0.3):
+        super(RESP,self).get_peaks(thresh)
 
     def reset(self, hard=False):
         """
@@ -156,7 +190,7 @@ class RESP(BaseModality):
         super(RESP,self).reset(hard=hard)
         self.bandpass([0.05,0.5])
 
-    def RVT(self, step=1, start=0, end=None, TR=None):
+    def RVT(self, start=0, end=None, TR=None):
         """
         Creates respiratory volume time series (interpolated to TR)
 
@@ -189,8 +223,7 @@ class RESP(BaseModality):
         rvt = (pheight[:-1]-theight) / (np.diff(self.peakinds)/self.fs)
         rt  = (self.peakinds/self.fs)[1:]
 
-        mod  = self.TR * (step//2)
-        time = np.arange(start-mod, end+mod+1, self.TR, dtype='int')
+        time = np.arange(start, end, self.TR, dtype='int')
         iRVT = np.interp(time, rt, rvt, left=rvt.mean(), right=rvt.mean())
 
         return iRVT

@@ -15,11 +15,12 @@ class PeakEditor(object):
     Class for editing detected peaks
     """
 
-    def __init__(self, input, _debug=False):
+    def __init__(self, input, _debug=False, _xlim=None):
 
         if not isinstance(input, peakdet.PeakFinder):
             raise TypeError("Input must be a sub-class of peakdet.PeakFinder")
         self.peakfinder = input
+        self.defxlim = _xlim
         self.master = tk.Tk()
         self.master.title("Interactive peak editor")
         self.master.bind_all("<Control-q>",self.done)
@@ -68,7 +69,7 @@ class PeakEditor(object):
 
     def plot_signals(self):
         if self.plot: lim = self.ax.get_xlim(), self.ax.get_ylim()
-        else: self.plot, lim = True, ((-5, None),(None,None))
+        else: self.plot, lim = True, ((-5, self.defxlim), (None,None))
 
         self.ax.clear()
         self.ax.plot(self.peakfinder.time,

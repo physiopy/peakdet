@@ -244,8 +244,8 @@ class PeakFinder(InterpolatedPhysio):
     @property
     def _irej(self):
         inds = [np.where(self._peakinds==r)[0][0] for r in self._rejected]
-        inds = np.append(inds, np.array(inds)-1)
-        return inds[np.where(inds>=0)]
+        inds = np.unique(np.append(inds, np.array(inds)-1))
+        return inds[np.where(inds>=0)].astype('int')
 
     @property
     def rrtime(self):
@@ -254,7 +254,7 @@ class PeakFinder(InterpolatedPhysio):
         """
 
         if len(self.peakinds):
-            return np.delete(self._peakinds[1:],self._irej)/self.fs
+            return np.delete(self._peakinds,self._irej)[1:]/self.fs
         else: return
 
     @property

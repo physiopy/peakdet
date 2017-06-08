@@ -1,7 +1,40 @@
 #!/usr/bin/env python
 
+import pickle
 import numpy as np
 from scipy.signal import butter, filtfilt, gaussian
+
+
+def save(fname, pf):
+    """
+    Saves `pf` to file
+
+    Parameters
+    ----------
+    fname : str
+        path to output file
+    pf : peakdet.PeakFinder instance
+        or subclass instance
+    """
+
+    with open(fname, 'wb') as out: pickle.dump(pf, out)
+
+
+def load(fname):
+    """
+    Loads `fname` created by save()
+
+    Parameters
+    ----------
+    fname : str
+        path to input file
+
+    Returns
+    -------
+    peakdet.PeakFinder
+    """
+
+    with open(fname, 'rb') as src: return pickle.load(src)
 
 
 def gen_flims(signal, fs):
