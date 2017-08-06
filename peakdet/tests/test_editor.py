@@ -11,14 +11,14 @@ class Event():
 
 
 def test_PeakEditor():
-    file = op.join(op.dirname(__file__),'data','PPG.1D')
-    p = peakdet.PeakFinder(file,fs=40)
+    fname = op.join(op.dirname(__file__), 'data', 'PPG.1D')
+    p = peakdet.PeakFinder(fname, fs=40)
 
     p.get_peaks()
 
-    with pytest.raises(TypeError): peakdet.editor.PeakEditor(10,_debug=True)
+    with pytest.raises(TypeError): peakdet.editor.PeakEditor(10, _debug=True)
     m = peakdet.editor.PeakEditor(p, _debug=True)
-    m.on_span_select(10,20)
+    m.on_span_select(10, 20)
     m.undo()
     m.roll_wheel(Event(step=5))
     m.done()

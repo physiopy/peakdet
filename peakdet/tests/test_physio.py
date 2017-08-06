@@ -8,11 +8,11 @@ import peakdet
 
 
 def test_Physio():
-    file = op.join(op.dirname(__file__),'data','PPG.1D')
-    data = np.loadtxt(file)
+    fname = op.join(op.dirname(__file__), 'data', 'PPG.1D')
+    data = np.loadtxt(fname)
 
-    p = peakdet.Physio(file, fs=40)
-    assert p._dinput == file
+    p = peakdet.Physio(fname, fs=40)
+    assert p._dinput == fname
     assert p.fs == 40.
     assert np.all(p.rawdata == data)
 
@@ -21,31 +21,31 @@ def test_Physio():
     p.fs = 10.
     assert p.fs == 10.
 
-    p = peakdet.Physio(40,fs=40.)
+    p = peakdet.Physio(40, fs=40.)
     with pytest.raises(TypeError): p.rawdata
 
-    file = op.join(op.dirname(__file__),'data','header.1D')
-    p = peakdet.Physio(file,fs=40.)
-    assert np.all(p.rawdata == np.loadtxt(file,skiprows=1))
+    fname = op.join(op.dirname(__file__), 'data', 'header.1D')
+    p = peakdet.Physio(fname, fs=40.)
+    assert np.all(p.rawdata == np.loadtxt(fname, skiprows=1))
 
 
 def test_ScaledPhysio():
-    file = op.join(op.dirname(__file__),'data','PPG.1D')
+    fname = op.join(op.dirname(__file__), 'data', 'PPG.1D')
 
-    p = peakdet.ScaledPhysio(file, fs=40)
+    p = peakdet.ScaledPhysio(fname, fs=40)
     p.data
-    p.data = np.loadtxt(file)
+    p.data = np.loadtxt(fname)
 
 
 def test_FilteredPhysio():
-    file = op.join(op.dirname(__file__),'data','PPG.1D')
+    fname = op.join(op.dirname(__file__), 'data', 'PPG.1D')
 
-    p1 = peakdet.FilteredPhysio(file, fs=40)
-    p2 = peakdet.FilteredPhysio(file, fs=40)
+    p1 = peakdet.FilteredPhysio(fname, fs=40)
+    p2 = peakdet.FilteredPhysio(fname, fs=40)
     assert np.all(p2._flims == p1._flims)
 
     p1.bandpass()
-    p2.bandpass([0.5,2.0])
+    p2.bandpass([0.5, 2.0])
     assert not np.all(p2.data == p1.data)
 
     for f in [p1, p2]: f.reset()
@@ -62,11 +62,11 @@ def test_FilteredPhysio():
 
 
 def test_InterpolatedPhysio():
-    file = op.join(op.dirname(__file__),'data','Resp.1D')
-    data = np.loadtxt(file)
+    fname = op.join(op.dirname(__file__), 'data', 'Resp.1D')
+    data = np.loadtxt(fname)
 
-    p1 = peakdet.InterpolatedPhysio(file,fs=40)
-    p2 = peakdet.FilteredPhysio(file,fs=40)
+    p1 = peakdet.InterpolatedPhysio(fname, fs=40)
+    p2 = peakdet.FilteredPhysio(fname, fs=40)
 
     order = 3.
     p1.interpolate(order=order)
@@ -86,9 +86,9 @@ def test_InterpolatedPhysio():
 
 
 def test_PeakFinder():
-    file = op.join(op.dirname(__file__),'data','Resp.1D')
+    fname = op.join(op.dirname(__file__), 'data', 'Resp.1D')
 
-    p = peakdet.PeakFinder(file, fs=40)
+    p = peakdet.PeakFinder(fname, fs=40)
     assert p.rrint is None
     assert p.rrtime is None
 

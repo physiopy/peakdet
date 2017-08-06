@@ -2,12 +2,12 @@
 
 from __future__ import absolute_import
 import numpy as np
-from peakdet import physio, editor
+from peakdet import physio
 
 
 class BaseModality(physio.PeakFinder):
     def __init__(self, data, fs, TR=None):
-        super(BaseModality,self).__init__(data, fs)
+        super(BaseModality, self).__init__(data, fs)
         self._TR = TR
 
     @property
@@ -40,7 +40,7 @@ class HRModality():
             time at which to start measuring
         end : float
             time at which to stop measuring
-       TR : float
+        TR : float
             repetition time
 
         Returns
@@ -58,7 +58,7 @@ class HRModality():
         time  = np.arange(start-mod, end+mod+1, self.TR, dtype='int')
         HR    = np.zeros(len(time)-step)
 
-        for l in range(step,time.size):
+        for l in range(step, time.size):
             inds     = np.logical_and(self.rrtime>=time[l-step],
                                       self.rrtime<time[l])
             relevant = self.rrint[inds]
@@ -80,8 +80,8 @@ class ECG(BaseModality, HRModality):
     """
 
     def __init__(self, data, fs, TR=None):
-        super(ECG,self).__init__(data, fs, TR)
-        self.bandpass([5.,15.])
+        super(ECG, self).__init__(data, fs, TR)
+        self.bandpass([5., 15.])
 
     def reset(self, hard=False):
         """
@@ -95,24 +95,11 @@ class ECG(BaseModality, HRModality):
             also remove interpolation from data
         """
 
-        super(ECG,self).reset(hard=hard)
-        self.bandpass([5.,15.])
+        super(ECG, self).reset(hard=hard)
+        self.bandpass([5., 15.])
 
     def edit_peaks(self):
-        """
-        Opens up peakdet.editor.PeakEditor window
-
-        This is for interactive editing of detected peaks (i.e., is to be used
-        to remove components of the data stream contaminated by artifact). To
-        use, simply drag the cursor over parts of the data to remove them from
-        consideration.
-
-        Accepted inputs
-        ---------------
-        <ctrl-z> : undo last edit
-        <ctrl-q> : stop interactive peak editing
-        """
-        editor.PeakEditor(self, _xlim=150)
+        super(ECG, self).edit_peaks(_xlim=150)
 
 
 class PPG(BaseModality, HRModality):
@@ -123,7 +110,7 @@ class PPG(BaseModality, HRModality):
     """
 
     def __init__(self, data, fs, TR=None):
-        super(PPG,self).__init__(data, fs, TR)
+        super(PPG, self).__init__(data, fs, TR)
         self.lowpass([2.0])
 
     def reset(self, hard=False):
@@ -138,27 +125,14 @@ class PPG(BaseModality, HRModality):
             also remove interpolation from data
         """
 
-        super(PPG,self).reset(hard=hard)
+        super(PPG, self).reset(hard=hard)
         self.lowpass([2.0])
 
     def get_peaks(self, thresh=0.2):
-        super(PPG,self).get_peaks(thresh)
+        super(PPG, self).get_peaks(thresh)
 
     def edit_peaks(self):
-        """
-        Opens up peakdet.editor.PeakEditor window
-
-        This is for interactive editing of detected peaks (i.e., is to be used
-        to remove components of the data stream contaminated by artifact). To
-        use, simply drag the cursor over parts of the data to remove them from
-        consideration.
-
-        Accepted inputs
-        ---------------
-        <ctrl-z> : undo last edit
-        <ctrl-q> : stop interactive peak editing
-        """
-        editor.PeakEditor(self, _xlim=200)
+        super(ECG, self).edit_peaks(_xlim=200)
 
 
 class RESP(BaseModality):
@@ -169,11 +143,11 @@ class RESP(BaseModality):
     """
 
     def __init__(self, data, fs, TR=None):
-        super(RESP,self).__init__(data, fs, TR)
-        self.bandpass([0.05,0.5])
+        super(RESP, self).__init__(data, fs, TR)
+        self.bandpass([0.05, 0.5])
 
     def get_peaks(self, thresh=0.3):
-        super(RESP,self).get_peaks(thresh)
+        super(RESP, self).get_peaks(thresh)
 
     def reset(self, hard=False):
         """
@@ -187,8 +161,8 @@ class RESP(BaseModality):
             also remove interpolation from data
         """
 
-        super(RESP,self).reset(hard=hard)
-        self.bandpass([0.05,0.5])
+        super(RESP, self).reset(hard=hard)
+        self.bandpass([0.05, 0.5])
 
     def RVT(self, start=0, end=None, TR=None):
         """

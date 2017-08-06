@@ -3,12 +3,23 @@
 import os.path as op
 import numpy as np
 import pytest
-import peakdet.utils
+import peakdet
+
+
+def test_saveload(tmpdir):
+    fname = tmpdir.join('output')
+    data = np.random.rand(100)
+    to_save = peakdet.PeakFinder(data, 40)
+    peakdet.utils.save(fname.strpath, to_save)
+    loaded = peakdet.utils.load(fname.strpath)
+
+    assert isinstance(loaded, peakdet.PeakFinder)
+    assert np.allclose(to_save.data, loaded.data)
 
 
 def test_normalize():
     with pytest.raises(IndexError):
-        peakdet.utils.normalize(np.random.rand(5,5))
+        peakdet.utils.normalize(np.random.rand(5, 5))
 
 
 def test_corr():
@@ -17,15 +28,22 @@ def test_corr():
     peakdet.utils.corr(x, y)
 
 
-def test_matchtemp():
-    file = op.join(op.dirname(__file__),'data','PPG.1D')
+def test_corrtemp():
+    np.random.seed(10)
+    p = peakdet.PeakFinder(np.random.rand(100), fs=40)
+    p.get_peaks()
+    assert len(p._template) > 0
 
-    p = peakdet.PeakFinder(file, fs=40)
+
+def test_matchtemp():
+    fname = op.join(op.dirname(__file__), 'data', 'PPG.1D')
+
+    p = peakdet.PeakFinder(fname, fs=40)
     p.get_peaks()
     peakdet.utils.match_temp(p.data, p.peakinds, p._template)
 
-    data = np.loadtxt(file)
-    data = data[:200]
+    data = np.loadtxt(fname)
+    data = data[:500]
     p = peakdet.PeakFinder(data, fs=40)
     p.get_peaks()
     peakdet.utils.match_temp(p.data, p.peakinds, p._template)

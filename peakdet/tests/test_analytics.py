@@ -6,8 +6,8 @@ import peakdet
 
 
 def test_HRV():
-    file = op.join(op.dirname(__file__),'data','PPG.1D')
-    p = peakdet.PeakFinder(file,fs=40)
+    fname = op.join(op.dirname(__file__), 'data', 'PPG.1D')
+    p = peakdet.PeakFinder(fname, fs=40)
 
     p.get_peaks()
 
@@ -18,4 +18,4 @@ def test_HRV():
              '_hf', '_lf', '_vlf', 'hf', 'hf_log', 'lf', 'lf_log',
              'vlf', 'vlf_log', 'lftohf', 'hf_peak', 'lf_peak']
 
-    for a in attrs: assert hasattr(h,a)
+    for a in attrs: assert hasattr(h, a)

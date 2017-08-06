@@ -12,9 +12,9 @@ class HRV():
     Parameters
     ----------
     rrtime : array-like
-        Times at which RR-intervals occured
+        Times at which RR-intervals occured (in sec)
     rrint : array-like
-        RR-intervals
+        RR-intervals (in msec)
 
     Notes
     -----
