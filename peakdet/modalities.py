@@ -164,15 +164,14 @@ class RESP(BaseModality):
         super(RESP, self).reset(hard=hard)
         self.bandpass([0.05, 0.5])
 
-    def RVT(self, start=0, end=None, TR=None):
+    def RVT(self, step=1, start=0, end=None, TR=None):
         """
-        Creates respiratory volume time series (interpolated to TR)
-
-        Steps for which no RVT data exist will be replaced by the average RVT
-        signal.
+        Creates respiratory volume time series.
 
         Parameters
         ----------
+        step : int
+            how many TRs to condense into each measurement (i.e., window size)
         start : float
             time at which to start measuring
         end : float
@@ -185,17 +184,35 @@ class RESP(BaseModality):
         array : RVT
         """
 
-        if TR is not None: self.TR = TR
+        # get inputs
+        if TR is not None:
+            self.TR = TR
         if self.TR is None:
             raise ValueError("Need to set TR in order to get RVT time series.")
-        if self.rrint is None: return
-        if end is None: end = self.rrtime[-1]
+        if self.rrint is None:
+            return
+        if end is None:
+            end = self.rrtime[-1]
 
-        pheight, theight = self.data[self.peakinds], self.data[self.troughinds]
-        rvt = (pheight[:-1]-theight) / (np.diff(self.peakinds)/self.fs)
-        rt  = (self.peakinds/self.fs)[1:]
+        # calculate amplitude difference of peaks vs troughs in resp waveform
+        rt = self.data[self.peakinds][:-1] - self.data[self.troughinds]
+        # generate temporal modifier based on size of sliding window
+        mod = self.TR * (step//2)
+        # make time series for sliding window
+        time = np.arange(start-mod, end+mod+1, self.TR, dtype='int')
+        # create empty series to hold RVT values
+        RVT = np.zeros(len(time)-step)
+        # iterate through all time steps
+        for l in range(step, time.size):
+            # get relevant intervals based on current time window
+            inds = np.logical_and(self.rrtime >= time[l-step],
+                                  self.rrtime < time[l])
+            # get amplitudes based on determined intervals
+            relevant = rt[inds]
+            # if there were no breaths in this window, skip
+            if relevant.size == 0:
+                continue
+            # otherwise, get RMS value for RVT time series
+            RVT[l-step] = np.sqrt((relevant**2).mean())
 
-        time = np.arange(start, end+1, self.TR, dtype='int')
-        iRVT = np.interp(time, rt, rvt, left=rvt.mean(), right=rvt.mean())
-
-        return iRVT
+        return RVT
