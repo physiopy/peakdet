@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import pickle
 import numpy as np
@@ -390,7 +390,8 @@ def corr_template(temp, sim=0.95):
     if good_temp_ind.shape[0] >= np.ceil(npulse * 0.1):
         clean_temp = temp[good_temp_ind]
     else:
-        new_temp_ind = np.where(sim_to_temp > (1 - np.ceil(npulse * 0.1) / npulse))[0]
+        new_temp_ind = np.where(sim_to_temp >
+                                (1 - np.ceil(npulse * 0.1) / npulse))[0]
         clean_temp = np.atleast_2d(temp[new_temp_ind]).T
 
     return clean_temp.mean(axis=0)
@@ -417,29 +418,31 @@ def match_temp(data, locs, temp):
     array : indices of peak locations
     """
 
-    avgrate    = round(np.diff(locs).mean())
-    THW        = int(np.floor(temp.size/2))
-    z_temp     = z_transform(temp)
+    avgrate = round(np.diff(locs).mean())
+    THW = int(np.floor(temp.size/2))
+    z_temp = z_transform(temp)
     is_z_trans = [False, True]
 
     c_samp_start = int(round(2.0*THW+1))-1
-    try: c_samp_end = int(locs[19])
-    except: c_samp_end = int(locs[-1]-1)
+    try:
+        c_samp_end = int(locs[19])
+    except IndexError:
+        c_samp_end = int(locs[-1]-1)
 
     sim_to_temp = np.zeros(c_samp_end+1)
     for n in np.arange(c_samp_start, c_samp_end+1):
-        i_sig_start    = n - THW
-        i_sig_end      = n + THW
-        sig_part       = data[int(i_sig_start):int(i_sig_end)+1]
+        i_sig_start = n - THW
+        i_sig_end = n + THW
+        sig_part = data[int(i_sig_start):int(i_sig_end)+1]
         sim_to_temp[n] = corr(sig_part, z_temp, is_z_trans)
 
     c_best_match = max(sim_to_temp)
-    i_best_match = np.where(sim_to_temp==c_best_match)[0][0]
+    i_best_match = np.where(sim_to_temp == c_best_match)[0][0]
 
     peak_num = 0
     search_steps_tot = int(np.ceil(0.5*avgrate))
 
-    n_samp_pad  = THW + search_steps_tot + 1
+    n_samp_pad = THW + search_steps_tot + 1
     data_padded = np.hstack((np.zeros(int(n_samp_pad)),
                              data,
                              np.zeros(int(n_samp_pad))))
@@ -451,29 +454,29 @@ def match_temp(data, locs, temp):
                                      dtype='int')
         for search_pos in search_pos_array:
             index_search_start = int(n - THW + search_pos + 1)
-            index_search_end   = int(n + THW + search_pos + 1)
-            sig_part    = data_padded[index_search_start:index_search_end+1]
+            index_search_end = int(n + THW + search_pos + 1)
+            sig_part = data_padded[index_search_start:index_search_end+1]
             correlation = corr(sig_part, z_temp, is_z_trans)
             curr_weight = abs(data_padded[n+search_pos+2])
             correlation_weighted = curr_weight * correlation
             sim_to_temp[n+search_pos+1] = correlation_weighted
 
         index_search_start = int(n - search_steps_tot)
-        index_search_end   = int(n + search_steps_tot)
+        index_search_end = int(n + search_steps_tot)
         index_search_range = np.arange(index_search_start,
                                        index_search_end+1,
                                        dtype='int')
 
         search_range_values = sim_to_temp[index_search_range]
         c_best_match = np.nanmax(search_range_values)
-        i_best_match = np.where(search_range_values==c_best_match)[0][0]
+        i_best_match = np.where(search_range_values == c_best_match)[0][0]
         best_pos = index_search_range[i_best_match]
         n = int(best_pos - avgrate)
 
-    n        = best_pos
+    n = best_pos
     peak_num = 0
-    cpulse   = np.zeros(data.size)
-    nlimit   = data_padded.size - THW - search_pos - 1
+    cpulse = np.zeros(data.size)
+    nlimit = data_padded.size - THW - search_pos - 1
     location_weight = gaussian(2*search_steps_tot+1,
                                std=(2*search_steps_tot)/5)
 
@@ -482,23 +485,23 @@ def match_temp(data, locs, temp):
                                      dtype='int')
         for search_pos in search_pos_array:
             index_search_start = int(max(0, n - THW + search_pos) + 1)
-            index_search_end   = int(n + THW + search_pos + 1)
-            sig_part    = data_padded[index_search_start:index_search_end+1]
+            index_search_end = int(n + THW + search_pos + 1)
+            sig_part = data_padded[index_search_start:index_search_end+1]
             correlation = corr(sig_part, z_temp, is_z_trans)
-            loc_weight  = location_weight[search_pos+search_steps_tot+1]
-            amp_weight  = abs(data_padded[n+search_pos+2])
+            loc_weight = location_weight[search_pos+search_steps_tot+1]
+            amp_weight = abs(data_padded[n+search_pos+2])
             correlation_weighted = amp_weight * correlation * loc_weight
             sim_to_temp[n+search_pos+1] = correlation_weighted
 
         index_search_start = n - search_steps_tot
-        index_search_end   = n + search_steps_tot
+        index_search_end = n + search_steps_tot
         index_search_range = np.arange(index_search_start,
                                        index_search_end+1,
                                        dtype='int')
 
         search_range_values = sim_to_temp[index_search_range]
         c_best_match = np.nanmax(search_range_values)
-        i_best_match = np.where(search_range_values==c_best_match)[0][0]
+        i_best_match = np.where(search_range_values == c_best_match)[0][0]
         best_pos = index_search_range[i_best_match]
 
         cpulse[peak_num] = best_pos - n_samp_pad
@@ -515,9 +518,11 @@ def match_temp(data, locs, temp):
             curr_hr_in_samp = round(np.mean(np.diff(curr_cpulses)))
 
         check_smaller = curr_hr_in_samp > 0.5*avgrate
-        check_larger  = curr_hr_in_samp < 1.5*avgrate
+        check_larger = curr_hr_in_samp < 1.5*avgrate
 
-        if check_smaller and check_larger: n = int(best_pos + curr_hr_in_samp)
-        else: n = int(best_pos + avgrate)
+        if check_smaller and check_larger:
+            n = int(best_pos + curr_hr_in_samp)
+        else:
+            n = int(best_pos + avgrate)
 
     return cpulse[np.where(cpulse)[0]]

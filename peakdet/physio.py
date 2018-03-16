@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
 import numpy as np
@@ -40,8 +40,10 @@ class Physio(object):
         Original (input) data
         """
         if isinstance(self._dinput, (str)):
-            try: return np.loadtxt(self._dinput)
-            except ValueError: return np.loadtxt(self._dinput, skiprows=1)
+            try:
+                return np.loadtxt(self._dinput)
+            except ValueError:
+                return np.loadtxt(self._dinput, skiprows=1)
         elif isinstance(self._dinput, (np.ndarray, list)):
             return np.asarray(self._dinput)
         else:
@@ -82,7 +84,7 @@ class ScaledPhysio(Physio):
         Array of time points corresponding to data
         """
 
-        return np.arange(0, self.data.size/self.fs, 1./self.fs)
+        return np.arange(0, self.data.size / self.fs, 1. / self.fs)
 
 
 class FilteredPhysio(ScaledPhysio):
@@ -138,7 +140,8 @@ class FilteredPhysio(ScaledPhysio):
             frequency cutoffs for filter (retain flims[0] < freq < flims[1])
         """
 
-        if flims is None: flims = self._flims
+        if flims is None:
+            flims = self._flims
         self.data = utils.bandpass_filt(self.data, self.fs,
                                         flims)
 
@@ -152,8 +155,10 @@ class FilteredPhysio(ScaledPhysio):
             frequency cutoff for filter (retain freq < flims)
         """
 
-        if flims is None: flims = self._flims
-        if hasattr(flims, '__len__') and len(flims) > 1: flims = flims[0]
+        if flims is None:
+            flims = self._flims
+        if hasattr(flims, '__len__') and len(flims) > 1:
+            flims = flims[0]
         self.data = utils.bandpass_filt(self.data, self.fs,
                                         flims, btype='low')
 
@@ -167,8 +172,10 @@ class FilteredPhysio(ScaledPhysio):
             frequency cutoff for filter (retain freq > flims)
         """
 
-        if flims is None: flims = self._flims
-        if hasattr(flims, '__len__') and len(flims) > 1: flims = flims[-1]
+        if flims is None:
+            flims = self._flims
+        if hasattr(flims, '__len__') and len(flims) > 1:
+            flims = flims[-1]
         self.data = utils.bandpass_filt(self.data, self.fs,
                                         flims, btype='high')
 
@@ -199,10 +206,11 @@ class InterpolatedPhysio(FilteredPhysio):
             data will be interpolated to order * fs
         """
 
-        t = np.arange(0, self.data.size/self.fs, 1./self.fs)
-        if t.size != self.data.size: t = t[:self.data.size]
+        t = np.arange(0, self.data.size / self.fs, 1. / self.fs)
+        if t.size != self.data.size:
+            t = t[:self.data.size]
 
-        tn = np.arange(0, t[-1], 1./(self.fs*order))
+        tn = np.arange(0, t[-1], 1. / (self.fs * order))
         i = InterpolatedUnivariateSpline(t, self.data)
 
         self._data, self.fs = i(tn), self.fs*order
@@ -243,9 +251,9 @@ class PeakFinder(InterpolatedPhysio):
 
     @property
     def _irej(self):
-        inds = [np.where(self._peakinds==r)[0][0] for r in self._rejected]
+        inds = [np.where(self._peakinds == r)[0][0] for r in self._rejected]
         inds = np.unique(np.append(inds, np.array(inds)-1))
-        return inds[np.where(inds>=0)].astype('int')
+        return inds[np.where(inds >= 0)].astype('int')
 
     @property
     def rrtime(self):
@@ -255,7 +263,8 @@ class PeakFinder(InterpolatedPhysio):
 
         if len(self.peakinds):
             return np.delete(self._peakinds, self._irej)[1:]/self.fs
-        else: return
+        else:
+            return
 
     @property
     def rrint(self):
@@ -265,7 +274,8 @@ class PeakFinder(InterpolatedPhysio):
 
         if len(self.peakinds):
             return np.delete(np.diff(self._peakinds), self._irej)/self.fs
-        else: return
+        else:
+            return
 
     @property
     def peakinds(self):
@@ -285,13 +295,17 @@ class PeakFinder(InterpolatedPhysio):
 
     @property
     def _peaksig(self):
-        if self.rrtime is None: return
-        else: return utils.gen_temp(self.data, self.peakinds)
+        if self.rrtime is None:
+            return
+        else:
+            return utils.gen_temp(self.data, self.peakinds)
 
     @property
     def _template(self):
-        if self.rrtime is None: return
-        else: return utils.corr_template(self._peaksig)
+        if self.rrtime is None:
+            return
+        else:
+            return utils.corr_template(self._peaksig)
 
     def reset(self, hard=False):
         """
@@ -316,7 +330,8 @@ class PeakFinder(InterpolatedPhysio):
             determines relative height of data to be considered a peak
         """
 
-        if dist is None: dist = int(self.fs/4)
+        if dist is None:
+            dist = int(self.fs / 4)
         locs = utils.peakfinder(self.data,
                                 dist=dist,
                                 thresh=thresh)
@@ -339,8 +354,10 @@ class PeakFinder(InterpolatedPhysio):
             determines relative height of data to be considered a trough
         """
 
-        if dist is None: dist = int(self.fs/4)
-        if self.rrtime is None: self.get_peaks(thresh=thresh, dist=dist)
+        if dist is None:
+            dist = int(self.fs / 4)
+        if self.rrtime is None:
+            self.get_peaks(thresh=thresh, dist=dist)
 
         locs = utils.troughfinder(self.data,
                                   dist=dist,
@@ -370,7 +387,8 @@ class PeakFinder(InterpolatedPhysio):
             ax.plot(self.time[self.troughinds],
                     self.data[self.troughinds], '.g')
 
-        if not _debug: plt.show()
+        if not _debug:
+            plt.show()
 
         return fig
 

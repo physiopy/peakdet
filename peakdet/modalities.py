@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
 import numpy as np
@@ -48,28 +48,32 @@ class HRModality():
         array : iHR
         """
 
-        if TR is not None: self.TR = TR
+        if TR is not None:
+            self.TR = TR
         if self.TR is None:
             raise ValueError("Need to set TR in order to get iHR time series.")
-        if self.rrint is None: return
-        if end is None: end = self.rrtime[-1]
+        if self.rrint is None:
+            return
+        if end is None:
+            end = self.rrtime[-1]
 
-        mod   = self.TR * (step//2)
-        time  = np.arange(start-mod, end+mod+1, self.TR, dtype='int')
-        HR    = np.zeros(len(time)-step)
+        mod = self.TR * (step // 2)
+        time = np.arange(start - mod, end + mod + 1, self.TR, dtype='int')
+        HR = np.zeros(len(time) - step)
 
         for l in range(step, time.size):
-            inds     = np.logical_and(self.rrtime>=time[l-step],
-                                      self.rrtime<time[l])
+            inds = np.logical_and(self.rrtime >= time[l - step],
+                                  self.rrtime < time[l])
             relevant = self.rrint[inds]
 
-            if relevant.size==0: continue
-            HR[l-step] = (60/relevant).mean()
+            if relevant.size == 0:
+                continue
+            HR[l-step] = (60 / relevant).mean()
 
         return HR
 
     def meanHR(self):
-        return (60/np.diff(self.peakinds)).mean()/self.fs
+        return (60 / np.diff(self.peakinds)).mean() / self.fs
 
 
 class ECG(BaseModality, HRModality):
@@ -185,17 +189,20 @@ class RESP(BaseModality):
         array : RVT
         """
 
-        if TR is not None: self.TR = TR
+        if TR is not None:
+            self.TR = TR
         if self.TR is None:
             raise ValueError("Need to set TR in order to get RVT time series.")
-        if self.rrint is None: return
-        if end is None: end = self.rrtime[-1]
+        if self.rrint is None:
+            return
+        if end is None:
+            end = self.rrtime[-1]
 
         pheight, theight = self.data[self.peakinds], self.data[self.troughinds]
-        rvt = (pheight[:-1]-theight) / (np.diff(self.peakinds)/self.fs)
-        rt  = (self.peakinds/self.fs)[1:]
+        rvt = (pheight[:-1] - theight) / (np.diff(self.peakinds) / self.fs)
+        rt = (self.peakinds / self.fs)[1:]
 
-        time = np.arange(start, end+1, self.TR, dtype='int')
+        time = np.arange(start, end + 1, self.TR, dtype='int')
         iRVT = np.interp(time, rt, rvt, left=rvt.mean(), right=rvt.mean())
 
         return iRVT

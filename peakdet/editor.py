@@ -1,12 +1,11 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import six.moves.tkinter as tk
 import six.moves.tkinter_ttk as ttk
 import numpy as np
 import matplotlib as mpl
 mpl.use("TkAgg")
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg,
-                                               NavigationToolbar2TkAgg)
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg)
 from matplotlib.figure import Figure
 from matplotlib.widgets import SpanSelector
 import peakdet
@@ -32,7 +31,8 @@ class PeakEditor(object):
                                               0, 0))
         self.create_main()
         self.master.update()
-        if not _debug: self.master.mainloop()
+        if not _debug:
+            self.master.mainloop()
 
     def create_main(self):
         frame = ttk.Frame(self.master)
@@ -49,14 +49,7 @@ class PeakEditor(object):
                                     pady=5, padx=5,
                                     sticky=tk.N+tk.W+tk.S+tk.E)
         canvas.mpl_connect('scroll_event', self.roll_wheel)
-        canvas.show()
-
-        toolbar = NavigationToolbar2TkAgg(canvas, frame)
-        toolbar.grid(row=10, column=0,
-                     rowspan=1, columnspan=3,
-                     sticky=tk.N+tk.W+tk.S+tk.E)
-        toolbar.set_message = lambda x: ''
-        toolbar.update()
+        canvas.draw()
 
         span = SpanSelector(ax=ax,
                             onselect=self.on_span_select,
@@ -70,8 +63,10 @@ class PeakEditor(object):
         self.plot_signals()
 
     def plot_signals(self):
-        if self.plot: lim = self.ax.get_xlim(), self.ax.get_ylim()
-        else: self.plot, lim = True, ((-5, self.defxlim), (None, None))
+        if self.plot:
+            lim = self.ax.get_xlim(), self.ax.get_ylim()
+        else:
+            self.plot, lim = True, ((-5, self.defxlim), (None, None))
 
         self.ax.clear()
         self.ax.plot(self.peakfinder.time,
