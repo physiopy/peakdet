@@ -7,17 +7,18 @@ from scipy.signal import butter, filtfilt, gaussian
 
 def save(fname, pf):
     """
-    Saves `pf` to file
+    Saves ``pf`` to ``fname`
 
     Parameters
     ----------
     fname : str
-        path to output file
+        Path to output file
     pf : peakdet.PeakFinder instance
-        or subclass instance
+        Or subclass instance
     """
 
-    with open(fname, 'wb') as out: pickle.dump(pf, out)
+    with open(fname, 'wb') as out:
+        pickle.dump(pf, out)
 
 
 def load(fname):
@@ -27,36 +28,38 @@ def load(fname):
     Parameters
     ----------
     fname : str
-        path to input file
+        Path to input file
 
     Returns
     -------
-    peakdet.PeakFinder
+    pdbf : peakdet.PeakFinder instance
     """
 
-    with open(fname, 'rb') as src: return pickle.load(src)
+    with open(fname, 'rb') as src:
+        return pickle.load(src)
 
 
 def gen_flims(signal, fs):
     """
-    Generates a 'best guess' of ideal frequency cutoffs for a bp filter
+    Generates a rough guess of ideal frequency cutoffs for a bandpass filter
 
     Parameters
     ----------
-    signal : array-like
+    signal : array_like
     fs : float
 
     Returns
     -------
-    list-of-two : optimal frequency cutoffs
+    flims : (2,) np.ndarray
+        optimal frequency cutoffs
     """
 
     signal = np.squeeze(signal)
-    inds = peakfinder(signal, dist=int(fs/4))
-    inds = peakfinder(signal, dist=np.ceil(np.diff(inds).mean())/2)
-    freq = np.diff(inds).mean()/fs
+    inds = peakfinder(normalize(signal), dist=int(fs/4))
+    inds = peakfinder(normalize(signal), dist=np.ceil(np.diff(inds).mean())/2)
+    freq = np.diff(inds).mean() / fs
 
-    return np.asarray([freq/2, freq*2])
+    return np.asarray([freq / 2, freq * 2])
 
 
 def bandpass_filt(signal, fs, flims=None, btype='bandpass'):
@@ -78,10 +81,11 @@ def bandpass_filt(signal, fs, flims=None, btype='bandpass'):
     """
 
     signal = np.squeeze(signal)
-    if flims is None: flims = [0, fs]
+    if flims is None:
+        flims = [0, fs]
 
-    nyq_freq = fs*0.5
-    nyq_cutoff = np.asarray(flims)/nyq_freq
+    nyq_freq = fs * 0.5
+    nyq_cutoff = np.asarray(flims) / nyq_freq
     b, a = butter(3, nyq_cutoff, btype=btype)
     fsig = filtfilt(b, a, signal)
 
@@ -102,8 +106,10 @@ def normalize(data):
     """
 
     data = np.squeeze(np.asarray(data))
-    if data.ndim > 1: raise IndexError("Input must be one-dimensional.")
-    if data.std() == 0: return data - data.mean()
+    if data.ndim > 1:
+        raise IndexError("Input must be one-dimensional.")
+    if data.std() == 0:
+        return data - data.mean()
     return (data - data.mean()) / data.std()
 
 
@@ -123,24 +129,29 @@ def get_extrema(data, peaks=True, thresh=0.4):
     array : indices of extrema from `data`ex
     """
 
-    if thresh < 0 or thresh > 1: raise ValueError("Thresh must be in (0,1).")
+    if thresh < 0 or thresh > 1:
+        raise ValueError("Thresh must be in (0,1).")
 
     if peaks:
-        uthresh = (thresh*(data.max() - data.min())) + data.min()
+        uthresh = (thresh * np.diff(np.percentile(data, [5, 95])))
         Indx = np.where(data > uthresh)[0]
     else:
-        uthresh = (thresh*(data.min() - data.max())) + data.max()
+        uthresh = (thresh * np.diff(np.percentile(data, [95, 5])))
         Indx = np.where(data < uthresh)[0]
 
     trend = np.sign(np.diff(data))
-    idx = np.where(trend==0)[0]
+    idx = np.where(trend == 0)[0]
 
-    for i in range(idx.size-1, -1, -1):
-        if trend[min(idx[i]+1, trend.size-1)]>=0: trend[idx[i]] = 1
-        else: trend[idx[i]] = -1
+    for i in range(idx.size - 1, -1, -1):
+        if trend[min(idx[i]+1, trend.size-1)] >= 0:
+            trend[idx[i]] = 1
+        else:
+            trend[idx[i]] = -1
 
-    if peaks: idx = np.where(np.diff(trend)==-2)[0]+1
-    else: idx = np.where(np.diff(trend)==2)[0]+1
+    if peaks:
+        idx = np.where(np.diff(trend) == -2)[0]+1
+    else:
+        idx = np.where(np.diff(trend) == 2)[0]+1
 
     return np.intersect1d(Indx, idx)
 
@@ -164,17 +175,20 @@ def min_peak_dist(locs, data, peaks=True, dist=250):
     array : extrema separated by at least `dist`
     """
 
-    if not any(np.diff(sorted(locs))<=250):
+    if not any(np.diff(sorted(locs)) <= dist):
         return locs
 
-    if peaks: idx = data[locs].argsort()[::-1][:]
-    else: idx = data[locs].argsort()[:]
+    if peaks:
+        idx = data[locs].argsort()[::-1][:]
+    else:
+        idx = data[locs].argsort()[:]
     locs = locs[idx]
-    idelete = np.ones(locs.size)<0
+    idelete = np.ones(locs.size) < 0
 
     for i in range(locs.size):
         if not idelete[i]:
-            dist_diff = np.logical_and(locs>=locs[i]-dist, locs<=locs[i]+dist)
+            dist_diff = np.logical_and(locs >= locs[i]-dist,
+                                       locs <= locs[i]+dist)
             idelete = np.logical_or(idelete, dist_diff)
             idelete[i] = 0
 
@@ -187,7 +201,7 @@ def peakfinder(data, thresh=0.4, dist=250):
 
     Parameters
     ----------
-    data : array-like
+    data : array_like
     thresh : float (0,1)
     dist : int
         Minimum required distance (in datapoints) b/w peaks
@@ -246,14 +260,15 @@ def check_troughs(data, troughs, peaks):
                            dtype='int')
 
     for f in range(peaks.size-1):
-        curr = np.logical_and(troughs>peaks[f],
-                              troughs<peaks[f+1])
+        curr = np.logical_and(troughs > peaks[f],
+                              troughs < peaks[f+1])
         if not np.any(curr):
-            dp  = data[peaks[f]:peaks[f+1]]
+            dp = data[peaks[f]:peaks[f+1]]
             idx = peaks[f] + np.argwhere(dp == dp.min())[0]
         else:
             idx = troughs[curr]
-            if idx.size > 1: idx = idx[0]
+            if idx.size > 1:
+                idx = idx[0]
 
         all_troughs[f] = idx
 
@@ -278,16 +293,16 @@ def gen_temp(data, locs, factor=0.5):
     array : peak waveforms
     """
 
-    avgrate   = round(np.diff(locs).mean())
-    THW       = int(np.ceil(factor*(avgrate/2)))
-    nsamptemp = THW*2 + 1
-    npulse    = locs.size
-    template  = np.zeros([npulse-2, nsamptemp])
+    avgrate = round(np.diff(locs).mean())
+    THW = int(np.ceil(factor * (avgrate / 2)))
+    nsamptemp = (THW * 2) + 1
+    npulse = locs.size
+    template = np.zeros([npulse - 2, nsamptemp])
 
-    for n in range(1, npulse-1):
-        template[n-1] = data[locs[n]-THW:locs[n]+THW+1]
-        template[n-1] = template[n-1] - template[n-1].mean()
-        template[n-1] = template[n-1]/max(abs(template[n-1]))
+    for n in range(1, npulse - 1):
+        template[n - 1] = data[locs[n] - THW:locs[n] + THW + 1]
+        template[n - 1] = template[n - 1] - template[n - 1].mean()
+        template[n - 1] = template[n - 1] / max(abs(template[n - 1]))
 
     return template
 
@@ -305,8 +320,8 @@ def z_transform(z):
     array : z-transformed input
     """
 
-    z = z - z.sum()/z.size
-    z = z/np.sqrt(np.dot(z.T, z) * (1./(z.size-1)))
+    z = z - (z.sum() / z.size)
+    z = z / np.sqrt(np.dot(z.T, z) * (1. / (z.size - 1)))
 
     return z
 
@@ -329,14 +344,20 @@ def corr(x, y, z_tran=[False, False]):
     float : [0,1] correlation between `x` and `y`
     """
 
-    if x.ndim > 1: x = x.flatten()
-    if y.ndim > 1: y = y.flatten()
+    if x.ndim > 1:
+        x = x.flatten()
+    if y.ndim > 1:
+        y = y.flatten()
 
-    if not z_tran[0]: x = z_transform(x)
-    if not z_tran[1]: y = z_transform(y)
+    if not z_tran[0]:
+        x = z_transform(x)
+    if not z_tran[1]:
+        y = z_transform(y)
 
-    if x.size == y.size: return np.dot(x.T, y) * (1./(x.size-1))
-    else: return None
+    if x.size == y.size:
+        return np.dot(x.T, y) * (1. / (x.size - 1))
+    else:
+        return None
 
 
 def corr_template(temp, sim=0.95):
@@ -365,11 +386,11 @@ def corr_template(temp, sim=0.95):
     for n in range(temp.shape[0]):
         sim_to_temp[n] = corr(temp[n], mean_temp, [False, True])
 
-    good_temp_ind = np.where(sim_to_temp>sim)[0]
-    if good_temp_ind.shape[0] >= np.ceil(npulse*0.1):
+    good_temp_ind = np.where(sim_to_temp > sim)[0]
+    if good_temp_ind.shape[0] >= np.ceil(npulse * 0.1):
         clean_temp = temp[good_temp_ind]
     else:
-        new_temp_ind = np.where(sim_to_temp>(1-np.ceil(npulse*0.1)/npulse))[0]
+        new_temp_ind = np.where(sim_to_temp > (1 - np.ceil(npulse * 0.1) / npulse))[0]
         clean_temp = np.atleast_2d(temp[new_temp_ind]).T
 
     return clean_temp.mean(axis=0)
