@@ -12,42 +12,56 @@ class Physio(object):
 
     Parameters
     ----------
-    data : str, array, list
-        input data
+    data : str or array_like
+        Input data filename or array
     fs : float
-        sampling rate (Hz)
+        Sampling rate (Hz) of ``data``
+    col : int, optional
+        Column of data in input file, if ``data`` is str. Default: 0
+    header : bool, optional
+        Whether ``data`` has a header, if ``data`` is str. Default: False
     """
 
-    def __init__(self, data, fs):
+    def __init__(self, data, fs, col=0, header=False):
         self._fs = float(fs)
         self._dinput = data
+        self.rawdata = self.load_data(col, header)
 
     @property
     def fs(self):
-        """
-        Sampling rate (Hz)
-        """
-
+        """ Sampling rate (Hz) """
         return self._fs
 
     @fs.setter
     def fs(self, value):
         self._fs = float(value)
 
-    @property
-    def rawdata(self):
+    def load_data(self, col=0, header=False):
         """
-        Original (input) data
+        Loads input data
+
+        Parameters
+        ----------
+        col : int, optional
+            Column of data in input file. Default: 0
+        header : bool, optional
+            Whether input file has a header. Default: False
+
+        Returns
+        -------
+        data : np.ndarray
+            Loaded data
         """
         if isinstance(self._dinput, (str)):
             try:
-                return np.loadtxt(self._dinput)
+                return np.loadtxt(self._dinput, skiprows=header,
+                                  usecols=col)
             except ValueError:
-                return np.loadtxt(self._dinput, skiprows=1)
+                return np.loadtxt(self._dinput, skiprows=1, usecols=col)
         elif isinstance(self._dinput, (np.ndarray, list)):
             return np.asarray(self._dinput)
         else:
-            raise TypeError("Data input must be filename or array-like.")
+            raise TypeError('Cannot determine data input type.')
 
 
 class ScaledPhysio(Physio):
@@ -56,22 +70,23 @@ class ScaledPhysio(Physio):
 
     Parameters
     ----------
-    data : str, array, list
-        input data
+    data : str or array_like
+        Input data filename or array
     fs : float
-        sampling rate (Hz)
+        Sampling rate (Hz) of ``data``
+    col : int, optional
+        Column of data in input file, if ``data`` is str. Default: 0
+    header : bool, optional
+        Whether ``data`` has a header, if ``data`` is str. Default: False
     """
 
-    def __init__(self, data, fs):
-        super(ScaledPhysio, self).__init__(data, fs)
+    def __init__(self, data, fs, col=0, header=False):
+        super().__init__(data, fs, col, header)
         self._data = utils.normalize(self.rawdata)
 
     @property
     def data(self):
-        """
-        Normalized (centered + standardized) data
-        """
-
+        """ Normalized (centered + standardized) data """
         return self._data
 
     @data.setter
@@ -80,10 +95,7 @@ class ScaledPhysio(Physio):
 
     @property
     def time(self):
-        """
-        Array of time points corresponding to data
-        """
-
+        """ Array of time points corresponding to data """
         return np.arange(0, self.data.size / self.fs, 1. / self.fs)
 
 
@@ -93,30 +105,28 @@ class FilteredPhysio(ScaledPhysio):
 
     Parameters
     ----------
-    data : str, array, list
-        input data
+    data : str or array_like
+        Input data filename or array
     fs : float
-        sampling rate (Hz)
+        Sampling rate (Hz) of ``data``
+    col : int, optional
+        Column of data in input file, if ``data`` is str. Default: 0
+    header : bool, optional
+        Whether ``data`` has a header, if ``data`` is str. Default: False
     """
 
-    def __init__(self, data, fs):
-        super(FilteredPhysio, self).__init__(data, fs)
+    def __init__(self, data, fs, col=0, header=False):
+        super().__init__(data, fs, col, header)
         self._filtsig = self._data.copy()
 
     @property
     def _flims(self):
-        """
-        Approximated frequency cutoffs for peak detection
-        """
-
+        """ Approximated frequency cutoffs for peak detection """
         return utils.gen_flims(self.data, self.fs)
 
     @property
     def data(self):
-        """
-        Filtered data
-        """
-
+        """ Filtered data """
         return self._filtsig
 
     @data.setter
@@ -124,10 +134,7 @@ class FilteredPhysio(ScaledPhysio):
         self._filtsig = np.asarray(value)
 
     def reset(self):
-        """
-        Resets data prior to filtering
-        """
-
+        """ Resets data prior to filtering """
         self.data = self._data.copy()
 
     def bandpass(self, flims=None):
@@ -186,14 +193,18 @@ class InterpolatedPhysio(FilteredPhysio):
 
     Parameters
     ----------
-    data : str, array, list
-        input data
+    data : str or array_like
+        Input data filename or array
     fs : float
-        sampling rate (Hz)
+        Sampling rate (Hz) of ``data``
+    col : int, optional
+        Column of data in input file, if ``data`` is str. Default: 0
+    header : bool, optional
+        Whether ``data`` has a header, if ``data`` is str. Default: False
     """
 
-    def __init__(self, data, fs):
-        super(InterpolatedPhysio, self).__init__(data, fs)
+    def __init__(self, data, fs, col=0, header=False):
+        super().__init__(data, fs, col, header)
         self._rawfs = fs
 
     def interpolate(self, order=2):
@@ -213,7 +224,7 @@ class InterpolatedPhysio(FilteredPhysio):
         tn = np.arange(0, t[-1], 1. / (self.fs * order))
         i = InterpolatedUnivariateSpline(t, self.data)
 
-        self._data, self.fs = i(tn), self.fs*order
+        self._data, self.fs = i(tn), self.fs * order
         self.reset()
 
     def reset(self, hard=False):
@@ -238,59 +249,52 @@ class PeakFinder(InterpolatedPhysio):
 
     Parameters
     ----------
-    data : str, array, list
-        input data
+    data : str or array_like
+        Input data filename or array
     fs : float
-        sampling rate (Hz)
+        Sampling rate (Hz) of ``data``
+    col : int, optional
+        Column of data in input file, if ``data`` is str. Default: 0
+    header : bool, optional
+        Whether ``data`` has a header, if ``data`` is str. Default: False
     """
 
-    def __init__(self, data, fs):
-        super(PeakFinder, self).__init__(data, fs)
+    def __init__(self, data, fs, col=0, header=False):
+        super().__init__(data, fs, col, header)
         self._peakinds, self._troughinds = [], []
         self._rejected = np.empty(0, dtype='int')
 
     @property
-    def _irej(self):
-        inds = [np.where(self._peakinds == r)[0][0] for r in self._rejected]
-        inds = np.unique(np.append(inds, np.array(inds)-1))
-        return inds[np.where(inds >= 0)].astype('int')
+    def _masked(self):
+        return np.ma.masked_array(self._peakinds,
+                                  mask=np.isin(self._peakinds,
+                                               self._rejected))
 
     @property
     def rrtime(self):
-        """
-        Times of R-R intervals (in seconds)
-        """
-
+        """ Times of R-R intervals (in seconds) """
         if len(self.peakinds):
-            return np.delete(self._peakinds, self._irej)[1:]/self.fs
+            diff = (self._masked[:-1] + self._masked[1:]) / (2 * self.fs)
+            return diff.compressed()
         else:
             return
 
     @property
     def rrint(self):
-        """
-        Length of R-R intervals (in seconds)
-        """
-
+        """ Length of R-R intervals (in seconds) """
         if len(self.peakinds):
-            return np.delete(np.diff(self._peakinds), self._irej)/self.fs
+            return (np.diff(self._masked) / self.fs).compressed()
         else:
             return
 
     @property
     def peakinds(self):
-        """
-        Indices of detected peaks in data
-        """
-
-        return np.setdiff1d(self._peakinds, self._rejected)
+        """ Indices of detected peaks in data """
+        return self._masked.compressed()
 
     @property
     def troughinds(self):
-        """
-        Indices of detected troughs in data
-        """
-
+        """ Indices of detected troughs in data """
         return self._troughinds
 
     @property
@@ -320,7 +324,7 @@ class PeakFinder(InterpolatedPhysio):
         self._peakinds, self._troughinds = [], []
         super(PeakFinder, self).reset(hard=hard)
 
-    def get_peaks(self, thresh=0.4, dist=None):
+    def get_peaks(self, thresh=0.8, dist=None):
         """
         Detects peaks in data
 
@@ -336,11 +340,8 @@ class PeakFinder(InterpolatedPhysio):
                                 dist=dist,
                                 thresh=thresh)
         self._peakinds = utils.peakfinder(self.data,
-                                          dist=round(np.diff(locs).mean())/2,
+                                          dist=round(np.diff(locs).mean()) / 2,
                                           thresh=thresh).astype('int')
-        # self._peakinds = utils.match_temp(self.data,
-        #                                   self.peakinds,
-        #                                   self._template)
 
         self.get_troughs(thresh=thresh, dist=dist)
 
@@ -363,16 +364,14 @@ class PeakFinder(InterpolatedPhysio):
                                   dist=dist,
                                   thresh=thresh)
         troughinds = utils.troughfinder(self.data,
-                                        dist=round(np.diff(locs).mean())/2,
+                                        dist=round(np.diff(locs).mean()) / 2,
                                         thresh=thresh)
         self._troughinds = utils.check_troughs(self.data,
                                                troughinds,
                                                self.peakinds)
 
     def plot(self, _debug=False):
-        """
-        Generates plot of data with detected peaks/troughs (if any)
-        """
+        """ Generates plot of data with detected peaks/troughs (if any) """
 
         import matplotlib.pyplot as plt
 

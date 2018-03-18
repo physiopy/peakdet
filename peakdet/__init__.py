@@ -1,9 +1,5 @@
-__all__ = ['physio','analytics','modalities','utils']
+__all__ = ['physio', 'analytics', 'modalities', 'utils']
 
-from .physio import (Physio,
-                     ScaledPhysio,
-                     FilteredPhysio,
-                     InterpolatedPhysio,
-                     PeakFinder)
+from .physio import (PeakFinder)
 from .analytics import (HRV)
 from .modalities import (ECG, PPG, RESP)

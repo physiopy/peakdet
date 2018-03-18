@@ -22,7 +22,8 @@ def test_Physio():
     assert p.fs == 10.
 
     p = peakdet.Physio(40, fs=40.)
-    with pytest.raises(TypeError): p.rawdata
+    with pytest.raises(TypeError):
+        p.rawdata
 
     fname = op.join(op.dirname(__file__), 'data', 'header.1D')
     p = peakdet.Physio(fname, fs=40.)
@@ -48,13 +49,15 @@ def test_FilteredPhysio():
     p2.bandpass([0.5, 2.0])
     assert not np.all(p2.data == p1.data)
 
-    for f in [p1, p2]: f.reset()
+    for f in [p1, p2]:
+        f.reset()
 
     p1.lowpass()
     p2.lowpass(2.0)
     assert not np.all(p2.data == p1.data)
 
-    for f in [p1, p2]: f.reset()
+    for f in [p1, p2]:
+        f.reset()
 
     p1.highpass()
     p2.highpass(0.5)
@@ -98,11 +101,11 @@ def test_PeakFinder():
     assert len(p.rrint) > 0
     assert len(p.rrtime) > 0
     assert len(p.peakinds) > 0
-    assert len(p.peakinds)-1 == len(p.rrint)
+    assert len(p.peakinds) - 1 == len(p.rrint)
     assert len(p._template) > 0
     assert len(p.time) == len(p.data)
 
     assert len(p.troughinds) > 0
-    assert p._peaksig.shape[0] == p.peakinds.size-2
+    assert p._peaksig.shape[0] == p.peakinds.size - 2
     fig = p.plot(_debug=True)
     plt.close(fig)

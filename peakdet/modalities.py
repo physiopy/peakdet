@@ -6,16 +6,13 @@ from peakdet import physio
 
 
 class BaseModality(physio.PeakFinder):
-    def __init__(self, data, fs, TR=None):
-        super(BaseModality, self).__init__(data, fs)
+    def __init__(self, data, fs, col=0, header=False, TR=None):
+        super().__init__(data, fs, col, header)
         self._TR = TR
 
     @property
     def TR(self):
-        """
-        Repetition time
-        """
-
+        """ Repetition time """
         return self._TR
 
     @TR.setter
@@ -68,12 +65,12 @@ class HRModality():
 
             if relevant.size == 0:
                 continue
-            HR[l-step] = (60 / relevant).mean()
+            HR[l - step] = (60 / relevant).mean()
 
         return HR
 
     def meanHR(self):
-        return (60 / np.diff(self.peakinds)).mean() / self.fs
+        return np.mean(60 / self.rrint)
 
 
 class ECG(BaseModality, HRModality):
@@ -83,8 +80,8 @@ class ECG(BaseModality, HRModality):
     Bandpass filters data (5-15Hz) by default
     """
 
-    def __init__(self, data, fs, TR=None):
-        super(ECG, self).__init__(data, fs, TR)
+    def __init__(self, data, fs, col=0, header=False, TR=None):
+        super().__init__(data, fs, col, header, TR)
         self.bandpass([5., 15.])
 
     def reset(self, hard=False):
@@ -99,11 +96,11 @@ class ECG(BaseModality, HRModality):
             also remove interpolation from data
         """
 
-        super(ECG, self).reset(hard=hard)
+        super().reset(hard=hard)
         self.bandpass([5., 15.])
 
     def edit_peaks(self):
-        super(ECG, self).edit_peaks(_xlim=150)
+        super().edit_peaks(_xlim=150)
 
 
 class PPG(BaseModality, HRModality):
@@ -113,8 +110,8 @@ class PPG(BaseModality, HRModality):
     Lowpass filters data (2Hz) by default
     """
 
-    def __init__(self, data, fs, TR=None):
-        super(PPG, self).__init__(data, fs, TR)
+    def __init__(self, data, fs, col=0, header=False, TR=None):
+        super().__init__(data, fs, col, header, TR)
         self.lowpass([2.0])
 
     def reset(self, hard=False):
@@ -129,14 +126,14 @@ class PPG(BaseModality, HRModality):
             also remove interpolation from data
         """
 
-        super(PPG, self).reset(hard=hard)
+        super().reset(hard=hard)
         self.lowpass([2.0])
 
     def get_peaks(self, thresh=0.2):
-        super(PPG, self).get_peaks(thresh)
+        super().get_peaks(thresh)
 
     def edit_peaks(self):
-        super(ECG, self).edit_peaks(_xlim=200)
+        super().edit_peaks(_xlim=200)
 
 
 class RESP(BaseModality):
@@ -146,12 +143,12 @@ class RESP(BaseModality):
     Bandpass filters data (0.05-0.5Hz) by default
     """
 
-    def __init__(self, data, fs, TR=None):
-        super(RESP, self).__init__(data, fs, TR)
+    def __init__(self, data, fs, col=0, header=False, TR=None):
+        super().__init__(data, fs, col, header, TR)
         self.bandpass([0.05, 0.5])
 
     def get_peaks(self, thresh=0.3):
-        super(RESP, self).get_peaks(thresh)
+        super().get_peaks(thresh)
 
     def reset(self, hard=False):
         """
@@ -165,7 +162,7 @@ class RESP(BaseModality):
             also remove interpolation from data
         """
 
-        super(RESP, self).reset(hard=hard)
+        super().reset(hard=hard)
         self.bandpass([0.05, 0.5])
 
     def RVT(self, start=0, end=None, TR=None):
