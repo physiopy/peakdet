@@ -13,7 +13,7 @@ setup(
                       'scipy',
                       'matplotlib',
                       'gooey'],
-    entry_points={'console_script': [
+    entry_points={'console_scripts': [
         'peakdet=peakdet.cli.run:main'
     ]},
     packages=find_packages(exclude=['peakdet/tests']),

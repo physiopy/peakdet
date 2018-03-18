@@ -3,8 +3,6 @@ sudo: true
 language: python
 
 python:
-- "2.7"
-- "3.5"
 - "3.6"
 
 before_install:
@@ -13,9 +11,9 @@ before_install:
 - sudo apt-get install gfortran
 
 install:
-- pip install pytest pytest-cov
-- pip install coveralls
-- pip install -r requirements.txt
+- pip install pytest pytest-cov coveralls
+- pip install wxpython numpy scipy matplotlib
+- pip install --no-cache-dir https://github.com/chriskiehl/gooey/tarball/master
 
 before_script:
 - python setup.py install
