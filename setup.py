@@ -11,7 +11,11 @@ setup(
     url="http://github.com/rmarkello/peakdet",
     install_requires=['numpy',
                       'scipy',
-                      'matplotlib'],
+                      'matplotlib',
+                      'gooey'],
+    entry_points={'console_script': [
+        'peakdet=peakdet.cli.run:main'
+    ]},
     packages=find_packages(exclude=['peakdet/tests']),
     package_data={'peakdet.tests': ['data/*']},
     tests_require=['pytest'],

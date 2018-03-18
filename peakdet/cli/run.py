@@ -41,6 +41,7 @@ def get_parser():
                         'all subject-specific information with a "?" symbol. '
                         '\nE.g., subject_001_data.txt would become '
                         'subject_???_data.txt')
+
     inp_group = parser.add_argument_group('Inputs', 'Options to specify '
                                           'format of input files')
     inp_group.add_argument('--modality', metavar='Modality', default='ECG',
@@ -54,7 +55,9 @@ def get_parser():
                            'files. Default: 0')
     inp_group.add_argument('-d', '--header', metavar='Header',
                            action='store_true', help='Whether input files '
-                           'have header')
+                           'have header (i.e., the first row of the file is a '
+                           'description of the data)')
+
     out_group = parser.add_argument_group('Outputs', 'Options to specify '
                                           'format of output files')
     out_group.add_argument('-o', '--output', metavar='Filename',
@@ -65,6 +68,7 @@ def get_parser():
                            choices=list(attr_conv.keys()),
                            help='Desired physiological measurements.\nChoose '
                            'multiple with ctrl+select')
+
     edit_group = parser.add_argument_group('Workflow argument (optional!)',
                                            'Options to specify modifications '
                                            'to workflow')
