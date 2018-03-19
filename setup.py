@@ -1,22 +1,38 @@
-from setuptools import setup, find_packages
 
-__version__ = '0.1'
+import os
+import sys
 
-setup(
-    name="peakdet",
-    version=__version__,
-    description="A physiological peak detection system",
-    maintainer="Ross Markello",
-    maintainer_email="rossmarkello@gmail.com",
-    url="http://github.com/rmarkello/peakdet",
-    install_requires=['numpy',
-                      'scipy',
-                      'matplotlib',
-                      'gooey'],
-    entry_points={'console_scripts': [
-        'peakdet=peakdet.cli.run:main'
-    ]},
-    packages=find_packages(exclude=['peakdet/tests']),
-    package_data={'peakdet.tests': ['data/*']},
-    tests_require=['pytest'],
-    license='MIT')
+
+def main():
+    from setuptools import setup, find_packages
+
+    if sys.version_info < (3, 6):
+        raise SystemError("You need Python version 3.6 or above to use " +
+                          "pyls.")
+
+    # from nipype setup.py file
+    ldict = locals()
+    curr_path = os.path.dirname(__file__)
+    ver_file = os.path.join(curr_path, 'pyls', 'info.py')
+    with open(ver_file) as infofile:
+        exec(infofile.read(), globals(), ldict)
+
+    setup(
+        name=ldict['NAME'],
+        version=ldict['VERSION'],
+        description=ldict['DESCRIPTION'],
+        maintainer=ldict['MAINTAINER'],
+        download_url=ldict['DOWNLOAD_URL'],
+        install_requires=ldict['INSTALL_REQUIRES'],
+        packages=find_packages(exclude=['peakdet/tests']),
+        package_data=ldict['PACKAGE_DATA'],
+        tests_require=ldict['TESTS_REQUIRE'],
+        license=ldict['LICENSE'],
+        entry_points={'console_scripts': [
+            'peakdet=peakdet.cli.run:main'
+        ]}
+    )
+
+
+if __name__ == '__main__':
+    main()
