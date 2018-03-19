@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+function Usage {
+    cat << USAGE
+
+Description:
+
+    hrv_pipeline runs a simple peak detection workflow using the peakdet
+    package (see https://github.com/rmarkello/peakdet). It accepts raw
+    physiological files and outputs a summary file with requested HRV
+    measurements.
+
+    The first time this script is run, it will check for a conda installation
+    and install it if doesn't already exist. It will also create a peakdet
+    environment for use. This may take some time, but will only need to be done
+    once. Thereafter, you can use hrv_pipeline -u to upgrade the pipeline.
+
+Optional arguments:
+
+    -u          Upgrade the pipeline. You probably only need to do this once in
+                a blue moon.
+
+USAGE
+    return 0
+}
+
+function check_conda_install() {
+    if hash conda 2>/dev/null; then
+        CONDA_INSTALLER=$( which conda )
+        . ${CONDA_INSTALLER/"bin/conda"/"etc/profile.d/conda.sh"}
+    else
+        url='https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh'
+        echo 'Installing miniconda. This should only happen once but might take a while.'
+        # download miniconda installer
+        miniconda_installer=/tmp/miniconda.sh
+        curl -sSL --retry 5 -o $miniconda_installer $url
+        /bin/bash $miniconda_installer -b -p $HOME/miniconda3
+        rm -f $miniconda_installer
+        # set some conda config defaults
+        conda config --system --prepend channels conda-forge
+        conda config --system --set auto_update_conda false
+        conda config --system --set show_channel_urls true
+        # clean and update conda
+        conda clean -tipsy && sync
+        conda update -n base conda
+        . $HOME/miniconda3/etc/profile.d/conda.sh
+        CONDA_INSTALLER=$( which conda )
+    fi
+}
+
+function check_peakdet_env() {
+    # see if peakdet env exists
+    exists=$( ${CONDA_INSTALLER} env list | grep peakdet )
+    if [ -z "${exists}" ]; then
+        # create peakdet env, activate, and install required packages
+        ${CONDA_INSTALLER} create -y -q -n peakdet python=3.6 numpy scipy \
+            matplotlib wxpython
+        source activate peakdet
+        pip install --no-cache-dir https://github.com/chriskiehl/gooey/tarball/master
+        pip install --no-cache-dir https://github.com/rmarkello/peakdet/tarball/master
+    else
+        source activate peakdet
+    fi
+}
+
+UPDATE=0
+
+while getopts "hu" OPT; do
+    case $OPT in
+            h)
+        Usage >&2
+        exit 0
+        ;;
+            u)
+        UPDATE=1
+        ;;
+    esac
+done
+
+if [ "$UPDATE" -eq 1 ]; then
+    check_conda_install
+    check_peakdet_env
+    echo 'Updating peakdet for hrv_pipeline'
+    source activate peakdet
+    pip install -U --no-cache-dir https://github.com/rmarkello/peakdet/tarball/master
+else
+    check_conda_install
+    check_peakdet_env
+    peakdet
+fi
