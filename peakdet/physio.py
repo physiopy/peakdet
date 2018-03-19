@@ -324,7 +324,7 @@ class PeakFinder(InterpolatedPhysio):
         self._peakinds, self._troughinds = [], []
         super(PeakFinder, self).reset(hard=hard)
 
-    def get_peaks(self, thresh=0.8, dist=None):
+    def get_peaks(self, thresh=0.2, dist=None):
         """
         Detects peaks in data
 

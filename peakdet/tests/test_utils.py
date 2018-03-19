@@ -30,8 +30,8 @@ def test_corr():
 
 def test_corrtemp():
     np.random.seed(10)
-    p = peakdet.PeakFinder(np.random.rand(100), fs=40)
-    p.get_peaks()
+    p = peakdet.PeakFinder(np.sin(np.arange(100)), fs=1)
+    p.get_peaks(thresh=0.2)
     assert len(p._template) > 0
 
 

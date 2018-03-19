@@ -39,8 +39,10 @@ def get_parser():
                         widget='FileChooser',
                         help='Select a representative file and replace '
                         'all subject-specific information with a "?" symbol. '
-                        '\nE.g., subject_001_data.txt would become '
-                        'subject_???_data.txt')
+                        '\nE.g., subject_001_data.txt should become '
+                        'subject_???_data.txt and will expand to match '
+                        'subject_001_data.txt, subject_002_data.txt, ..., '
+                        'subject_999_data.txt')
 
     inp_group = parser.add_argument_group('Inputs', 'Options to specify '
                                           'format of input files')
