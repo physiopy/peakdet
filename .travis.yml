@@ -3,21 +3,21 @@ sudo: true
 language: python
 
 python:
-- "2.7"
-- "3.5"
 - "3.6"
 
-before_install:
-- sudo apt-get install libblas-dev
-- sudo apt-get install liblapack-dev
-- sudo apt-get install gfortran
-
 install:
-- pip install pytest pytest-cov
-- pip install coveralls
-- pip install -r requirements.txt
-
-before_script:
+- sudo apt-get update
+- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+- bash miniconda.sh -b -p $HOME/miniconda
+- export PATH="$HOME/miniconda/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda update -q -y conda
+- conda info -a
+- conda create -y -q -n test-environment python=$TRAVIS_PYTHON_VERSION wxpython numpy scipy matplotlib
+- source activate test-environment
+- pip install --no-cache-dir https://github.com/chriskiehl/gooey/tarball/master
+- pip install pytest pytest-cov coveralls
 - python setup.py install
 - "export DISPLAY=:99.0"
 - "sh -e /etc/init.d/xvfb start"

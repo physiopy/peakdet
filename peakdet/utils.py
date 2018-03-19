@@ -55,8 +55,10 @@ def gen_flims(signal, fs):
     """
 
     signal = np.squeeze(signal)
-    inds = peakfinder(normalize(signal), dist=int(fs/4))
-    inds = peakfinder(normalize(signal), dist=np.ceil(np.diff(inds).mean())/2)
+    inds = peakfinder(normalize(signal),
+                      dist=int(fs / 4))
+    inds = peakfinder(normalize(signal),
+                      dist=np.ceil(np.diff(inds).mean()) / 2)
     freq = np.diff(inds).mean() / fs
 
     return np.asarray([freq / 2, freq * 2])
@@ -143,15 +145,15 @@ def get_extrema(data, peaks=True, thresh=0.4):
     idx = np.where(trend == 0)[0]
 
     for i in range(idx.size - 1, -1, -1):
-        if trend[min(idx[i]+1, trend.size-1)] >= 0:
+        if trend[min(idx[i] + 1, trend.size - 1)] >= 0:
             trend[idx[i]] = 1
         else:
             trend[idx[i]] = -1
 
     if peaks:
-        idx = np.where(np.diff(trend) == -2)[0]+1
+        idx = np.where(np.diff(trend) == -2)[0] + 1
     else:
-        idx = np.where(np.diff(trend) == 2)[0]+1
+        idx = np.where(np.diff(trend) == 2)[0] + 1
 
     return np.intersect1d(Indx, idx)
 
@@ -187,8 +189,8 @@ def min_peak_dist(locs, data, peaks=True, dist=250):
 
     for i in range(locs.size):
         if not idelete[i]:
-            dist_diff = np.logical_and(locs >= locs[i]-dist,
-                                       locs <= locs[i]+dist)
+            dist_diff = np.logical_and(locs >= locs[i] - dist,
+                                       locs <= locs[i] + dist)
             idelete = np.logical_or(idelete, dist_diff)
             idelete[i] = 0
 
@@ -256,14 +258,14 @@ def check_troughs(data, troughs, peaks):
     array : troughs
     """
 
-    all_troughs = np.zeros(peaks.size-1,
+    all_troughs = np.zeros(peaks.size - 1,
                            dtype='int')
 
-    for f in range(peaks.size-1):
+    for f in range(peaks.size - 1):
         curr = np.logical_and(troughs > peaks[f],
-                              troughs < peaks[f+1])
+                              troughs < peaks[f + 1])
         if not np.any(curr):
-            dp = data[peaks[f]:peaks[f+1]]
+            dp = data[peaks[f]:peaks[f + 1]]
             idx = peaks[f] + np.argwhere(dp == dp.min())[0]
         else:
             idx = troughs[curr]
@@ -419,28 +421,28 @@ def match_temp(data, locs, temp):
     """
 
     avgrate = round(np.diff(locs).mean())
-    THW = int(np.floor(temp.size/2))
+    THW = int(np.floor(temp.size / 2))
     z_temp = z_transform(temp)
     is_z_trans = [False, True]
 
-    c_samp_start = int(round(2.0*THW+1))-1
+    c_samp_start = int(round((2.0 * THW) + 1)) - 1
     try:
         c_samp_end = int(locs[19])
     except IndexError:
-        c_samp_end = int(locs[-1]-1)
+        c_samp_end = int(locs[-1] - 1)
 
-    sim_to_temp = np.zeros(c_samp_end+1)
-    for n in np.arange(c_samp_start, c_samp_end+1):
+    sim_to_temp = np.zeros(c_samp_end + 1)
+    for n in np.arange(c_samp_start, c_samp_end + 1):
         i_sig_start = n - THW
         i_sig_end = n + THW
-        sig_part = data[int(i_sig_start):int(i_sig_end)+1]
+        sig_part = data[int(i_sig_start):int(i_sig_end) + 1]
         sim_to_temp[n] = corr(sig_part, z_temp, is_z_trans)
 
     c_best_match = max(sim_to_temp)
     i_best_match = np.where(sim_to_temp == c_best_match)[0][0]
 
     peak_num = 0
-    search_steps_tot = int(np.ceil(0.5*avgrate))
+    search_steps_tot = int(np.ceil(0.5 * avgrate))
 
     n_samp_pad = THW + search_steps_tot + 1
     data_padded = np.hstack((np.zeros(int(n_samp_pad)),
@@ -449,22 +451,22 @@ def match_temp(data, locs, temp):
     n = int(i_best_match + n_samp_pad)
     sim_to_temp = np.zeros(data_padded.size)
 
-    while n > 1+search_steps_tot+THW:
-        search_pos_array = np.arange(-search_steps_tot-1, search_steps_tot,
+    while n > 1 + search_steps_tot + THW:
+        search_pos_array = np.arange(-search_steps_tot - 1, search_steps_tot,
                                      dtype='int')
         for search_pos in search_pos_array:
             index_search_start = int(n - THW + search_pos + 1)
             index_search_end = int(n + THW + search_pos + 1)
-            sig_part = data_padded[index_search_start:index_search_end+1]
+            sig_part = data_padded[index_search_start:index_search_end + 1]
             correlation = corr(sig_part, z_temp, is_z_trans)
-            curr_weight = abs(data_padded[n+search_pos+2])
+            curr_weight = abs(data_padded[n + search_pos + 2])
             correlation_weighted = curr_weight * correlation
-            sim_to_temp[n+search_pos+1] = correlation_weighted
+            sim_to_temp[n + search_pos + 1] = correlation_weighted
 
         index_search_start = int(n - search_steps_tot)
         index_search_end = int(n + search_steps_tot)
         index_search_range = np.arange(index_search_start,
-                                       index_search_end+1,
+                                       index_search_end + 1,
                                        dtype='int')
 
         search_range_values = sim_to_temp[index_search_range]
@@ -477,26 +479,26 @@ def match_temp(data, locs, temp):
     peak_num = 0
     cpulse = np.zeros(data.size)
     nlimit = data_padded.size - THW - search_pos - 1
-    location_weight = gaussian(2*search_steps_tot+1,
-                               std=(2*search_steps_tot)/5)
+    location_weight = gaussian(2 * search_steps_tot + 1,
+                               std=(2 * search_steps_tot) / 5)
 
     while n < nlimit:
-        search_pos_array = np.arange(-search_steps_tot-1, search_steps_tot,
+        search_pos_array = np.arange(-search_steps_tot - 1, search_steps_tot,
                                      dtype='int')
         for search_pos in search_pos_array:
             index_search_start = int(max(0, n - THW + search_pos) + 1)
             index_search_end = int(n + THW + search_pos + 1)
-            sig_part = data_padded[index_search_start:index_search_end+1]
+            sig_part = data_padded[index_search_start:index_search_end + 1]
             correlation = corr(sig_part, z_temp, is_z_trans)
-            loc_weight = location_weight[search_pos+search_steps_tot+1]
-            amp_weight = abs(data_padded[n+search_pos+2])
+            loc_weight = location_weight[search_pos + search_steps_tot + 1]
+            amp_weight = abs(data_padded[n + search_pos + 2])
             correlation_weighted = amp_weight * correlation * loc_weight
-            sim_to_temp[n+search_pos+1] = correlation_weighted
+            sim_to_temp[n + search_pos + 1] = correlation_weighted
 
         index_search_start = n - search_steps_tot
         index_search_end = n + search_steps_tot
         index_search_range = np.arange(index_search_start,
-                                       index_search_end+1,
+                                       index_search_end + 1,
                                        dtype='int')
 
         search_range_values = sim_to_temp[index_search_range]
@@ -514,11 +516,11 @@ def match_temp(data, locs, temp):
         if found_c_pulses < 21 and found_c_pulses >= 3:
             curr_hr_in_samp = round(np.mean(np.diff(cpulse)))
         if found_c_pulses >= 21:
-            curr_cpulses = cpulse[int(found_c_pulses-20):int(found_c_pulses)]
+            curr_cpulses = cpulse[int(found_c_pulses - 20):int(found_c_pulses)]
             curr_hr_in_samp = round(np.mean(np.diff(curr_cpulses)))
 
-        check_smaller = curr_hr_in_samp > 0.5*avgrate
-        check_larger = curr_hr_in_samp < 1.5*avgrate
+        check_smaller = curr_hr_in_samp > 0.5 * avgrate
+        check_larger = curr_hr_in_samp < 1.5 * avgrate
 
         if check_smaller and check_larger:
             n = int(best_pos + curr_hr_in_samp)

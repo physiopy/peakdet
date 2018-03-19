@@ -21,21 +21,18 @@ class HRV():
     Uses scipy.signal.welch for calculation of frequency-based statistics
     """
 
-    def __init__(self, rrtime, rrint):
-        self._rrtime = rrtime
-        self._rrint = rrint
+    def __init__(self, peakfinder):
+        self.pf = peakfinder
+        self._sd = np.diff(np.diff(self.pf._masked)).compressed()
+        self._rrint = self.pf.rrint * 1000.
 
-        func = interp1d(self._rrtime, self._rrint, kind='cubic')
-        irrt = np.arange(self._rrtime[0], self._rrtime[-1], 1./4.)
+        func = interp1d(self.pf.rrtime, self._rrint, kind='cubic')
+        irrt = np.arange(self.pf.rrtime[0], self.pf.rrtime[-1], 1. / 4.)
         self._irri = func(irrt)
 
     @property
-    def _sd(self):
-        return np.diff(self._rrint)
-
-    @property
     def _fft(self):
-        return welch(self._irri, nperseg=120, fs=4.0)
+        return welch(self._irri, nperseg=120, fs=4.0, scaling='spectrum')
 
     @property
     def avgnn(self):
@@ -55,34 +52,34 @@ class HRV():
 
     @property
     def nn50(self):
-        return np.argwhere(self._sd>50.).size
+        return np.argwhere(self._sd > 50.).size
 
     @property
     def pnn50(self):
-        return self.nn50/self._rrint.size
+        return self.nn50 / self._rrint.size
 
     @property
     def nn20(self):
-        return np.argwhere(self._sd>20.).size
+        return np.argwhere(self._sd > 20.).size
 
     @property
     def pnn20(self):
-        return self.nn20/self._rrint.size
+        return self.nn20 / self._rrint.size
 
     @property
     def _hf(self):
         fx, px = self._fft
-        return px[np.logical_and(fx>=.15, fx<.40)]
+        return px[np.logical_and(fx >= 0.15, fx < 0.40)]
 
     @property
     def _lf(self):
         fx, px = self._fft
-        return px[np.logical_and(fx>=.04, fx<.15)]
+        return px[np.logical_and(fx >= 0.04, fx < 0.15)]
 
     @property
     def _vlf(self):
         fx, px = self._fft
-        return px[np.logical_and(fx>=0., fx<.04)]
+        return px[np.logical_and(fx >= 0., fx < 0.04)]
 
     @property
     def hf(self):
@@ -110,7 +107,7 @@ class HRV():
 
     @property
     def lftohf(self):
-        return self.lf/self.hf
+        return self.lf / self.hf
 
     @property
     def hf_peak(self):

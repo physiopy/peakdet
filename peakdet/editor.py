@@ -47,7 +47,7 @@ class PeakEditor(object):
         canvas.get_tk_widget().grid(row=0, column=0,
                                     rowspan=10, columnspan=3,
                                     pady=5, padx=5,
-                                    sticky=tk.N+tk.W+tk.S+tk.E)
+                                    sticky=tk.N + tk.W + tk.S + tk.E)
         canvas.mpl_connect('scroll_event', self.roll_wheel)
         canvas.draw()
 
@@ -81,7 +81,7 @@ class PeakEditor(object):
 
     def roll_wheel(self, event):
         lim, move = self.ax.get_xlim(), event.step * -10
-        self.ax.set_xlim(lim[0]+move, lim[1]+move)
+        self.ax.set_xlim(lim[0] + move, lim[1] + move)
         self.canvas.draw()
 
     def on_span_select(self, xmin, xmax):

@@ -16,7 +16,8 @@ def test_PeakEditor():
 
     p.get_peaks()
 
-    with pytest.raises(TypeError): peakdet.editor.PeakEditor(10, _debug=True)
+    with pytest.raises(TypeError):
+        peakdet.editor.PeakEditor(10, _debug=True)
     m = peakdet.editor.PeakEditor(p, _debug=True)
     m.on_span_select(10, 20)
     m.undo()
