@@ -101,7 +101,7 @@ if [ "$UPDATE" -eq 1 ]; then
     check_conda_install
     check_peakdet_env
     echo 'Updating peakdet for hrv_pipeline'
-    pip install -U --no-cache-dir https://github.com/rmarkello/peakdet/tarball/master
+    pip install -U --no-deps --no-cache-dir https://github.com/rmarkello/peakdet/tarball/master
 # if we're just installing
 elif [ "$INSTALL_ONLY" -eq 1 ]; then
     check_conda_install
