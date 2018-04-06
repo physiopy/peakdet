@@ -55,9 +55,10 @@ class Physio(object):
         if isinstance(self._dinput, (str)):
             try:
                 return np.loadtxt(self._dinput, skiprows=header,
-                                  usecols=col)
+                                  usecols=col, comments=['#', '%'])
             except ValueError:
-                return np.loadtxt(self._dinput, skiprows=1, usecols=col)
+                return np.loadtxt(self._dinput, skiprows=1,
+                                  usecols=col, comments=['#', '%'])
         elif isinstance(self._dinput, (np.ndarray, list)):
             return np.asarray(self._dinput)
         else:
@@ -376,7 +377,6 @@ class PeakFinder(InterpolatedPhysio):
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots(1)
-
         ax.plot(self.time, self.data, 'b')
 
         if len(self.peakinds):
