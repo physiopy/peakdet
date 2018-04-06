@@ -57,8 +57,9 @@ class Physio(object):
                 return np.loadtxt(self._dinput, skiprows=header,
                                   usecols=col, comments=['#', '%'])
             except ValueError:
-                return np.loadtxt(self._dinput, skiprows=1,
-                                  usecols=col, comments=['#', '%'])
+                return np.loadtxt(self._dinput, skiprows=header,
+                                  usecols=col, comments=['#', '%'],
+                                  delimiter=',')
         elif isinstance(self._dinput, (np.ndarray, list)):
             return np.asarray(self._dinput)
         else:
