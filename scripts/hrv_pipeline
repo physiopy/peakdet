@@ -34,7 +34,7 @@ function check_conda_install() {
     if [ -f "${condash}" ]; then
         source ${condash}
     else
-        echo 'Installing miniconda. This should only happen once but might take a while.'
+        echo 'Installing miniconda3. This should only happen once but might take a while.'
         # download miniconda installer
         miniconda_installer=${PWD}/miniconda.sh
         curl -sSL --retry 5 -o ${miniconda_installer} ${URL}

@@ -25,7 +25,7 @@ def test_Physio():
         p = peakdet.physio.Physio(40, fs=40.)
 
     fname = op.join(op.dirname(__file__), 'data', 'header.1D')
-    p = peakdet.physio.Physio(fname, fs=40.)
+    p = peakdet.physio.Physio(fname, fs=40., header=True)
     assert np.all(p.rawdata == np.loadtxt(fname, skiprows=1))
 
 

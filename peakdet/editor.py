@@ -100,9 +100,6 @@ class PeakEditor(object):
         if self.last_removed is not None:
             self.peakfinder._rejected = np.setdiff1d(self.peakfinder._rejected,
                                                      self.last_removed)
-            # self.peakfinder._peakinds = np.append(self.peakfinder.peakinds,
-            #                                       self.last_removed)
-            # self.peakfinder._peakinds.sort()
             self.peakfinder.get_troughs(thresh=0)
             self.last_removed = None
             self.plot_signals()
