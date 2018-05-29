@@ -2,7 +2,6 @@
 
 from __future__ import absolute_import
 import numpy as np
-from scipy.interpolate import InterpolatedUnivariateSpline
 from peakdet import utils, editor
 
 
@@ -16,218 +15,34 @@ class Physio(object):
         Input data filename or array
     fs : float
         Sampling rate (Hz) of ``data``
-    col : int, optional
-        Column of data in input file, if ``data`` is str. Default: 0
-    header : bool, optional
-        Whether ``data`` has a header, if ``data`` is str. Default: False
     """
 
-    def __init__(self, data, fs, col=0, header=False):
-        self._fs = float(fs)
-        self._dinput = data
-        self.rawdata = self.load_data(col, header)
+    def __init__(self, data, fs):
+        self._fs = self._rawfs = float(fs)
+        self._input = data
+        self.rawdata = data.copy()
+        self._data = utils.normalize(self.rawdata)
+        self._filtsig = self._data.copy()
 
     @property
     def fs(self):
         """ Sampling rate (Hz) """
         return self._fs
 
-    @fs.setter
-    def fs(self, value):
-        self._fs = float(value)
-
-    def load_data(self, col=0, header=False):
-        """
-        Loads input data
-
-        Parameters
-        ----------
-        col : int, optional
-            Column of data in input file. Default: 0
-        header : bool, optional
-            Whether input file has a header. Default: False
-
-        Returns
-        -------
-        data : np.ndarray
-            Loaded data
-        """
-        if isinstance(self._dinput, (str)):
-            try:
-                return np.loadtxt(self._dinput, skiprows=header,
-                                  usecols=col, comments=['#', '%'])
-            except (ValueError, IndexError):
-                return np.loadtxt(self._dinput, skiprows=header,
-                                  usecols=col, comments=['#', '%'],
-                                  delimiter=',')
-        elif isinstance(self._dinput, (np.ndarray, list)):
-            return np.asarray(self._dinput)
-        else:
-            raise TypeError('Cannot determine data input type.')
-
-
-class ScaledPhysio(Physio):
-    """
-    Class that normalizes input data
-
-    Parameters
-    ----------
-    data : str or array_like
-        Input data filename or array
-    fs : float
-        Sampling rate (Hz) of ``data``
-    col : int, optional
-        Column of data in input file, if ``data`` is str. Default: 0
-    header : bool, optional
-        Whether ``data`` has a header, if ``data`` is str. Default: False
-    """
-
-    def __init__(self, data, fs, col=0, header=False):
-        super().__init__(data, fs, col, header)
-        self._data = utils.normalize(self.rawdata)
-
-    @property
-    def data(self):
-        """ Normalized (centered + standardized) data """
-        return self._data
-
-    @data.setter
-    def data(self, value):
-        self._data = np.asarray(value)
-
     @property
     def time(self):
         """ Array of time points corresponding to data """
         return np.arange(0, self.data.size / self.fs, 1. / self.fs)
 
-
-class FilteredPhysio(ScaledPhysio):
-    """
-    Class with ability to filter data
-
-    Parameters
-    ----------
-    data : str or array_like
-        Input data filename or array
-    fs : float
-        Sampling rate (Hz) of ``data``
-    col : int, optional
-        Column of data in input file, if ``data`` is str. Default: 0
-    header : bool, optional
-        Whether ``data`` has a header, if ``data`` is str. Default: False
-    """
-
-    def __init__(self, data, fs, col=0, header=False):
-        super().__init__(data, fs, col, header)
-        self._filtsig = self._data.copy()
-
     @property
     def _flims(self):
-        """ Approximated frequency cutoffs for peak detection """
+        """ Approximate frequency cutoffs for peak detection """
         return utils.gen_flims(self.data, self.fs)
 
     @property
     def data(self):
         """ Filtered data """
-        return self._filtsig
-
-    @data.setter
-    def data(self, value):
-        self._filtsig = np.asarray(value)
-
-    def reset(self):
-        """ Resets data prior to filtering """
-        self.data = self._data.copy()
-
-    def bandpass(self, flims=None):
-        """
-        Bandpass filters signal
-
-        Parameters
-        ----------
-        flims : list
-            frequency cutoffs for filter (retain flims[0] < freq < flims[1])
-        """
-
-        if flims is None:
-            flims = self._flims
-        self.data = utils.bandpass_filt(self.data, self.fs,
-                                        flims)
-
-    def lowpass(self, flims=None):
-        """
-        Lowpass filters signal
-
-        Parameters
-        ----------
-        flims : float
-            frequency cutoff for filter (retain freq < flims)
-        """
-
-        if flims is None:
-            flims = self._flims
-        if hasattr(flims, '__len__') and len(flims) > 1:
-            flims = flims[0]
-        self.data = utils.bandpass_filt(self.data, self.fs,
-                                        flims, btype='low')
-
-    def highpass(self, flims=None):
-        """
-        Highpass filters signal
-
-        Parameters
-        ----------
-        flims : float
-            frequency cutoff for filter (retain freq > flims)
-        """
-
-        if flims is None:
-            flims = self._flims
-        if hasattr(flims, '__len__') and len(flims) > 1:
-            flims = flims[-1]
-        self.data = utils.bandpass_filt(self.data, self.fs,
-                                        flims, btype='high')
-
-
-class InterpolatedPhysio(FilteredPhysio):
-    """
-    Class with ability to interpolate input data
-
-    Parameters
-    ----------
-    data : str or array_like
-        Input data filename or array
-    fs : float
-        Sampling rate (Hz) of ``data``
-    col : int, optional
-        Column of data in input file, if ``data`` is str. Default: 0
-    header : bool, optional
-        Whether ``data`` has a header, if ``data`` is str. Default: False
-    """
-
-    def __init__(self, data, fs, col=0, header=False):
-        super().__init__(data, fs, col, header)
-        self._rawfs = fs
-
-    def interpolate(self, order=2):
-        """
-        Interpolates data, to help improve peak-finding abilities
-
-        Parameters
-        ----------
-        order : float (default: 2)
-            data will be interpolated to order * fs
-        """
-
-        t = np.arange(0, self.data.size / self.fs, 1. / self.fs)
-        if t.size != self.data.size:
-            t = t[:self.data.size]
-
-        tn = np.arange(0, t[-1], 1. / (self.fs * order))
-        i = InterpolatedUnivariateSpline(t, self.data)
-
-        self._data, self.fs = i(tn), self.fs * order
-        self.reset()
+        return self._data
 
     def reset(self, hard=False):
         """
@@ -240,12 +55,12 @@ class InterpolatedPhysio(FilteredPhysio):
         """
 
         if hard:
-            super(InterpolatedPhysio, self).__init__(self._dinput, self._rawfs)
+            self.__init__(self._input, self._rawfs)
         else:
-            super(InterpolatedPhysio, self).reset()
+            self.data = self._data.copy()
 
 
-class PeakFinder(InterpolatedPhysio):
+class PeakFinder(Physio):
     """
     Class with peak (and trough) finding method(s)
 

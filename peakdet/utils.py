@@ -2,7 +2,136 @@
 
 import pickle
 import numpy as np
-from scipy.signal import butter, filtfilt, gaussian
+from scipy import signal
+from scipy.interpolate import InterpolatedUnivariateSpline
+
+
+def load_physio(physio, fs=None):
+    """
+    Returns ``Physio`` object with provided data
+
+    Parameters
+    ----------
+    physio : array_like
+        Input physiological data
+    fs : float, optional
+        Sampling rate of ``physio``
+
+    Returns
+    -------
+    physio: peakdet.Physio
+        Loaded physio object
+    """
+    pass
+
+
+def check_physio(physio, ensure_fs=True):
+    """
+    Checks that ``physio`` is in correct format (i.e., ``peakdet.Physio``)
+
+    Parameters
+    ----------
+    physio : Physio_like
+    ensure_fs : bool, optional
+        Make sure that ``physio`` has valid sampling rate attribute
+
+    Returns
+    -------
+    physio : peakdet.Physio
+        Loaded physio object
+    """
+    pass
+
+
+def new_physio_like(ref_physio, data, fs=None):
+    """
+    Parameters
+    ----------
+    ref_physio : Physio_like
+        Reference ``Physio`` object
+    data : array_like
+        Input physiological data
+    fs : float, optional
+        Sampling rate of ``data``. If not supplied, assumed to be the same as
+        in ``ref_physio``
+
+    Returns
+    -------
+    physio : peakdet.Physio
+        Loaded physio object with provided ``data``
+    """
+    pass
+
+
+def filter_physio(physio, cutoffs, method='bandpass'):
+    """
+    Performs frequency-based filtering on ``physio``
+
+    Parameters
+    ----------
+    physio : Physio_like
+        Input data to be filtered
+    cutoffs : array_like
+        Lower and/or upper bounds of filter (in Hz)
+    method : str {'lowpass', 'highpass', 'bandpass', 'bandstop'}, optional
+        Type of filter to use. Default: 'bandpass'
+
+    Returns
+    -------
+    physio : peakdet.Physio
+        Filtered input data
+    """
+
+    _valid_methods = ['lowpass', 'highpass', 'bandpass', 'bandstop']
+
+    physio = check_physio(physio)
+    if method not in _valid_methods:
+        raise ValueError('Provided method {} is not permitted; must be in {}.'
+                         .format(method, _valid_methods))
+
+    cutoffs = np.array(cutoffs)
+    if method in ['lowpass', 'highpass'] and cutoffs.size != 1:
+        raise ValueError('Cutoffs must be len 1 when using {} method'
+                         .format(method))
+    elif method in ['bandpass', 'bandstop'] and cutoffs.size != 2:
+        raise ValueError('Cutoffs must be len 2 when using {} method'
+                         .format(method))
+
+    nyq_cutoff = cutoffs / (physio.fs * 0.5)
+    if nyq_cutoff > 1:
+        raise ValueError('Provided cutoffs {} are outside of the Nyquist '
+                         'frequency for input data with sampling rate {}.'
+                         .format(cutoffs, physio.fs))
+
+    b, a = signal.butter(3, nyq_cutoff, btype=method)
+    filtered = signal.filtfilt(b, a, physio)
+
+    return new_physio_like(physio, filtered)
+
+
+def interpolate_data(physio, fs):
+    """
+    Interpolates ``physio`` to sampling rate ``fs``
+
+    Parameters
+    ----------
+    physio : Physio_like
+    fs : float, optional
+        Desired sampling rate to interpolate ``physio`` to
+
+    Returns
+    -------
+    physio : peakdet.Physio
+        Interpolated input data
+    """
+
+    physio = check_physio(physio)
+    orig = np.arange(0, physio.size / physio.fs, 1. / physio.fs)[:physio.size]
+    new = np.arange(0, orig[-1], 1. / fs)
+
+    interpolated = InterpolatedUnivariateSpline(orig, physio)(new)
+
+    return new_physio_like(physio, interpolated, fs=fs)
 
 
 def save(fname, pf):
@@ -64,36 +193,6 @@ def gen_flims(signal, fs):
     return np.asarray([freq / 2, freq * 2])
 
 
-def bandpass_filt(signal, fs, flims=None, btype='bandpass'):
-    """
-    Runs `btype` filter on `signal` of sampling rate `fs`
-
-    Parameters
-    ----------
-    signal : array-like
-    fs : float
-    flims : array-like
-        Bounds of filter
-    btype : str
-        Type of filter; one of ['band','low','high']
-
-    Returns
-    -------
-    array : filtered signal
-    """
-
-    signal = np.squeeze(signal)
-    if flims is None:
-        flims = [0, fs]
-
-    nyq_freq = fs * 0.5
-    nyq_cutoff = np.asarray(flims) / nyq_freq
-    b, a = butter(3, nyq_cutoff, btype=btype)
-    fsig = filtfilt(b, a, signal)
-
-    return fsig
-
-
 def normalize(data):
     """
     Normalizes `data` (subtracts mean and divides by std)
@@ -107,9 +206,9 @@ def normalize(data):
     array: normalized data
     """
 
-    data = np.squeeze(np.asarray(data))
+    data = np.array(data).squeeze()
     if data.ndim > 1:
-        raise IndexError("Input must be one-dimensional.")
+        raise ValueError("Input must be one-dimensional.")
     if data.std() == 0:
         return data - data.mean()
     return (data - data.mean()) / data.std()
@@ -132,7 +231,7 @@ def get_extrema(data, peaks=True, thresh=0.4):
     """
 
     if thresh < 0 or thresh > 1:
-        raise ValueError("Thresh must be in (0,1).")
+        raise ValueError("Thresh must be in (0, 1).")
 
     if peaks:
         uthresh = (thresh * np.diff(np.percentile(data, [5, 95])))
@@ -151,9 +250,11 @@ def get_extrema(data, peaks=True, thresh=0.4):
             trend[idx[i]] = -1
 
     if peaks:
-        idx = np.where(np.diff(trend) == -2)[0] + 1
+        comp = -2
     else:
-        idx = np.where(np.diff(trend) == 2)[0] + 1
+        comp = 2
+
+    idx = np.where(np.diff(trend) == comp)[0] + 1
 
     return np.intersect1d(Indx, idx)
 
@@ -181,9 +282,10 @@ def min_peak_dist(locs, data, peaks=True, dist=250):
         return locs
 
     if peaks:
-        idx = data[locs].argsort()[::-1][:]
+        idx = data[locs].argsort()[::-1]
     else:
-        idx = data[locs].argsort()[:]
+        idx = data[locs].argsort()
+
     locs = locs[idx]
     idelete = np.ones(locs.size) < 0
 
@@ -479,8 +581,8 @@ def match_temp(data, locs, temp):
     peak_num = 0
     cpulse = np.zeros(data.size)
     nlimit = data_padded.size - THW - search_pos - 1
-    location_weight = gaussian(2 * search_steps_tot + 1,
-                               std=(2 * search_steps_tot) / 5)
+    location_weight = signal.gaussian(2 * search_steps_tot + 1,
+                                      std=(2 * search_steps_tot) / 5)
 
     while n < nlimit:
         search_pos_array = np.arange(-search_steps_tot - 1, search_steps_tot,
