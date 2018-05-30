@@ -1,46 +1,87 @@
 # -*- coding: utf-8 -*-
 
-import pickle
+import warnings
 import numpy as np
 from scipy import signal
 from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy.stats import zscore
+from peakdet import physio
 
 
-def load_physio(physio, fs=None):
+def load(data, fs=None, dtype=None):
     """
     Returns ``Physio`` object with provided data
 
     Parameters
     ----------
-    physio : array_like
+    data : array_like or str or Physio_like
         Input physiological data
     fs : float, optional
-        Sampling rate of ``physio``
+        Sampling rate of ``data``
+    dtype : data_type, optional
+        Data type to convert ``data`` to, if conversion needed
 
     Returns
     -------
-    physio: peakdet.Physio
+    data: peakdet.Physio
         Loaded physio object
     """
-    pass
+
+    if isinstance(data, str):
+        data = np.load(data)
+    elif isinstance(data, np.ndarray):
+        return physio.Physio(np.asarray(data, dtype=dtype), fs=fs)
+    elif not isinstance(data, physio.Physio):
+        raise TypeError('Cannot load data of type {}'.format(type(data)))
+
+    phys = physio.Physio(**data)
+
+    if fs is not None and fs != phys._fs:
+        warnings.warn('Provided sampling rate does not match loaded rate. '
+                      'Resetting loaded sampling rate to {}'
+                      .format(fs))
+        phys._fs = fs
+    if dtype is not None:
+        phys._data = np.asarray(phys[:], dtype=dtype)
+
+    return phys
 
 
-def check_physio(physio, ensure_fs=True):
+def save(file, data):
     """
-    Checks that ``physio`` is in correct format (i.e., ``peakdet.Physio``)
+    Saves ``data`` to ``fname`
 
     Parameters
     ----------
-    physio : Physio_like
+    fname : str
+        Path to output file
+    data : Physio_like
+        Data to be saved to file
+    """
+
+    data = check_physio(data)
+    file += 'phys' if not file.endswith('.phys') else ''
+    with open(file, 'wb') as dest:
+        np.savez_compressed(dest, data=data.data, fs=data.fs)
+
+
+def check_physio(data, ensure_fs=True):
+    """
+    Checks that ``data`` is in correct format (i.e., ``peakdet.Physio``)
+
+    Parameters
+    ----------
+    data : Physio_like
     ensure_fs : bool, optional
-        Make sure that ``physio`` has valid sampling rate attribute
+        Make sure that ``data`` has valid sampling rate attribute
 
     Returns
     -------
-    physio : peakdet.Physio
+    data : peakdet.Physio
         Loaded physio object
     """
-    pass
+
+    return data
 
 
 def new_physio_like(ref_physio, data, fs=None):
@@ -57,19 +98,23 @@ def new_physio_like(ref_physio, data, fs=None):
 
     Returns
     -------
-    physio : peakdet.Physio
+    data : peakdet.Physio
         Loaded physio object with provided ``data``
     """
-    pass
+
+    if fs is None:
+        fs = ref_physio.fs
+
+    return ref_physio.__class__(data, fs=fs)
 
 
-def filter_physio(physio, cutoffs, method='bandpass'):
+def filter_physio(data, cutoffs, method='bandpass'):
     """
-    Performs frequency-based filtering on ``physio``
+    Performs frequency-based filtering on ``data``
 
     Parameters
     ----------
-    physio : Physio_like
+    data : Physio_like
         Input data to be filtered
     cutoffs : array_like
         Lower and/or upper bounds of filter (in Hz)
@@ -78,13 +123,13 @@ def filter_physio(physio, cutoffs, method='bandpass'):
 
     Returns
     -------
-    physio : peakdet.Physio
+    data : peakdet.Physio
         Filtered input data
     """
 
     _valid_methods = ['lowpass', 'highpass', 'bandpass', 'bandstop']
 
-    physio = check_physio(physio)
+    data = check_physio(data)
     if method not in _valid_methods:
         raise ValueError('Provided method {} is not permitted; must be in {}.'
                          .format(method, _valid_methods))
@@ -97,84 +142,50 @@ def filter_physio(physio, cutoffs, method='bandpass'):
         raise ValueError('Cutoffs must be len 2 when using {} method'
                          .format(method))
 
-    nyq_cutoff = cutoffs / (physio.fs * 0.5)
+    nyq_cutoff = cutoffs / (data.fs * 0.5)
     if nyq_cutoff > 1:
         raise ValueError('Provided cutoffs {} are outside of the Nyquist '
                          'frequency for input data with sampling rate {}.'
-                         .format(cutoffs, physio.fs))
+                         .format(cutoffs, data.fs))
 
     b, a = signal.butter(3, nyq_cutoff, btype=method)
-    filtered = signal.filtfilt(b, a, physio)
+    filtered = signal.filtfilt(b, a, data)
 
-    return new_physio_like(physio, filtered)
+    return new_physio_like(data, filtered)
 
 
-def interpolate_data(physio, fs):
+def interpolate_data(data, fs):
     """
-    Interpolates ``physio`` to sampling rate ``fs``
+    Interpolates ``data`` to sampling rate ``fs``
 
     Parameters
     ----------
-    physio : Physio_like
-    fs : float, optional
-        Desired sampling rate to interpolate ``physio`` to
+    data : Physio_like
+    fs : float
+        Desired sampling rate to interpolate ``data``
 
     Returns
     -------
-    physio : peakdet.Physio
+    data : peakdet.Physio
         Interpolated input data
     """
 
-    physio = check_physio(physio)
-    orig = np.arange(0, physio.size / physio.fs, 1. / physio.fs)[:physio.size]
-    new = np.arange(0, orig[-1], 1. / fs)
+    data = check_physio(data)
+    orig = np.arange(0, data.size / data.fs, 1. / data.fs)[:data.size]
+    new = np.arange(0, orig[-1] + (1. / fs), 1. / fs)
 
-    interpolated = InterpolatedUnivariateSpline(orig, physio)(new)
+    interpolated = InterpolatedUnivariateSpline(orig, data[:])(new)
 
-    return new_physio_like(physio, interpolated, fs=fs)
-
-
-def save(fname, pf):
-    """
-    Saves ``pf`` to ``fname`
-
-    Parameters
-    ----------
-    fname : str
-        Path to output file
-    pf : peakdet.PeakFinder instance
-        Or subclass instance
-    """
-
-    with open(fname, 'wb') as out:
-        pickle.dump(pf, out)
+    return new_physio_like(data, interpolated, fs=fs)
 
 
-def load(fname):
-    """
-    Loads `fname` created by save()
-
-    Parameters
-    ----------
-    fname : str
-        Path to input file
-
-    Returns
-    -------
-    pdbf : peakdet.PeakFinder instance
-    """
-
-    with open(fname, 'rb') as src:
-        return pickle.load(src)
-
-
-def gen_flims(signal, fs):
+def gen_flims(data, fs):
     """
     Generates a rough guess of ideal frequency cutoffs for a bandpass filter
 
     Parameters
     ----------
-    signal : array_like
+    data : array_like
     fs : float
 
     Returns
@@ -183,35 +194,12 @@ def gen_flims(signal, fs):
         optimal frequency cutoffs
     """
 
-    signal = np.squeeze(signal)
-    inds = peakfinder(normalize(signal),
-                      dist=int(fs / 4))
-    inds = peakfinder(normalize(signal),
-                      dist=np.ceil(np.diff(inds).mean()) / 2)
+    data = np.squeeze(data)
+    inds = peakfinder(zscore(data), dist=int(fs / 4))
+    inds = peakfinder(zscore(data), dist=np.ceil(np.diff(inds).mean()) / 2)
     freq = np.diff(inds).mean() / fs
 
     return np.asarray([freq / 2, freq * 2])
-
-
-def normalize(data):
-    """
-    Normalizes `data` (subtracts mean and divides by std)
-
-    Parameters
-    ----------
-    data : array-like
-
-    Returns
-    -------
-    array: normalized data
-    """
-
-    data = np.array(data).squeeze()
-    if data.ndim > 1:
-        raise ValueError("Input must be one-dimensional.")
-    if data.std() == 0:
-        return data - data.mean()
-    return (data - data.mean()) / data.std()
 
 
 def get_extrema(data, peaks=True, thresh=0.4):
@@ -411,28 +399,9 @@ def gen_temp(data, locs, factor=0.5):
     return template
 
 
-def z_transform(z):
-    """
-    Z-transform `z`
-
-    Parameters
-    ----------
-    z : array-like
-
-    Returns
-    -------
-    array : z-transformed input
-    """
-
-    z = z - (z.sum() / z.size)
-    z = z / np.sqrt(np.dot(z.T, z) * (1. / (z.size - 1)))
-
-    return z
-
-
 def corr(x, y, z_tran=[False, False]):
     """
-    Returns correlation of `x` and `y`
+    Potentially faster correlation of `x` and `y`
 
     Will z-transform data before correlation.
 
@@ -449,14 +418,24 @@ def corr(x, y, z_tran=[False, False]):
     """
 
     if x.ndim > 1:
-        x = x.flatten()
+        x = np.asarray(x).squeeze()
     if y.ndim > 1:
-        y = y.flatten()
+        y = np.asarray(y).squeeze()
+
+    if x.ndim > 1 or y.ndim > 1:
+        raise ValueError('Input arrays must have only one dimension')
+
+    if x.size != y.size:
+        raise ValueError('Input array dimensions must be same size')
+
+    # numpy corrcoef is faster if both variables need to be z-scored
+    if not np.any(z_tran):
+        return np.corrcoef(x, y)[0, 1]
 
     if not z_tran[0]:
-        x = z_transform(x)
+        x = zscore(x, ddof=1)
     if not z_tran[1]:
-        y = z_transform(y)
+        y = zscore(y, ddof=1)
 
     if x.size == y.size:
         return np.dot(x.T, y) * (1. / (x.size - 1))
@@ -484,7 +463,7 @@ def corr_template(temp, sim=0.95):
 
     npulse = temp.shape[0]
 
-    mean_temp = z_transform(temp.mean(axis=0))
+    mean_temp = zscore(temp.mean(axis=0), ddof=1)
     sim_to_temp = np.zeros((temp.shape[0], 1))
 
     for n in range(temp.shape[0]):
@@ -524,7 +503,7 @@ def match_temp(data, locs, temp):
 
     avgrate = round(np.diff(locs).mean())
     THW = int(np.floor(temp.size / 2))
-    z_temp = z_transform(temp)
+    z_temp = zscore(temp, ddof=1)
     is_z_trans = [False, True]
 
     c_samp_start = int(round((2.0 * THW) + 1)) - 1

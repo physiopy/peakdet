@@ -1,63 +1,57 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
 import numpy as np
 from peakdet import utils, editor
 
 
-class Physio(object):
+class Physio():
     """
-    Class to hold physiological data
+    Small class to hold physiological data
 
     Parameters
     ----------
-    data : str or array_like
-        Input data filename or array
+    data : array_like
+        Input data array
     fs : float
-        Sampling rate (Hz) of ``data``
+        Sampling rate of ``data`` (Hz)
     """
 
-    def __init__(self, data, fs):
-        self._fs = self._rawfs = float(fs)
-        self._input = data
-        self.rawdata = data.copy()
-        self._data = utils.normalize(self.rawdata)
-        self._filtsig = self._data.copy()
+    def __init__(self, data, fs=None):
+        data = np.asarray(data).squeeze()
+        if data.ndim > 1:
+            raise ValueError('Provided data dimensionality {} exceeds 1'
+                             .format(data.ndim))
+        self._fs = np.float64(fs)
+        self._data = data
+
+    def __array__(self):
+        return self.data
+
+    def __getitem__(self, slicer):
+        return self.data[slicer]
+
+    def __str__(self):
+        return '{name}(size={size}, fs={fs})'.format(
+            name=self.__class__.__name__,
+            size=self.size,
+            fs=self.fs
+        )
+
+    __repr__ = __str__
 
     @property
-    def fs(self):
-        """ Sampling rate (Hz) """
-        return self._fs
-
-    @property
-    def time(self):
-        """ Array of time points corresponding to data """
-        return np.arange(0, self.data.size / self.fs, 1. / self.fs)
-
-    @property
-    def _flims(self):
-        """ Approximate frequency cutoffs for peak detection """
-        return utils.gen_flims(self.data, self.fs)
+    def size(self):
+        return self.data.size
 
     @property
     def data(self):
-        """ Filtered data """
+        """ Physiological data """
         return self._data
 
-    def reset(self, hard=False):
-        """
-        Removes filtering from data
-
-        Parameters
-        ----------
-        hard : bool (False)
-            also remove interpolation from data
-        """
-
-        if hard:
-            self.__init__(self._input, self._rawfs)
-        else:
-            self.data = self._data.copy()
+    @property
+    def fs(self):
+        """ Sampling rate of data (Hz) """
+        return self._fs
 
 
 class PeakFinder(Physio):

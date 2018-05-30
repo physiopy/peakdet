@@ -1,4 +1,4 @@
-__all__ = ['physio', 'analytics', 'modalities', 'utils']
+__all__ = ['__version__', 'PeakFinder', 'HRV', 'ECG', 'PPG', 'RESP']
 
 from .info import __version__
 from .physio import (PeakFinder)
