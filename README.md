@@ -15,7 +15,7 @@ Peakdet is designed for use in analysis and interpretation of human physiologica
 Cloning the repo from GitHub and running the usual `python setup.py install` should work.
 
 ## Usage
-A not-so-short, somewhat-illustrative use case. Similar functionality can be found for ECG (electrocardiogram) and RESP (respiration) data; simply replace peakdet.PPG below with the appropriate acronym (i.e., peakdet.ECG, peakdet.RESP).
+A not-so-short, somewhat-illustrative use case. Similar functionality can be found for ECG (electrocardiogram) and RESP (respiration) data; simply replace `peakdet.PPG` below with the appropriate acronym (i.e., `peakdet.ECG`, `peakdet.RESP`).
 
 ```python
 >>> import peakdet
@@ -25,7 +25,8 @@ A not-so-short, somewhat-illustrative use case. Similar functionality can be fou
 >>> ppg = peakdet.PPG(datafile, samplerate)
 >>> ppg.plot()
 
-# interpolate data to 1000 Hz (note that the arg here is a multiplying factor -- i.e., the end sampling rate is samplerate (40) * 25)
+# interpolate data to 1000 Hz; note that the arg here is a multiplying factor
+# i.e., the end sampling rate is the original sampling rate (40) * 25
 >>> ppg.interpolate(25)
 
 # lowpass filter the data (cutoff = 2.0 Hz)

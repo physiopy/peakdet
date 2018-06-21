@@ -4,7 +4,6 @@ import warnings
 import numpy as np
 from scipy import signal
 from scipy.interpolate import InterpolatedUnivariateSpline
-from scipy.stats import zscore
 from peakdet import physio
 
 
@@ -14,32 +13,41 @@ def load(data, fs=None, dtype=None):
 
     Parameters
     ----------
-    data : array_like or str or Physio_like
-        Input physiological data
+    data : str or array_like or Physio_like
+        Input physiological data. If array_like, should be one-dimensional
     fs : float, optional
-        Sampling rate of ``data``
+        Sampling rate of ``data``. Default: None
     dtype : data_type, optional
-        Data type to convert ``data`` to, if conversion needed
+        Data type to convert ``data`` to, if conversion needed. Default: None
 
     Returns
     -------
     data: peakdet.Physio
         Loaded physio object
+
+    Raises
+    ------
+    TypeError
+        If provided ``data`` is unable to be loaded
     """
 
     if isinstance(data, str):
-        data = np.load(data)
+        try:
+            data = np.load(data)
+            phys = physio.Physio(**data)
+        except IOError:
+            data = np.loadtxt(data)
+            phys = physio.Physio(data)
     elif isinstance(data, np.ndarray):
         return physio.Physio(np.asarray(data, dtype=dtype), fs=fs)
     elif not isinstance(data, physio.Physio):
         raise TypeError('Cannot load data of type {}'.format(type(data)))
 
-    phys = physio.Physio(**data)
-
-    if fs is not None and fs != phys._fs:
-        warnings.warn('Provided sampling rate does not match loaded rate. '
-                      'Resetting loaded sampling rate to {}'
-                      .format(fs))
+    if fs is not None and fs != phys.fs:
+        if not np.isnan(phys.fs):
+            warnings.warn('Provided sampling rate does not match loaded rate. '
+                          'Resetting loaded sampling rate {} to {}'
+                          .format(phys.fs, fs))
         phys._fs = fs
     if dtype is not None:
         phys._data = np.asarray(phys[:], dtype=dtype)
@@ -54,13 +62,13 @@ def save(file, data):
     Parameters
     ----------
     fname : str
-        Path to output file
+        Path to output file; .phys will be appended if necessary
     data : Physio_like
         Data to be saved to file
     """
 
     data = check_physio(data)
-    file += 'phys' if not file.endswith('.phys') else ''
+    file += '.phys' if not file.endswith('.phys') else ''
     with open(file, 'wb') as dest:
         np.savez_compressed(dest, data=data.data, fs=data.fs)
 
@@ -73,18 +81,29 @@ def check_physio(data, ensure_fs=True):
     ----------
     data : Physio_like
     ensure_fs : bool, optional
-        Make sure that ``data`` has valid sampling rate attribute
+        Raise ValueError if ``data`` does not have a valid sampling rate
+        attribute.
 
     Returns
     -------
     data : peakdet.Physio
         Loaded physio object
+
+    Raises
+    ------
+    ValueError
+        If ensure_fs is set and ``data`` doesn't have valid sampling rate
     """
+
+    if not isinstance(data, physio.Physio):
+        data = load(data)
+    if ensure_fs and np.isnan(data.fs):
+        raise ValueError('Provided data does not have valid sampling rate.')
 
     return data
 
 
-def new_physio_like(ref_physio, data, fs=None):
+def new_physio_like(ref_physio, data, fs=None, dtype=None):
     """
     Parameters
     ----------
@@ -95,6 +114,8 @@ def new_physio_like(ref_physio, data, fs=None):
     fs : float, optional
         Sampling rate of ``data``. If not supplied, assumed to be the same as
         in ``ref_physio``
+    dtype : data_type, optional
+        Data type to convert ``data`` to, if conversion needed. Default: None
 
     Returns
     -------
@@ -104,8 +125,10 @@ def new_physio_like(ref_physio, data, fs=None):
 
     if fs is None:
         fs = ref_physio.fs
+    if dtype is None:
+        dtype = ref_physio.data.dtype
 
-    return ref_physio.__class__(data, fs=fs)
+    return ref_physio.__class__(np.asarray(data, dtype=dtype), fs=fs)
 
 
 def filter_physio(data, cutoffs, method='bandpass'):
@@ -154,13 +177,14 @@ def filter_physio(data, cutoffs, method='bandpass'):
     return new_physio_like(data, filtered)
 
 
-def interpolate_data(data, fs):
+def interpolate_physio(data, fs):
     """
     Interpolates ``data`` to sampling rate ``fs``
 
     Parameters
     ----------
     data : Physio_like
+        Input data to be interpolated
     fs : float
         Desired sampling rate to interpolate ``data``
 
@@ -171,441 +195,9 @@ def interpolate_data(data, fs):
     """
 
     data = check_physio(data)
-    orig = np.arange(0, data.size / data.fs, 1. / data.fs)[:data.size]
-    new = np.arange(0, orig[-1] + (1. / fs), 1. / fs)
+    orig = np.arange(0, data.size / data.fs, 1 / data.fs)[:data.size]
+    new = np.arange(0, orig[-1] + (1 / fs), 1 / fs)
 
     interpolated = InterpolatedUnivariateSpline(orig, data[:])(new)
 
     return new_physio_like(data, interpolated, fs=fs)
-
-
-def gen_flims(data, fs):
-    """
-    Generates a rough guess of ideal frequency cutoffs for a bandpass filter
-
-    Parameters
-    ----------
-    data : array_like
-    fs : float
-
-    Returns
-    -------
-    flims : (2,) np.ndarray
-        optimal frequency cutoffs
-    """
-
-    data = np.squeeze(data)
-    inds = peakfinder(zscore(data), dist=int(fs / 4))
-    inds = peakfinder(zscore(data), dist=np.ceil(np.diff(inds).mean()) / 2)
-    freq = np.diff(inds).mean() / fs
-
-    return np.asarray([freq / 2, freq * 2])
-
-
-def get_extrema(data, peaks=True, thresh=0.4):
-    """
-    Find extrema in `data` by changes in sign of first derivative
-
-    Parameters
-    ----------
-    data : array-like
-    peaks : bool
-        Whether to look for peaks (True) or troughs (False)
-    thresh : float (0,1)
-
-    Returns
-    -------
-    array : indices of extrema from `data`ex
-    """
-
-    if thresh < 0 or thresh > 1:
-        raise ValueError("Thresh must be in (0, 1).")
-
-    if peaks:
-        uthresh = (thresh * np.diff(np.percentile(data, [5, 95])))
-        Indx = np.where(data > uthresh)[0]
-    else:
-        uthresh = (thresh * np.diff(np.percentile(data, [95, 5])))
-        Indx = np.where(data < uthresh)[0]
-
-    trend = np.sign(np.diff(data))
-    idx = np.where(trend == 0)[0]
-
-    for i in range(idx.size - 1, -1, -1):
-        if trend[min(idx[i] + 1, trend.size - 1)] >= 0:
-            trend[idx[i]] = 1
-        else:
-            trend[idx[i]] = -1
-
-    if peaks:
-        comp = -2
-    else:
-        comp = 2
-
-    idx = np.where(np.diff(trend) == comp)[0] + 1
-
-    return np.intersect1d(Indx, idx)
-
-
-def min_peak_dist(locs, data, peaks=True, dist=250):
-    """
-    Ensures extrema `locs` in `data` are separated by at least `dist`
-
-    Parameters
-    ----------
-    locs : array-like
-        Extrema, typically from get_extrema()
-    data : array-like
-    peaks : bool
-        Whether to look for peaks (True) or troughs (False)
-    dist : int
-        Minimum required distance (in datapoints) b/w `locs`
-
-    Returns
-    -------
-    array : extrema separated by at least `dist`
-    """
-
-    if not any(np.diff(sorted(locs)) <= dist):
-        return locs
-
-    if peaks:
-        idx = data[locs].argsort()[::-1]
-    else:
-        idx = data[locs].argsort()
-
-    locs = locs[idx]
-    idelete = np.ones(locs.size) < 0
-
-    for i in range(locs.size):
-        if not idelete[i]:
-            dist_diff = np.logical_and(locs >= locs[i] - dist,
-                                       locs <= locs[i] + dist)
-            idelete = np.logical_or(idelete, dist_diff)
-            idelete[i] = 0
-
-    return locs[~idelete]
-
-
-def peakfinder(data, thresh=0.4, dist=250):
-    """
-    Finds peaks in `data`
-
-    Parameters
-    ----------
-    data : array_like
-    thresh : float (0,1)
-    dist : int
-        Minimum required distance (in datapoints) b/w peaks
-
-    Returns
-    -------
-    array : peak locations (indices)
-    """
-
-    locs = get_extrema(data, thresh=thresh)
-    locs = min_peak_dist(locs, data, dist=dist)
-
-    return np.array(sorted(locs))
-
-
-def troughfinder(data, thresh=0.4, dist=250):
-    """
-    Finds troughs in `data`
-
-    Parameters
-    ----------
-    data : array-like
-    thresh : float (0,1)
-    dist : int
-        Minimum required distance (in datapoints) b/w troughs
-
-    Returns
-    -------
-    array : trough locations (indices)
-    """
-
-    locs = get_extrema(data, peaks=False, thresh=thresh)
-    locs = min_peak_dist(locs, data, peaks=False, dist=dist)
-
-    return np.array(sorted(locs))
-
-
-def check_troughs(data, troughs, peaks):
-    """
-    Confirms that a trough exists between every set of `peaks` in `data`
-
-    Parameters
-    ----------
-    data : array-like
-    troughs : array-like
-        Indices of current troughs
-    peaks : array-like
-        Indices of suspected peak locations
-
-    Returns
-    -------
-    array : troughs
-    """
-
-    all_troughs = np.zeros(peaks.size - 1,
-                           dtype='int')
-
-    for f in range(peaks.size - 1):
-        curr = np.logical_and(troughs > peaks[f],
-                              troughs < peaks[f + 1])
-        if not np.any(curr):
-            dp = data[peaks[f]:peaks[f + 1]]
-            idx = peaks[f] + np.argwhere(dp == dp.min())[0]
-        else:
-            idx = troughs[curr]
-            if idx.size > 1:
-                idx = idx[0]
-
-        all_troughs[f] = idx
-
-    return all_troughs
-
-
-def gen_temp(data, locs, factor=0.5):
-    """
-    Generate waveform template array from `data`
-
-    Waveforms are taken from around peak locations in `locs`
-
-    Parameters
-    ----------
-    data : array-like
-    locs : arrray
-        Indices of suspected peak locations
-    factor: float (0,1)
-
-    Returns
-    -------
-    array : peak waveforms
-    """
-
-    avgrate = round(np.diff(locs).mean())
-    THW = int(np.ceil(factor * (avgrate / 2)))
-    nsamptemp = (THW * 2) + 1
-    npulse = locs.size
-    template = np.zeros([npulse - 2, nsamptemp])
-
-    for n in range(1, npulse - 1):
-        template[n - 1] = data[locs[n] - THW:locs[n] + THW + 1]
-        template[n - 1] = template[n - 1] - template[n - 1].mean()
-        template[n - 1] = template[n - 1] / max(abs(template[n - 1]))
-
-    return template
-
-
-def corr(x, y, z_tran=[False, False]):
-    """
-    Potentially faster correlation of `x` and `y`
-
-    Will z-transform data before correlation.
-
-    Parameters
-    ----------
-    x : array, n x 1
-    y : array, n x 1
-    z_tran : [bool, bool]
-        Whether x and y, respectively, have been z-transformed
-
-    Returns
-    -------
-    float : [0,1] correlation between `x` and `y`
-    """
-
-    if x.ndim > 1:
-        x = np.asarray(x).squeeze()
-    if y.ndim > 1:
-        y = np.asarray(y).squeeze()
-
-    if x.ndim > 1 or y.ndim > 1:
-        raise ValueError('Input arrays must have only one dimension')
-
-    if x.size != y.size:
-        raise ValueError('Input array dimensions must be same size')
-
-    # numpy corrcoef is faster if both variables need to be z-scored
-    if not np.any(z_tran):
-        return np.corrcoef(x, y)[0, 1]
-
-    if not z_tran[0]:
-        x = zscore(x, ddof=1)
-    if not z_tran[1]:
-        y = zscore(y, ddof=1)
-
-    if x.size == y.size:
-        return np.dot(x.T, y) * (1. / (x.size - 1))
-    else:
-        return None
-
-
-def corr_template(temp, sim=0.95):
-    """
-    Generates single waveform template from output of `gen_temp`.
-
-    Correlates each row of `temp` to averaged template and selects rows with
-    correlation >=`sim` for use in final, averaged template.
-
-    Parameters
-    ----------
-    temp : array of waveforms
-    sim : float (0,1)
-        Cutoff for correlation of waveforms to average template
-
-    Returns
-    -------
-    array : template waveform
-    """
-
-    npulse = temp.shape[0]
-
-    mean_temp = zscore(temp.mean(axis=0), ddof=1)
-    sim_to_temp = np.zeros((temp.shape[0], 1))
-
-    for n in range(temp.shape[0]):
-        sim_to_temp[n] = corr(temp[n], mean_temp, [False, True])
-
-    good_temp_ind = np.where(sim_to_temp > sim)[0]
-    if good_temp_ind.shape[0] >= np.ceil(npulse * 0.1):
-        clean_temp = temp[good_temp_ind]
-    else:
-        new_temp_ind = np.where(sim_to_temp >
-                                (1 - np.ceil(npulse * 0.1) / npulse))[0]
-        clean_temp = np.atleast_2d(temp[new_temp_ind]).T
-
-    return clean_temp.mean(axis=0)
-
-
-def match_temp(data, locs, temp):
-    """
-    Searches through `data` and tries to find peaks that match `temp`.
-
-    Uses template matching to attempt to find missing peaks in data. Searches
-    through `data` at regular intervals (corresponding to the average rate in
-    `locs`), detecting peaks via correlation of waveforms to `temp`.
-
-    Parameters
-    ----------
-    data : array-like
-    locs : array-like
-        Indices of suspected peak locations
-    temp : array-like
-        Cleaned waveform of target peak shape
-
-    Returns
-    -------
-    array : indices of peak locations
-    """
-
-    avgrate = round(np.diff(locs).mean())
-    THW = int(np.floor(temp.size / 2))
-    z_temp = zscore(temp, ddof=1)
-    is_z_trans = [False, True]
-
-    c_samp_start = int(round((2.0 * THW) + 1)) - 1
-    try:
-        c_samp_end = int(locs[19])
-    except IndexError:
-        c_samp_end = int(locs[-1] - 1)
-
-    sim_to_temp = np.zeros(c_samp_end + 1)
-    for n in np.arange(c_samp_start, c_samp_end + 1):
-        i_sig_start = n - THW
-        i_sig_end = n + THW
-        sig_part = data[int(i_sig_start):int(i_sig_end) + 1]
-        sim_to_temp[n] = corr(sig_part, z_temp, is_z_trans)
-
-    c_best_match = max(sim_to_temp)
-    i_best_match = np.where(sim_to_temp == c_best_match)[0][0]
-
-    peak_num = 0
-    search_steps_tot = int(np.ceil(0.5 * avgrate))
-
-    n_samp_pad = THW + search_steps_tot + 1
-    data_padded = np.hstack((np.zeros(int(n_samp_pad)),
-                             data,
-                             np.zeros(int(n_samp_pad))))
-    n = int(i_best_match + n_samp_pad)
-    sim_to_temp = np.zeros(data_padded.size)
-
-    while n > 1 + search_steps_tot + THW:
-        search_pos_array = np.arange(-search_steps_tot - 1, search_steps_tot,
-                                     dtype='int')
-        for search_pos in search_pos_array:
-            index_search_start = int(n - THW + search_pos + 1)
-            index_search_end = int(n + THW + search_pos + 1)
-            sig_part = data_padded[index_search_start:index_search_end + 1]
-            correlation = corr(sig_part, z_temp, is_z_trans)
-            curr_weight = abs(data_padded[n + search_pos + 2])
-            correlation_weighted = curr_weight * correlation
-            sim_to_temp[n + search_pos + 1] = correlation_weighted
-
-        index_search_start = int(n - search_steps_tot)
-        index_search_end = int(n + search_steps_tot)
-        index_search_range = np.arange(index_search_start,
-                                       index_search_end + 1,
-                                       dtype='int')
-
-        search_range_values = sim_to_temp[index_search_range]
-        c_best_match = np.nanmax(search_range_values)
-        i_best_match = np.where(search_range_values == c_best_match)[0][0]
-        best_pos = index_search_range[i_best_match]
-        n = int(best_pos - avgrate)
-
-    n = best_pos
-    peak_num = 0
-    cpulse = np.zeros(data.size)
-    nlimit = data_padded.size - THW - search_pos - 1
-    location_weight = signal.gaussian(2 * search_steps_tot + 1,
-                                      std=(2 * search_steps_tot) / 5)
-
-    while n < nlimit:
-        search_pos_array = np.arange(-search_steps_tot - 1, search_steps_tot,
-                                     dtype='int')
-        for search_pos in search_pos_array:
-            index_search_start = int(max(0, n - THW + search_pos) + 1)
-            index_search_end = int(n + THW + search_pos + 1)
-            sig_part = data_padded[index_search_start:index_search_end + 1]
-            correlation = corr(sig_part, z_temp, is_z_trans)
-            loc_weight = location_weight[search_pos + search_steps_tot + 1]
-            amp_weight = abs(data_padded[n + search_pos + 2])
-            correlation_weighted = amp_weight * correlation * loc_weight
-            sim_to_temp[n + search_pos + 1] = correlation_weighted
-
-        index_search_start = n - search_steps_tot
-        index_search_end = n + search_steps_tot
-        index_search_range = np.arange(index_search_start,
-                                       index_search_end + 1,
-                                       dtype='int')
-
-        search_range_values = sim_to_temp[index_search_range]
-        c_best_match = np.nanmax(search_range_values)
-        i_best_match = np.where(search_range_values == c_best_match)[0][0]
-        best_pos = index_search_range[i_best_match]
-
-        cpulse[peak_num] = best_pos - n_samp_pad
-        peak_num += 1
-
-        found_c_pulses = np.nanmax(np.where(cpulse)[0])
-
-        if found_c_pulses < 3:
-            curr_hr_in_samp = avgrate
-        if found_c_pulses < 21 and found_c_pulses >= 3:
-            curr_hr_in_samp = round(np.mean(np.diff(cpulse)))
-        if found_c_pulses >= 21:
-            curr_cpulses = cpulse[int(found_c_pulses - 20):int(found_c_pulses)]
-            curr_hr_in_samp = round(np.mean(np.diff(curr_cpulses)))
-
-        check_smaller = curr_hr_in_samp > 0.5 * avgrate
-        check_larger = curr_hr_in_samp < 1.5 * avgrate
-
-        if check_smaller and check_larger:
-            n = int(best_pos + curr_hr_in_samp)
-        else:
-            n = int(best_pos + avgrate)
-
-    return cpulse[np.where(cpulse)[0]]
