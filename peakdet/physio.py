@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from peakdet import utils
+from peakdet import editor, extrema
 
 
 class Physio():
     """
-    Small class to hold physiological data
+    Helper class to hold physiological data
 
     Parameters
     ----------
     data : array_like
         Input data array
-    fs : float
-        Sampling rate of ``data`` (Hz)
+    fs : float, optional
+        Sampling rate of ``data`` (Hz). Default: None
     """
 
     def __init__(self, data, fs=None):
@@ -53,78 +53,81 @@ class Physio():
         """ Sampling rate of data (Hz) """
         return self._fs
 
-    def plot(self):
-        raise NotImplementedError
-
 
 class PeakFinder(Physio):
     """
-    Class with peak (and trough) finding method(s)
+    Helper class for peak/trough finding in physio waveforms
 
     Parameters
     ----------
-    data : str or array_like
-        Input data filename or array
-    fs : float
-        Sampling rate (Hz) of ``data``
+    data : array_like
+        Input data array
+    fs : float, optional
+        Sampling rate of ``data`` (Hz). Default: None
     """
 
     def __init__(self, data, fs=None):
         super().__init__(data, fs)
-        self._peakinds, self._troughinds = [], []
-        self._rejected = np.empty(0, dtype=int)
+        self._peaks, self._troughs = [], []
+        self._reject = np.empty(0, dtype=int)
 
     @property
     def _masked(self):
-        return np.ma.masked_array(self._peakinds,
-                                  mask=np.isin(self._peakinds,
-                                               self._rejected))
+        return np.ma.masked_array(self._peaks,
+                                  mask=np.isin(self._peaks,
+                                               self._reject))
 
     @property
     def rrtime(self):
         """ Times of R-R intervals (in seconds) """
-        if len(self.peakinds):
+        if len(self.peaks):
             diff = (self._masked[:-1] + self._masked[1:]) / (2 * self.fs)
             return diff.compressed()
 
     @property
     def rrint(self):
         """ Length of R-R intervals (in seconds) """
-        if len(self.peakinds):
+        if len(self.peaks):
             return (np.diff(self._masked) / self.fs).compressed()
 
     @property
-    def peakinds(self):
+    def peaks(self):
         """ Indices of detected peaks in data """
         return self._masked.compressed()
 
     @property
-    def troughinds(self):
+    def troughs(self):
         """ Indices of detected troughs in data """
-        return self._troughinds
+        return self._troughs
 
-    def get_peaks(self, thresh=0.2, dist=None):
+    def find_peaks(self, thresh=0.2, dist=None):
         """
-        Detects peaks in data
+        Finds peaks in data
 
         Parameters
         ----------
         thresh : float [0,1], optional
-            Determines relative height of data to be considered a peak.
-            Default: 0.2
+            Relative height threshold data must surpass to be classified as a
+            peak. Default: 0.2
         dist : int, optional
+            Distance (in indices) that peaks must be separated by. If not
+            specified, this is estimated from data.
         """
 
-        locs = utils.find_peaks(self.data,
-                                dist=self.fs // 4 if dist is None else dist,
-                                thresh=thresh)
-        self._peakinds = utils.find_peaks(self.data,
-                                          dist=np.diff(locs).mean() // 2,
-                                          thresh=thresh).astype(int)
+        if dist is None:
+            dist = self.fs // 4
 
-        self.get_troughs(thresh=thresh, dist=dist)
+        locs = extrema.find_peaks(self.data,
+                                  dist=dist,
+                                  thresh=thresh)
+        dist = np.diff(locs).mean() // 2
+        self._peaks = extrema.find_peaks(self.data,
+                                         dist=dist,
+                                         thresh=thresh).astype(int)
 
-    def get_troughs(self, thresh=0.4, dist=None):
+        self._find_troughs(thresh=thresh, dist=dist)
+
+    def _find_troughs(self, thresh=0.4, dist=None):
         """
         Detects troughs in data
 
@@ -134,15 +137,25 @@ class PeakFinder(Physio):
             determines relative height of data to be considered a trough
         """
 
-        if self.rrtime is None:
-            self.get_peaks(thresh=thresh, dist=dist)
+        if dist is None:
+            dist = self.fs // 4
 
-        locs = utils.find_troughs(self.data,
-                                  dist=self.fs // 4 if dist is None else dist,
-                                  thresh=thresh)
-        troughinds = utils.find_troughs(self.data,
-                                        dist=np.diff(locs).mean() // 2,
-                                        thresh=thresh)
-        self._troughinds = utils.check_troughs(self.data,
-                                               self.peakinds,
-                                               troughinds)
+        locs = extrema.find_troughs(self.data,
+                                    dist=dist,
+                                    thresh=thresh)
+        troughs = extrema.find_troughs(self.data,
+                                       dist=np.diff(locs).mean() // 2,
+                                       thresh=thresh)
+        self._troughs = extrema.check_troughs(self.data,
+                                              self.peaks,
+                                              troughs)
+
+    def plot(self):
+        raise NotImplementedError
+
+    def edit(self):
+        """
+        Interactive peak editing tool
+        """
+
+        editor.PeakEditor(self)

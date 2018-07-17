@@ -159,14 +159,14 @@ def filter_physio(data, cutoffs, method='bandpass'):
 
     cutoffs = np.array(cutoffs)
     if method in ['lowpass', 'highpass'] and cutoffs.size != 1:
-        raise ValueError('Cutoffs must be len 1 when using {} method'
+        raise ValueError('Cutoffs must be len 1 when using {} filter'
                          .format(method))
     elif method in ['bandpass', 'bandstop'] and cutoffs.size != 2:
-        raise ValueError('Cutoffs must be len 2 when using {} method'
+        raise ValueError('Cutoffs must be len 2 when using {} filter'
                          .format(method))
 
     nyq_cutoff = cutoffs / (data.fs * 0.5)
-    if nyq_cutoff > 1:
+    if np.any(nyq_cutoff > 1):
         raise ValueError('Provided cutoffs {} are outside of the Nyquist '
                          'frequency for input data with sampling rate {}.'
                          .format(cutoffs, data.fs))

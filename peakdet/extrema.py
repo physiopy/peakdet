@@ -3,7 +3,6 @@
 import numpy as np
 from scipy import signal
 from scipy.stats import zscore
-from peakdet import physio, utils
 
 
 def get_extrema(data, peaks=True, thresh=0.4):
@@ -44,7 +43,7 @@ def get_extrema(data, peaks=True, thresh=0.4):
         gtz = trend[min(idx[i] + 1, trend.size - 1)] >= 0
         trend[idx[i]] = 1 if gtz else -1
 
-    idx = np.argwhere(np.diff(trend) == -2 if peaks else 2).squeeze() + 1
+    idx = np.argwhere(np.diff(trend) == (-2 if peaks else 2)).squeeze() + 1
 
     return np.intersect1d(Indx, idx)
 
@@ -134,7 +133,7 @@ def find_troughs(data, thresh=0.4, dist=250):
     """
 
     extrema = get_extrema(data, peaks=False, thresh=thresh)
-    troughs = min_peak_dist(extrema, data, peaks=False, dist=dist)
+    troughs = min_peak_dist(data, extrema, peaks=False, dist=dist)
 
     return troughs
 

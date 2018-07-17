@@ -1,6 +1,4 @@
-__all__ = ['__version__', 'PeakFinder', 'HRV', 'ECG', 'PPG', 'RESP']
+__all__ = ['analytics', 'editor', 'extrema', 'info',
+           'modalities', 'physio', 'utils']
 
-from .info import __version__
-from .physio import (PeakFinder)
-from .analytics import (HRV)
-from .modalities import (ECG, PPG, RESP)
+from . import analytics, editor, extrema, info, modalities, physio, utils
