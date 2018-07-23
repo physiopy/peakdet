@@ -6,7 +6,7 @@ from peakdet import editor, extrema
 
 class Physio():
     """
-    Helper class to hold physiological data
+    Helper class to hold physiological data and associated metadata
 
     Parameters
     ----------
@@ -23,6 +23,8 @@ class Physio():
                              .format(data.ndim))
         self._fs = np.float64(fs)
         self._data = data
+        self._metadata = dict(peaks=[], troughs=[],
+                              reject=np.empty(0, dtype=int))
 
     def __array__(self):
         return self.data
@@ -158,4 +160,4 @@ class PeakFinder(Physio):
         Interactive peak editing tool
         """
 
-        editor.PeakEditor(self)
+        editor.PhysioEditor(self)
