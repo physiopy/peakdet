@@ -2,10 +2,10 @@
 
 import warnings
 import numpy as np
-from peakdet import physio
+from peakdet import physio, utils
 
 
-def load(data, fs=None, dtype=None):
+def load_physio(data, fs=None, dtype=None, origin=np.nan):
     """
     Returns ``Physio`` object with provided data
 
@@ -31,14 +31,20 @@ def load(data, fs=None, dtype=None):
 
     if isinstance(data, str):
         try:
-            data = np.load(data)
-            phys = physio.Physio(**data)
+            inp = np.load(data)
         except IOError:
-            data = np.loadtxt(data)
-            phys = physio.Physio(data)
+            inp = dict(data=np.loadtxt(data))
+        phys = physio.Physio(**inp, history=[('load_physio',
+                                              dict(data=data, fs=fs,
+                                                   dtype=dtype))])
     elif isinstance(data, np.ndarray):
-        return physio.Physio(np.asarray(data, dtype=dtype), fs=fs)
-    elif not isinstance(data, physio.Physio):
+        phys = physio.Physio(np.asarray(data, dtype=dtype), fs=fs,
+                             history=[('load_physio', dict(data=origin, fs=fs,
+                                                           dtype=dtype))])
+    elif isinstance(data, physio.Physio):
+        phys = utils.new_physio_like(data, data.data, fs=fs, dtype=dtype)
+        phys.history.append(('load_physio', dict(fs=fs, dtype=dtype)))
+    else:
         raise TypeError('Cannot load data of type {}'.format(type(data)))
 
     if fs is not None and fs != phys.fs:
@@ -53,7 +59,7 @@ def load(data, fs=None, dtype=None):
     return phys
 
 
-def save(file, data):
+def save_physio(file, data):
     """
     Saves ``data`` to ``fname`
 
@@ -70,7 +76,8 @@ def save(file, data):
     data = check_physio(data)
     file += '.phys' if not file.endswith('.phys') else ''
     with open(file, 'wb') as dest:
-        np.savez_compressed(dest, data=data.data, fs=data.fs)
+        np.savez_compressed(dest, data=data.data, fs=data.fs,
+                            history=data.history, metadata=data.metadata)
 
 
 def load_rtpeaks(fname, channel, fs):
@@ -106,4 +113,4 @@ def load_rtpeaks(fname, channel, fs):
     col = header.index('channel{}'.format(channel))
     data = np.loadtxt(fname, usecols=col, skiprows=1, delimiter=',')
 
-    return load(data, fs=fs)
+    return load_physio(data, fs=fs)

@@ -1,4 +1,8 @@
-__all__ = ['analytics', 'editor', 'extrema', 'info',
-           'modalities', 'physio', 'utils']
+__all__ = [
+    'edit_physio', 'filter_physio', 'interpolate_physio', 'peakfind_physio',
+    'load_physio', 'save_physio', 'load_rtpeaks'
+]
 
-from . import analytics, editor, extrema, info, modalities, physio, utils
+from peakdet.operations import (edit_physio, filter_physio, interpolate_physio,
+                                peakfind_physio)
+from peakdet.io import (load_physio, save_physio, load_rtpeaks)

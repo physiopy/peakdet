@@ -10,6 +10,7 @@ DOWNLOAD_URL = 'http://github.com/rmarkello/peakdet'
 
 INSTALL_REQUIRES = [
     'numpy',
+    'scikit-learn',
     'scipy',
     'matplotlib',
     'gooey'
