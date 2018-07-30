@@ -18,30 +18,30 @@ class _PhysioEditor():
     def __init__(self, data):
         if not isinstance(data, physio.Physio):
             raise TypeError('Input must be a Physio instance')
-        # save reference to data, time for plotting
+        # save reference to data
         self.data = data
-        self.time = np.arange(0, data.size / data.fs, 1. / data.fs)
-        self.plot = False
-
+        fs = 1 if data.fs is None else data.fs
+        self.time = np.arange(0, data.size / fs, 1. / fs)
         # make main plot objects
         self.fig, self.ax = plt.subplots(nrows=1, ncols=1, tight_layout=True)
         self.fig.canvas.mpl_connect('scroll_event', self.on_wheel)
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
+        # two selectors for rejection (left mouse) / deletion (right mouse)
         self.span1 = SpanSelector(self.ax, self.on_reject, 'horizontal',
                                   button=1, useblit=True,
                                   rectprops=dict(facecolor='red', alpha=0.3))
         self.span2 = SpanSelector(self.ax, self.on_delete, 'horizontal',
                                   button=3, useblit=True,
                                   rectprops=dict(facecolor='blue', alpha=0.3))
-        self.plot_signals()
 
-    def plot_signals(self):
+        self.plot_signals(False)
+
+    def plot_signals(self, plot=True):
         """ Clears axes and plots data / peaks / troughs """
         # don't reset x-/y-axis zooms on replot
-        if self.plot:
+        if plot:
             xlim, ylim = self.ax.get_xlim(), self.ax.get_ylim()
         else:
-            self.plot = True
             xlim, ylim = (-5, None), (None, None)
 
         self.ax.clear()
@@ -59,6 +59,13 @@ class _PhysioEditor():
         self.ax.set_xlim(lim[0] + move, lim[1] + move)
         self.fig.canvas.draw()
 
+    def on_key(self, event):
+        """ Undoes last span select or quits peak editor """
+        if event.key == 'ctrl+z':
+            self.undo()
+        elif event.key == 'ctrl+q':
+            plt.close(self.fig)
+
     def on_reject(self, xmin, xmax):
         """ Manually removes physio peaks on span select """
         rej = np.arange(*np.searchsorted(self.data.peaks,
@@ -72,8 +79,8 @@ class _PhysioEditor():
         self.data._metadata.reject = np.append(self.data._metadata.reject,
                                                self.data.peaks[rej])
         self.data._metadata.troughs = utils.check_troughs(self.data,
-                                                            self.data.peaks,
-                                                            self.data.troughs)
+                                                          self.data.peaks,
+                                                          self.data.troughs)
         self.plot_signals()
 
     def on_delete(self, xmin, xmax):
@@ -88,16 +95,9 @@ class _PhysioEditor():
                                    self.data.peaks[rej].tolist()))
         self.data._metadata.peaks = np.delete(self.data._metadata.peaks, rej)
         self.data._metadata.troughs = utils.check_troughs(self.data,
-                                                            self.data.peaks,
-                                                            self.data.troughs)
+                                                          self.data.peaks,
+                                                          self.data.troughs)
         self.plot_signals()
-
-    def on_key(self, event):
-        """ Undoes last span select or quits peak editor """
-        if event.key == 'ctrl+z':
-            self.undo()
-        elif event.key == 'ctrl+q':
-            self.quit()
 
     def undo(self):
         """ Resets last span select peak removal """
@@ -121,10 +121,14 @@ class _PhysioEditor():
         else:
             raise ValueError('This should never happen.')
         self.data._metadata.troughs = utils.check_troughs(self.data,
-                                                            self.data.peaks,
-                                                            self.data.troughs)
+                                                          self.data.peaks,
+                                                          self.data.troughs)
         self.plot_signals()
 
-    def quit(self):
-        """ Closes peak editor """
-        plt.close(self.fig)
+
+def delete_peaks(data, delete):
+    pass
+
+
+def reject_peaks(data, reject):
+    pass

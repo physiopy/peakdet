@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import inspect
 import warnings
 import numpy as np
 from peakdet import physio, utils
 
 
-def load_physio(data, fs=None, dtype=None, origin=np.nan):
+def load_physio(data, fs=None, dtype=None, history=None):
     """
     Returns ``Physio`` object with provided data
 
@@ -34,16 +35,17 @@ def load_physio(data, fs=None, dtype=None, origin=np.nan):
             inp = np.load(data)
         except IOError:
             inp = dict(data=np.loadtxt(data))
-        phys = physio.Physio(**inp, history=[('load_physio',
-                                              dict(data=data, fs=fs,
-                                                   dtype=dtype))])
+        phys = physio.Physio(**inp, history=[utils._get_call([])])
     elif isinstance(data, np.ndarray):
+        if history is None:
+            warnings.warn('Loading data from a numpy array without providing '
+                          'history will render reproducibility functions '
+                          'useless! Continuing anyways...')
         phys = physio.Physio(np.asarray(data, dtype=dtype), fs=fs,
-                             history=[('load_physio', dict(data=origin, fs=fs,
-                                                           dtype=dtype))])
+                             history=history)
     elif isinstance(data, physio.Physio):
         phys = utils.new_physio_like(data, data.data, fs=fs, dtype=dtype)
-        phys.history.append(('load_physio', dict(fs=fs, dtype=dtype)))
+        phys.history += [utils._get_call()]
     else:
         raise TypeError('Cannot load data of type {}'.format(type(data)))
 
@@ -112,5 +114,4 @@ def load_rtpeaks(fname, channel, fs):
 
     col = header.index('channel{}'.format(channel))
     data = np.loadtxt(fname, usecols=col, skiprows=1, delimiter=',')
-
-    return load_physio(data, fs=fs)
+    return load_physio(data, fs=fs, history=[utils._get_call()])

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import inspect
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
@@ -52,8 +51,7 @@ def filter_physio(data, cutoffs, method='bandpass'):
     filtered = utils.new_physio_like(data, signal.filtfilt(b, a, data))
 
     # log filter in history
-    filtered.history.append((inspect.stack(0)[0].function,
-                             dict(cutoffs=cutoffs.tolist(), method=method)))
+    filtered.history += [utils._get_call()]
 
     return filtered
 
@@ -75,13 +73,13 @@ def interpolate_physio(data, fs):
         Interpolated input data
     """
 
-    data = utils.check_physio(data)
+    data = utils.check_physio(data, copy=True)
     orig = np.arange(0, data.size / data.fs, 1 / data.fs)[:data.size]
     new = np.arange(0, orig[-1] + (1 / fs), 1 / fs)
 
     interp = InterpolatedUnivariateSpline(orig, data[:])(new)
     interp = utils.new_physio_like(data, interp, fs=fs)
-    interp.append((inspect.stack(0)[0].function, dict(fs=fs)))
+    interp.history += [utils._get_call()]
 
     return interp
 
@@ -101,46 +99,20 @@ def peakfind_physio(data, thresh=0.2, dist=None):
         specified, this is estimated from data.
     """
 
-    # let's not alter things in-place
-    data = utils.new_physio_like(data, data.data)
+    ensure_fs = True if dist is None else False
+    data = utils.check_physio(data, ensure_fs=ensure_fs, copy=True)
 
-    if dist is None:
-        dist = data.fs // 4
+    # first pass peak detection to get approximate distance between peaks
+    cdist = data.fs // 4 if dist is None else dist
+    locs = utils.find_peaks(data, dist=cdist, thresh=thresh)
+    cdist = np.diff(locs).mean() // 2
+    # second more thorough peak detection
+    data._metadata.peaks = utils.find_peaks(data, dist=cdist, thresh=thresh)
+    # perform trough detection based on detected peaks
+    data._metadata.troughs = utils.check_troughs(data, data.peaks, [])
 
-    locs = utils.find_peaks(data, dist=dist, thresh=thresh)
-    dist = np.diff(locs).mean() // 2
-    data._metadata.peaks = utils.find_peaks(data, dist=dist, thresh=thresh)
-    troughs = _find_troughs(data, thresh=thresh, dist=dist)
-    data._metadata.troughs = utils.check_troughs(data, data.peaks, troughs)
-
-    data.history.append((inspect.stack(0)[0].function,
-                         dict(thresh=thresh, dist=dist)))
+    data.history += [utils._get_call()]
     return data
-
-
-def _find_troughs(data, thresh=0.4, dist=None):
-    """
-    Detects troughs in data
-
-    Parameters
-    ----------
-    data : Physio_like
-    thresh : float [0,1], optional
-        Relative height threshold data must surpass to be classified as a
-        trough. Default: 0.2
-    dist : int, optional
-        Distance (in indices) that troughs must be separated by. If not
-        specified, this is estimated from data.
-    """
-
-    if dist is None:
-        dist = data.fs // 4
-
-    locs = utils.find_troughs(data, dist=dist, thresh=thresh)
-    dist = np.diff(locs).mean() // 2
-    troughs = utils.find_troughs(data, dist=dist, thresh=thresh)
-
-    return troughs
 
 
 def edit_physio(data, delete=None, reject=None):
@@ -153,13 +125,16 @@ def edit_physio(data, delete=None, reject=None):
         Physiological data to be edited
     """
 
+    # let's not alter things in-place
+    data = utils.check_physio(data, copy=True)
+    # no point in manual edits if peaks/troughs aren't defined
     if not (len(data.peaks) and len(data.troughs)):
         return
+    # perform manual editing
     if delete is None and reject is None:
-        int = plt.rcParams['interactive']
-        if int:
-            plt.ioff()
-        e = editor._PhysioEditor(data)
-        plt.show()
-        if int:
-            plt.ion()
+        edits = editor._PhysioEditor(data)
+        plt.show(block=True)
+        delete, reject = edits.deleted, edits.rejected
+
+    data.history += [utils._get_call()]
+    return data

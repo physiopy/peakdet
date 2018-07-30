@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import inspect
 import numpy as np
 from scipy import signal
 from scipy.stats import zscore
@@ -7,7 +8,44 @@ from peakdet import physio
 from peakdet.io import load_physio
 
 
-def check_physio(data, ensure_fs=True):
+def _get_call(exclude=['data'], serializable=True):
+    """
+    Returns calling function name and dict of provided arguments (name : value)
+
+    Parameters
+    ----------
+    exclude : list, optional
+        What arguments to exclude from provided argument : value dictionary.
+        Default: ['data']
+    serializable : bool, optional
+        Whether to coerce argument values to JSON serializable form. Default:
+        True
+
+    Returns
+    -------
+    function: str
+        Name of calling function
+    provided : dict
+        Dictionary of function arguments and provided values
+    """
+
+    if not isinstance(exclude, list):
+        exclude = [exclude]
+
+    calling = inspect.stack(0)[1]  # one up the stack
+    frame, function = calling.frame, calling.function
+    args = inspect.getfullargspec(frame.f_globals[function]).args
+    provided = {k: frame.f_locals[k] for k in args if k not in exclude}
+
+    if serializable:
+        for k, v in provided.items():
+            if hasattr(v, 'tolist'):
+                provided[k] = v.tolist()
+
+    return function, provided
+
+
+def check_physio(data, ensure_fs=True, copy=False):
     """
     Checks that ``data`` is in correct format (i.e., ``peakdet.Physio``)
 
@@ -17,6 +55,8 @@ def check_physio(data, ensure_fs=True):
     ensure_fs : bool, optional
         Raise ValueError if ``data`` does not have a valid sampling rate
         attribute.
+    copy: bool, optional
+        Whether to return a copy of the provided data. Default: False
 
     Returns
     -------
@@ -33,7 +73,8 @@ def check_physio(data, ensure_fs=True):
         data = load_physio(data)
     if ensure_fs and np.isnan(data.fs):
         raise ValueError('Provided data does not have valid sampling rate.')
-
+    if copy is True:
+        return new_physio_like(data, data.data, copy_history=True)
     return data
 
 
