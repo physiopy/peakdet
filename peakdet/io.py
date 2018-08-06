@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 
-import inspect
+import json
 import warnings
 import numpy as np
 from peakdet import physio, utils
 
 
-def load_physio(data, fs=None, dtype=None, history=None):
+def load_physio(data, *, fs=None, dtype=None, history=None):
     """
-    Returns ``Physio`` object with provided data
+    Returns `Physio` object with provided data
 
     Parameters
     ----------
     data : str or array_like or Physio_like
         Input physiological data. If array_like, should be one-dimensional
     fs : float, optional
-        Sampling rate of ``data``. Default: None
+        Sampling rate of `data`. Default: None
     dtype : data_type, optional
-        Data type to convert ``data`` to, if conversion needed. Default: None
+        Data type to convert `data` to, if conversion needed. Default: None
 
     Returns
     -------
@@ -27,34 +27,41 @@ def load_physio(data, fs=None, dtype=None, history=None):
     Raises
     ------
     TypeError
-        If provided ``data`` is unable to be loaded
+        If provided `data` is unable to be loaded
     """
 
+    # first check if the file was made with `save_physio`; otherwise, try to
+    # load it as a plain text file and instantiate a history
     if isinstance(data, str):
         try:
             inp = np.load(data)
         except IOError:
-            inp = dict(data=np.loadtxt(data))
-        phys = physio.Physio(**inp, history=[utils._get_call([])])
+            inp = dict(data=np.loadtxt(data),
+                       history=[utils._get_call([])])
+        phys = physio.Physio(**inp)
+    # if we got a numpy array, load that into a Physio object
     elif isinstance(data, np.ndarray):
         if history is None:
-            warnings.warn('Loading data from a numpy array without providing '
+            warnings.warn('Loading data from a numpy array without providing a'
                           'history will render reproducibility functions '
-                          'useless! Continuing anyways...')
+                          'useless! Continuing anyways.')
         phys = physio.Physio(np.asarray(data, dtype=dtype), fs=fs,
                              history=history)
+    # create a new Physio object out of a provided Physio object
     elif isinstance(data, physio.Physio):
         phys = utils.new_physio_like(data, data.data, fs=fs, dtype=dtype)
         phys.history += [utils._get_call()]
     else:
         raise TypeError('Cannot load data of type {}'.format(type(data)))
 
+    # reset sampling rate, as requested
     if fs is not None and fs != phys.fs:
         if not np.isnan(phys.fs):
             warnings.warn('Provided sampling rate does not match loaded rate. '
                           'Resetting loaded sampling rate {} to provided {}'
                           .format(phys.fs, fs))
         phys._fs = fs
+    # coerce datatype, if needed
     if dtype is not None:
         phys._data = np.asarray(phys[:], dtype=dtype)
 
@@ -63,7 +70,7 @@ def load_physio(data, fs=None, dtype=None, history=None):
 
 def save_physio(file, data):
     """
-    Saves ``data`` to ``fname`
+    Saves `data` to `fname`
 
     Parameters
     ----------
@@ -82,36 +89,59 @@ def save_physio(file, data):
                             history=data.history, metadata=data.metadata)
 
 
-def load_rtpeaks(fname, channel, fs):
+def load_history(file):
     """
-    Loads data file as obtained from the `rtpeaks` Python module
+    Loads history from `file` and replays it, creating new Physio instance
 
-    Data file `fname` should have a single, comma-delimited header row:
+    Parameters
+    ----------
+    file : str
+        Path to input JSON file
+    """
 
-        time,channelA,channelB,...,channelZ
+    # import inside function for safety!
+    # we'll likely be replaying some functions from within this module...
+    import peakdet
 
-    Raw data should be stored in columnar format, also comma-delimited, beneath
-    this header, and should be integer-based. For more information, see the
-    rtpeaks homepage at https://github.com/rmarkello/rtpeaks.
+    # grab history from provided JSON file
+    with open(file, 'r') as src:
+        history = json.load(src)
+
+    # replay history from beginning and return resultant Physio object
+    data = None
+    for (func, kwargs) in history:
+        # loading functions don't have `data` input because it should be the
+        # first thing in `history` --- when the data was originally loaded!
+        # for safety, check if `data` is None
+        # someone could have potentially called load_physio on a Physio object
+        if 'load' in func and data is None:
+            data = getattr(peakdet, func)(**kwargs)
+        else:
+            data = getattr(peakdet, func)(data, **kwargs)
+
+    return data
+
+
+def save_history(file, data):
+    """
+    Saves history of physiological `data` to `file`
+
+    Saved file can be replayed with `peakdet.load_history`
 
     Parameters
     ----------
     fname : str
-        Path to data file
-    channel : int
-        This corresponds to the channel number for which data should be loaded
-    fs : float
-        Sampling rate at which data was acquired
-
-    Returns
-    -------
+        Path to output file; .json will be appended if necessary
     data : Physio_like
-        Loaded data
+        Data with history to be saved to file
     """
 
-    with open(fname, 'r') as src:
-        header = src.readline().strip().split(',')
+    from peakdet.utils import check_physio
 
-    col = header.index('channel{}'.format(channel))
-    data = np.loadtxt(fname, usecols=col, skiprows=1, delimiter=',')
-    return load_physio(data, fs=fs, history=[utils._get_call()])
+    data = check_physio(data)
+    if len(data.history) == 0:
+        warnings.warn('History of provided Physio object is empty. Saving '
+                      'anyway, but reloading this {} will result in an error.')
+    file += '.json' if not file.endswith('.json') else ''
+    with open(file, 'w') as dest:
+        json.dump(data.history, dest, indent=4)

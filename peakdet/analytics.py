@@ -20,10 +20,7 @@ class HRV():
 
     def __init__(self, data):
         self.data = data
-        self._sd = np.diff(np.diff(self.data._masked)).compressed()
-        self._rrint = self.rrint * 1000.
-
-        func = interp1d(self.rrtime, self._rrint, kind='cubic')
+        func = interp1d(self.rrtime, self.rrint * 1000, kind='cubic')
         irrt = np.arange(self.rrtime[0], self.rrtime[-1], 1. / 4.)
         self._irri = func(irrt)
 
@@ -42,16 +39,20 @@ class HRV():
             return (np.diff(self.data._masked) / self.data.fs).compressed()
 
     @property
+    def _sd(self):
+        return np.diff(np.diff(self.data._masked)).compressed()
+
+    @property
     def _fft(self):
         return welch(self._irri, nperseg=120, fs=4.0, scaling='spectrum')
 
     @property
     def avgnn(self):
-        return self._rrint.mean()
+        return self.rrint.mean() * 1000
 
     @property
     def sdnn(self):
-        return self._rrint.std()
+        return self.rrint.std() * 1000
 
     @property
     def rmssd(self):
@@ -67,7 +68,7 @@ class HRV():
 
     @property
     def pnn50(self):
-        return self.nn50 / self._rrint.size
+        return self.nn50 / self.rrint.size
 
     @property
     def nn20(self):
@@ -75,7 +76,7 @@ class HRV():
 
     @property
     def pnn20(self):
-        return self.nn20 / self._rrint.size
+        return self.nn20 / self.rrint.size
 
     @property
     def _hf(self):

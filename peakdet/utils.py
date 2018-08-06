@@ -4,6 +4,7 @@ import inspect
 import numpy as np
 from scipy import signal
 from scipy.stats import zscore
+from sklearn.utils import Bunch
 from peakdet import physio
 from peakdet.io import load_physio
 
@@ -32,11 +33,18 @@ def _get_call(exclude=['data'], serializable=True):
     if not isinstance(exclude, list):
         exclude = [exclude]
 
-    calling = inspect.stack(0)[1]  # one up the stack
+    # get one function call up the stack (the bottom is _this_ function)
+    calling = inspect.stack(0)[1]
     frame, function = calling.frame, calling.function
-    args = inspect.getfullargspec(frame.f_globals[function]).args
+    # get all the args / kwargs from the calling function
+    argspec = inspect.getfullargspec(frame.f_globals[function])
+    args = argspec.args + argspec.kwonlyargs
+    # save arguments + argument values for everything not in `exclude`
     provided = {k: frame.f_locals[k] for k in args if k not in exclude}
 
+    # if we want `provided` to be serializable, we can do a little cleaning up
+    # this is NOT foolproof, but will coerce numpy arrays to lists which tends
+    # to be the MAIN issue
     if serializable:
         for k, v in provided.items():
             if hasattr(v, 'tolist'):
@@ -47,13 +55,13 @@ def _get_call(exclude=['data'], serializable=True):
 
 def check_physio(data, ensure_fs=True, copy=False):
     """
-    Checks that ``data`` is in correct format (i.e., ``peakdet.Physio``)
+    Checks that `data` is in correct format (i.e., `peakdet.Physio`)
 
     Parameters
     ----------
     data : Physio_like
     ensure_fs : bool, optional
-        Raise ValueError if ``data`` does not have a valid sampling rate
+        Raise ValueError if `data` does not have a valid sampling rate
         attribute.
     copy: bool, optional
         Whether to return a copy of the provided data. Default: False
@@ -66,7 +74,7 @@ def check_physio(data, ensure_fs=True, copy=False):
     Raises
     ------
     ValueError
-        If `ensure_fs` is set and ``data`` doesn't have valid sampling rate
+        If `ensure_fs` is set and `data` doesn't have valid sampling rate
     """
 
     if not isinstance(data, physio.Physio):
@@ -74,47 +82,53 @@ def check_physio(data, ensure_fs=True, copy=False):
     if ensure_fs and np.isnan(data.fs):
         raise ValueError('Provided data does not have valid sampling rate.')
     if copy is True:
-        return new_physio_like(data, data.data, copy_history=True)
+        return new_physio_like(data, data.data,
+                               copy_history=True,
+                               copy_metadata=True)
     return data
 
 
-def new_physio_like(ref_physio, data, fs=None, dtype=None, copy_history=True):
+def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
+                    copy_history=True, copy_metadata=True):
     """
     Makes `data` into physio object like `ref_data`
 
     Parameters
     ----------
     ref_physio : Physio_like
-        Reference ``Physio`` object
+        Reference `Physio` object
     data : array_like
         Input physiological data
     fs : float, optional
-        Sampling rate of ``data``. If not supplied, assumed to be the same as
-        in ``ref_physio``
+        Sampling rate of `data`. If not supplied, assumed to be the same as
+        in `ref_physio`
     dtype : data_type, optional
-        Data type to convert ``data`` to, if conversion needed. Default: None
+        Data type to convert `data` to, if conversion needed. Default: None
     copy_history : bool, optional
         Copy history from `ref_physio` to new physio object. Default: True
 
     Returns
     -------
     data : peakdet.Physio
-        Loaded physio object with provided ``data``
+        Loaded physio object with provided `data`
     """
 
     if fs is None:
         fs = ref_physio.fs
     if dtype is None:
         dtype = ref_physio.data.dtype
-    history = ref_physio.history if copy_history else []
-    out = ref_physio.__class__(np.asarray(data, dtype=dtype), fs=fs,
-                               history=history.copy())
+    history = ref_physio.history.copy() if copy_history else []
+    metadata = Bunch(**ref_physio._metadata) if copy_metadata else None
+
+    # make new class
+    out = ref_physio.__class__(np.asarray(data, dtype=dtype),
+                               fs=fs, history=history, metadata=metadata)
     return out
 
 
 def get_extrema(data, peaks=True, thresh=0.4):
     """
-    Find extrema in ``data`` by changes in sign of first derivative
+    Find extrema in `data` by changes in sign of first derivative
 
     Parameters
     ----------
@@ -128,7 +142,7 @@ def get_extrema(data, peaks=True, thresh=0.4):
     Returns
     -------
     locs : np.ndarray
-        Indices of extrema from ``data``
+        Indices of extrema from `data`
     """
 
     if thresh < 0 or thresh > 1:
@@ -157,23 +171,23 @@ def get_extrema(data, peaks=True, thresh=0.4):
 
 def min_peak_dist(data, locs, peaks=True, dist=250):
     """
-    Ensures ``locs`` in ``data`` are separated by at least ``dist``
+    Ensures `locs` in `data` are separated by at least `dist`
 
     Parameters
     ----------
     data : array_like or Physio_like
-        Input data for which ``locs`` were detected
+        Input data for which `locs` were detected
     locs : array_like
-        Extrema in ``data``, typically from ``get_extrema()``
+        Extrema in `data`, typically from `get_extrema()`
     peaks : bool, optional
         Whether to look for peaks instead of troughs. Default: True
     dist : int, optional
-        Minimum required distance (in datapoints) b/w ``locs``. Default: 250
+        Minimum required distance (in datapoints) b/w `locs`. Default: 250
 
     Returns
     -------
     locs : np.ndarray
-        Extrema separated by at least ``dist``
+        Extrema separated by at least `dist`
     """
 
     if not any(np.diff(sorted(locs)) <= dist):
@@ -197,7 +211,7 @@ def min_peak_dist(data, locs, peaks=True, dist=250):
 
 def find_peaks(data, thresh=0.4, dist=250):
     """
-    Finds peaks in ``data``
+    Finds peaks in `data`
 
     Parameters
     ----------
@@ -206,12 +220,12 @@ def find_peaks(data, thresh=0.4, dist=250):
     thresh : float (0, 1), optional
         Amplitude based threshold
     dist : int
-        Minimum required distance (in datapoints) b/w peaks in ``data``
+        Minimum required distance (in datapoints) b/w peaks in `data`
 
     Returns
     -------
     peaks : np.ndarray
-        Indices of peak locations in ``data``
+        Indices of peak locations in `data`
     """
 
     extrema = get_extrema(data, thresh=thresh)
@@ -222,7 +236,7 @@ def find_peaks(data, thresh=0.4, dist=250):
 
 def find_troughs(data, thresh=0.4, dist=250):
     """
-    Finds troughs in ``data``
+    Finds troughs in `data`
 
     Parameters
     ----------
@@ -231,12 +245,12 @@ def find_troughs(data, thresh=0.4, dist=250):
     thresh : float (0, 1), optional
         Amplitude based threshold
     dist : int
-        Minimum required distance (in datapoints) b/w troughs in ``data``
+        Minimum required distance (in datapoints) b/w troughs in `data`
 
     Returns
     -------
     troughs : np.ndarray
-        Indices of trough locations in ``data``
+        Indices of trough locations in `data`
     """
 
     extrema = get_extrema(data, peaks=False, thresh=thresh)
@@ -247,21 +261,21 @@ def find_troughs(data, thresh=0.4, dist=250):
 
 def check_troughs(data, peaks, troughs):
     """
-    Confirms that ``troughs`` exists between every set of ``peaks`` in ``data``
+    Confirms that `troughs` exists between every set of `peaks` in `data`
 
     Parameters
     ----------
     data : array-like
-        Input data for which ``troughs`` and ``peaks`` were detected
+        Input data for which `troughs` and `peaks` were detected
     peaks : array-like
-        Indices of suspected peak locations in ``data``
+        Indices of suspected peak locations in `data`
     troughs : array-like
-        Indices of suspected trough locations in ``data``
+        Indices of suspected trough locations in `data`
 
     Returns
     -------
     troughs : np.ndarray
-        Indices of trough locations in ``data``, dependent on ``peaks``
+        Indices of trough locations in `data`, dependent on `peaks`
     """
 
     all_troughs = np.zeros(peaks.size - 1, dtype=int)
@@ -283,9 +297,9 @@ def check_troughs(data, peaks, troughs):
 
 def gen_temp(data, locs, factor=0.5):
     """
-    Generate waveform template array from ``data``
+    Generate waveform template array from `data`
 
-    Waveforms are taken from around peak locations in ``locs``
+    Waveforms are taken from around peak locations in `locs`
 
     Parameters
     ----------
@@ -331,16 +345,13 @@ def corr(x, y, z_tran=[False, False]):
     float : [0,1] correlation between `x` and `y`
     """
 
-    if x.ndim > 1:
-        x = np.asarray(x).squeeze()
-    if y.ndim > 1:
-        y = np.asarray(y).squeeze()
+    x = np.asarray(x).squeeze()
+    y = np.asarray(y).squeeze()
 
     if x.ndim > 1 or y.ndim > 1:
-        raise ValueError('Input arrays must have only one dimension')
-
+        raise ValueError('Input arrays must have only one dimension.')
     if x.size != y.size:
-        raise ValueError('Input array dimensions must be same size')
+        raise ValueError('Input array dimensions must be same size.')
 
     # numpy corrcoef is faster if both variables need to be z-scored
     if not np.any(z_tran):

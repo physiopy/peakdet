@@ -13,10 +13,11 @@ class Physio():
     data : array_like
         Input data array
     fs : float, optional
-        Sampling rate of ``data`` (Hz). Default: None
-    history : list of tuples
+        Sampling rate of `data` (Hz). Default: None
+    history : list of tuples, optional
         Functions performed on `data`
-    metadata : 
+    metadata : dict, optional
+        Metadata associated with `data`
     """
 
     def __init__(self, data, fs=None, history=[], metadata=None):
