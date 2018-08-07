@@ -89,7 +89,7 @@ def save_physio(file, data):
                             history=data.history, metadata=data.metadata)
 
 
-def load_history(file):
+def load_history(file, verbose=False):
     """
     Loads history from `file` and replays it, creating new Physio instance
 
@@ -97,6 +97,8 @@ def load_history(file):
     ----------
     file : str
         Path to input JSON file
+    verbose : bool, optional
+        Whether to print messages as history is being replayed. Default: False
     """
 
     # import inside function for safety!
@@ -110,6 +112,8 @@ def load_history(file):
     # replay history from beginning and return resultant Physio object
     data = None
     for (func, kwargs) in history:
+        if verbose:
+            print('Rerunning {}'.format(func))
         # loading functions don't have `data` input because it should be the
         # first thing in `history` --- when the data was originally loaded!
         # for safety, check if `data` is None

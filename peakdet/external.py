@@ -9,33 +9,34 @@ def load_rtpeaks(fname, channel, fs):
     """
     Loads data file as obtained from the `rtpeaks` Python module
 
-    Data file `fname` should have a single, comma-delimited header row:
+    Data file `fname` should have a single, comma-delimited header of format:
 
         time,channelA,channelB,...,channelZ
 
     Raw data should be stored in columnar format, also comma-delimited, beneath
-    this header, and should be integer-based. For more information, see the
-    rtpeaks homepage at https://github.com/rmarkello/rtpeaks.
+    this header. All data should be stored as integers. For more information,
+    see the ``rtpeaks`` homepage: https://github.com/rmarkello/rtpeaks.
 
     Parameters
     ----------
     fname : str
-        Path to data file
+        Path to data file to be loaded
     channel : int
-        This corresponds to the channel number for which data should be loaded
+        Integer corresponding to the channel number in `fname` from which data
+        should be loaded
     fs : float
-        Sampling rate at which data was acquired
+        Sampling rate at which `fname` was acquired
 
     Returns
     -------
     data : Physio_like
-        Loaded data
+        Loaded physiological data
     """
 
     if fname.startswith('/'):
         warnings.warn('Provided file seems to be an absolute path. In order '
                       'to ensure full reproducibility it is recommended that '
-                      'a relative path is provided, instead.')
+                      'a relative path is provided.')
 
     with open(fname, 'r') as src:
         header = src.readline().strip().split(',')

@@ -41,10 +41,9 @@ def _get_call(exclude=['data'], serializable=True):
     args = argspec.args + argspec.kwonlyargs
     # save arguments + argument values for everything not in `exclude`
     provided = {k: frame.f_locals[k] for k in args if k not in exclude}
-
     # if we want `provided` to be serializable, we can do a little cleaning up
     # this is NOT foolproof, but will coerce numpy arrays to lists which tends
-    # to be the MAIN issue
+    # to be the main issue with these sorts of things
     if serializable:
         for k, v in provided.items():
             if hasattr(v, 'tolist'):
@@ -327,7 +326,7 @@ def gen_temp(data, locs, factor=0.5):
     return template
 
 
-def corr(x, y, z_tran=[False, False]):
+def corr(x, y, zscored=[False, False]):
     """
     Potentially faster correlation of `x` and `y`
 
@@ -337,7 +336,7 @@ def corr(x, y, z_tran=[False, False]):
     ----------
     x : array, n x 1
     y : array, n x 1
-    z_tran : [bool, bool]
+    zscored : [bool, bool]
         Whether x and y, respectively, have been z-transformed
 
     Returns
@@ -345,8 +344,7 @@ def corr(x, y, z_tran=[False, False]):
     float : [0,1] correlation between `x` and `y`
     """
 
-    x = np.asarray(x).squeeze()
-    y = np.asarray(y).squeeze()
+    x, y = np.asarray(x).squeeze(), np.asarray(y).squeeze()
 
     if x.ndim > 1 or y.ndim > 1:
         raise ValueError('Input arrays must have only one dimension.')
@@ -354,18 +352,15 @@ def corr(x, y, z_tran=[False, False]):
         raise ValueError('Input array dimensions must be same size.')
 
     # numpy corrcoef is faster if both variables need to be z-scored
-    if not np.any(z_tran):
+    if not np.any(zscored):
         return np.corrcoef(x, y)[0, 1]
 
-    if not z_tran[0]:
+    if not zscored[0]:
         x = zscore(x, ddof=1)
-    if not z_tran[1]:
+    if not zscored[1]:
         y = zscore(y, ddof=1)
 
-    if x.size == y.size:
-        return np.dot(x.T, y) * (1. / (x.size - 1))
-    else:
-        return None
+    return np.dot(x.T, y) * (1. / (x.size - 1))
 
 
 def corr_template(temp, sim=0.95):

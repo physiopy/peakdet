@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 
 
-def test_HRV():
+def test_load_rtpeaks():
     assert False

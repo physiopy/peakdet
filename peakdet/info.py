@@ -13,7 +13,6 @@ INSTALL_REQUIRES = [
     'scikit-learn',
     'scipy',
     'matplotlib',
-    'gooey'
 ]
 
 TESTS_REQUIRE = [
