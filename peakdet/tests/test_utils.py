@@ -5,10 +5,9 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
 from peakdet import physio, utils
-from peakdet.tests.utils import get_call_func, get_test_data_path
+from peakdet.tests import utils as testutils
 
-DATA = np.sin(np.arange(0, 20, 0.5))
-PEAKS, TROUGHS = np.array([3, 16, 28]), np.array([9, 22, 35])
+DATA, PEAKS, TROUGHS = testutils.get_sample_data()
 GET_CALL_ARGUMENTS = [
     # check basic functionality
     dict(
@@ -45,14 +44,13 @@ GET_CALL_ARGUMENTS = [
 
 def test_get_call():
     for entry in GET_CALL_ARGUMENTS:
-        fcn, args = get_call_func(**entry['input'],
-                                  exclude=['exclude', 'serializable'])
+        fcn, args = testutils.get_call_func(**entry['input'])
         assert fcn == entry['function']
         assert args == entry['expected']
 
 
 def test_check_physio():
-    fname = pjoin(get_test_data_path(), 'ECG.1D')
+    fname = pjoin(testutils.get_test_data_path(), 'ECG.1D')
     data = physio.Physio(np.loadtxt(fname), fs=1000.)
     # check that `ensure_fs` is functional
     with pytest.raises(ValueError):

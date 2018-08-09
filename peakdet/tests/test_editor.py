@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from peakdet import editor, physio
+
 
 def test_PhysioEditor():
     assert False
