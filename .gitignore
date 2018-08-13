@@ -8,3 +8,5 @@ dist/*
 .cache
 .coverage
 localtest
+.pytest_cache/
+__pycache__/

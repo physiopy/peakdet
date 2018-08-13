@@ -1,49 +1,152 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-import os.path as op
+from os.path import join as pjoin
 import numpy as np
+from numpy.testing import assert_array_equal
 import pytest
-import peakdet
+from peakdet import physio, utils
+from peakdet.tests import utils as testutils
+
+DATA, PEAKS, TROUGHS = testutils.get_sample_data()
+GET_CALL_ARGUMENTS = [
+    # check basic functionality
+    dict(
+        function='get_call_func',
+        input=dict(
+            arg1=1, arg2=2, serializable=False
+        ),
+        expected=dict(
+            arg1=1, arg2=2, kwarg1=10, kwarg2=20
+        )
+    ),
+    # check that changing kwargs in function persists to output
+    dict(
+        function='get_call_func',
+        input=dict(
+            arg1=11, arg2=2, serializable=False
+        ),
+        expected=dict(
+            arg1=11, arg2=2, kwarg1=21, kwarg2=20
+        )
+    ),
+    # confirm serializability is effective
+    dict(
+        function='get_call_func',
+        input=dict(
+            arg1=1, arg2=2, kwarg1=np.array([1, 2, 3]), serializable=True
+        ),
+        expected=dict(
+            arg1=1, arg2=2, kwarg1=[1, 2, 3], kwarg2=20
+        )
+    ),
+]
 
 
-def test_saveload(tmpdir):
-    fname = tmpdir.join('output')
-    data = np.random.rand(100)
-    to_save = peakdet.PeakFinder(data, 40)
-    peakdet.utils.save(fname.strpath, to_save)
-    loaded = peakdet.utils.load(fname.strpath)
-
-    assert isinstance(loaded, peakdet.PeakFinder)
-    assert np.allclose(to_save.data, loaded.data)
+def test_get_call():
+    for entry in GET_CALL_ARGUMENTS:
+        fcn, args = testutils.get_call_func(**entry['input'])
+        assert fcn == entry['function']
+        assert args == entry['expected']
 
 
-def test_normalize():
-    with pytest.raises(IndexError):
-        peakdet.utils.normalize(np.random.rand(5, 5))
+def test_check_physio():
+    fname = pjoin(testutils.get_test_data_path(), 'ECG.1D')
+    data = physio.Physio(np.loadtxt(fname), fs=1000.)
+    # check that `ensure_fs` is functional
+    with pytest.raises(ValueError):
+        utils.check_physio(fname)
+    assert isinstance(utils.check_physio(fname, False), physio.Physio)
+    # "normal" instance should just pass
+    assert isinstance(utils.check_physio(data), physio.Physio)
+    # check that copy works
+    assert utils.check_physio(data) == data
+    assert utils.check_physio(data, copy=True) != data
+
+
+def test_new_physio_like():
+    assert False
+
+
+def test_get_extrema():
+    # check that peak detection works
+    assert_array_equal(utils.get_extrema(DATA), PEAKS)
+    # check that threshold modulates detection
+    assert_array_equal(utils.get_extrema(DATA, thresh=0.6), np.array([]))
+    # check that trough detection works, too
+    assert_array_equal(utils.get_extrema(DATA, False), TROUGHS)
+    # check threshold bounds
+    with pytest.raises(ValueError):
+        utils.get_extrema(DATA, thresh=-0.1)
+    with pytest.raises(ValueError):
+        utils.get_extrema(DATA, thresh=1.1)
+
+
+def test_min_peak_dist():
+    # test peaks w/ and w/o removal due to `dist`
+    assert_array_equal(utils.min_peak_dist(DATA, PEAKS, dist=10),
+                       PEAKS)
+    assert_array_equal(utils.min_peak_dist(DATA, PEAKS, dist=20),
+                       np.array([3, 28]))
+    # test troughs w/ and w/o removal due to `dist`
+    assert_array_equal(utils.min_peak_dist(DATA, TROUGHS, False, dist=10),
+                       TROUGHS)
+    assert_array_equal(utils.min_peak_dist(DATA, TROUGHS, False, dist=20),
+                       np.array([22]))
+
+
+def test_find_peaks():
+    # check that `dist` parameter modulates detected peaks
+    assert_array_equal(utils.find_peaks(DATA, dist=10), PEAKS)
+    assert_array_equal(utils.find_peaks(DATA, dist=20), np.array([3, 28]))
+    # ensure returned array is of correct type
+    assert utils.find_peaks(DATA).dtype == np.int64
+
+
+def test_find_troughs():
+    # check that `dist` parameter modulates detected troughs
+    assert_array_equal(utils.find_troughs(DATA, dist=10), TROUGHS)
+    assert_array_equal(utils.find_troughs(DATA, dist=20), np.array([22]))
+    # ensure returned array is of correct type
+    assert utils.find_peaks(DATA).dtype == np.int64
+
+
+def test_check_troughs():
+    true = np.array([9, 22])
+    # check that func fills in when no troughs provided
+    assert_array_equal(utils.check_troughs(DATA, PEAKS, []), true)
+    # check that func disregard troughs outside of peak bounds
+    assert_array_equal(utils.check_troughs(DATA, PEAKS, TROUGHS), true)
+    # check that func removes when two points are "troughs" inside peaks
+    assert_array_equal(utils.check_troughs(DATA, PEAKS, np.array([9, 10, 22])),
+                       true)
+
+
+def test_gen_temp():
+    assert False
 
 
 def test_corr():
-    x = np.random.rand(10)
-    y = np.random.rand(9)
-    peakdet.utils.corr(x, y)
+    x = np.random.rand(10, 1)
+    # works both as 2D and 1D vectors (i.e., squeezeable)
+    assert np.allclose(utils.corr(x, x), 1)
+    assert np.allclose(utils.corr(x.squeeze(), x.squeeze()), 1)
+    # error raised when inputs aren't the same size
+    with pytest.raises(ValueError):
+        utils.corr(x, np.random.rand(9, 1))
+    # error raised when one of the inputs is not squeezeable
+    with pytest.raises(ValueError):
+        utils.corr(x, np.random.rand(10, 2))
+    # zscore only first
+    utils.corr(x, x, zscored=[False, True])
+    # zscore only second
+    utils.corr(x, x, zscored=[True, False])
+    # zscore both
+    utils.corr(x, x, zscored=[True, True])
 
 
-def test_corrtemp():
-    np.random.seed(10)
-    p = peakdet.PeakFinder(np.sin(np.arange(100)), fs=1)
-    p.get_peaks(thresh=0.2)
-    assert len(p._template) > 0
+def test_corr_template():
+    assert False
 
 
-def test_matchtemp():
-    fname = op.join(op.dirname(__file__), 'data', 'PPG.1D')
-
-    p = peakdet.PeakFinder(fname, fs=40)
-    p.get_peaks()
-    peakdet.utils.match_temp(p.data, p.peakinds, p._template)
-
-    data = np.loadtxt(fname)
-    data = data[:500]
-    p = peakdet.PeakFinder(data, fs=40)
-    p.get_peaks()
-    peakdet.utils.match_temp(p.data, p.peakinds, p._template)
+def test_match_temp():
+    assert False

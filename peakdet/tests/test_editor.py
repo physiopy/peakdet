@@ -1,25 +1,15 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-import os.path as op
-import pytest
-import peakdet
+from peakdet import editor, physio
 
 
-class Event():
-    def __init__(self, step):
-        self.step = step
+def test_PhysioEditor():
+    assert False
 
 
-def test_PeakEditor():
-    fname = op.join(op.dirname(__file__), 'data', 'PPG.1D')
-    p = peakdet.PeakFinder(fname, fs=40)
+def test_delete_peaks():
+    assert False
 
-    p.get_peaks()
 
-    with pytest.raises(TypeError):
-        peakdet.editor.PeakEditor(10, _debug=True)
-    m = peakdet.editor.PeakEditor(p, _debug=True)
-    m.on_span_select(10, 20)
-    m.undo()
-    m.roll_wheel(Event(step=5))
-    m.done()
+def test_reject_peaks():
+    assert False

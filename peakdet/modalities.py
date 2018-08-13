@@ -21,9 +21,7 @@ class BaseModality(physio.PeakFinder):
 
 
 class HRModality():
-    """
-    Class that supplies ECG/PPG with common heart rate functions
-    """
+    """ Class that supplies ECG/PPG with common heart rate functions """
 
     def iHR(self, step=1, start=0, end=None, TR=None):
         """

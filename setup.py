@@ -28,9 +28,11 @@ def main():
         package_data=ldict['PACKAGE_DATA'],
         tests_require=ldict['TESTS_REQUIRE'],
         license=ldict['LICENSE'],
-        entry_points={'console_scripts': [
-            'peakdet=peakdet.cli.run:main'
-        ]}
+        entry_points={
+            'console_scripts': [
+                'peakdet=peakdet.cli.run:main'
+            ]
+        }
     )
 
 

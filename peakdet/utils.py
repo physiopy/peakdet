@@ -1,118 +1,128 @@
 # -*- coding: utf-8 -*-
 
-import pickle
+import inspect
 import numpy as np
-from scipy.signal import butter, filtfilt, gaussian
+from scipy import signal
+from scipy.stats import zscore
+from sklearn.utils import Bunch
+from peakdet import physio
+from peakdet.io import load_physio
 
 
-def save(fname, pf):
+def _get_call(exclude=['data'], serializable=True):
     """
-    Saves ``pf`` to ``fname`
+    Returns calling function name and dict of provided arguments (name : value)
 
     Parameters
     ----------
-    fname : str
-        Path to output file
-    pf : peakdet.PeakFinder instance
-        Or subclass instance
-    """
-
-    with open(fname, 'wb') as out:
-        pickle.dump(pf, out)
-
-
-def load(fname):
-    """
-    Loads `fname` created by save()
-
-    Parameters
-    ----------
-    fname : str
-        Path to input file
+    exclude : list, optional
+        What arguments to exclude from provided argument : value dictionary.
+        Default: ['data']
+    serializable : bool, optional
+        Whether to coerce argument values to JSON serializable form. Default:
+        True
 
     Returns
     -------
-    pdbf : peakdet.PeakFinder instance
+    function: str
+        Name of calling function
+    provided : dict
+        Dictionary of function arguments and provided values
     """
 
-    with open(fname, 'rb') as src:
-        return pickle.load(src)
+    if not isinstance(exclude, list):
+        exclude = [exclude]
+
+    # get one function call up the stack (the bottom is _this_ function)
+    calling = inspect.stack(0)[1]
+    frame, function = calling.frame, calling.function
+    # get all the args / kwargs from the calling function
+    argspec = inspect.getfullargspec(frame.f_globals[function])
+    args = argspec.args + argspec.kwonlyargs
+    # save arguments + argument values for everything not in `exclude`
+    provided = {k: frame.f_locals[k] for k in args if k not in exclude}
+    # if we want `provided` to be serializable, we can do a little cleaning up
+    # this is NOT foolproof, but will coerce numpy arrays to lists which tends
+    # to be the main issue with these sorts of things
+    if serializable:
+        for k, v in provided.items():
+            if hasattr(v, 'tolist'):
+                provided[k] = v.tolist()
+
+    return function, provided
 
 
-def gen_flims(signal, fs):
+def check_physio(data, ensure_fs=True, copy=False):
     """
-    Generates a rough guess of ideal frequency cutoffs for a bandpass filter
+    Checks that `data` is in correct format (i.e., `peakdet.Physio`)
 
     Parameters
     ----------
-    signal : array_like
-    fs : float
+    data : Physio_like
+    ensure_fs : bool, optional
+        Raise ValueError if `data` does not have a valid sampling rate
+        attribute.
+    copy: bool, optional
+        Whether to return a copy of the provided data. Default: False
 
     Returns
     -------
-    flims : (2,) np.ndarray
-        optimal frequency cutoffs
+    data : peakdet.Physio
+        Loaded physio object
+
+    Raises
+    ------
+    ValueError
+        If `ensure_fs` is set and `data` doesn't have valid sampling rate
     """
 
-    signal = np.squeeze(signal)
-    inds = peakfinder(normalize(signal),
-                      dist=int(fs / 4))
-    inds = peakfinder(normalize(signal),
-                      dist=np.ceil(np.diff(inds).mean()) / 2)
-    freq = np.diff(inds).mean() / fs
+    if not isinstance(data, physio.Physio):
+        data = load_physio(data)
+    if ensure_fs and np.isnan(data.fs):
+        raise ValueError('Provided data does not have valid sampling rate.')
+    if copy is True:
+        return new_physio_like(data, data.data,
+                               copy_history=True,
+                               copy_metadata=True)
+    return data
 
-    return np.asarray([freq / 2, freq * 2])
 
-
-def bandpass_filt(signal, fs, flims=None, btype='bandpass'):
+def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
+                    copy_history=True, copy_metadata=True):
     """
-    Runs `btype` filter on `signal` of sampling rate `fs`
+    Makes `data` into physio object like `ref_data`
 
     Parameters
     ----------
-    signal : array-like
-    fs : float
-    flims : array-like
-        Bounds of filter
-    btype : str
-        Type of filter; one of ['band','low','high']
+    ref_physio : Physio_like
+        Reference `Physio` object
+    data : array_like
+        Input physiological data
+    fs : float, optional
+        Sampling rate of `data`. If not supplied, assumed to be the same as
+        in `ref_physio`
+    dtype : data_type, optional
+        Data type to convert `data` to, if conversion needed. Default: None
+    copy_history : bool, optional
+        Copy history from `ref_physio` to new physio object. Default: True
 
     Returns
     -------
-    array : filtered signal
+    data : peakdet.Physio
+        Loaded physio object with provided `data`
     """
 
-    signal = np.squeeze(signal)
-    if flims is None:
-        flims = [0, fs]
+    if fs is None:
+        fs = ref_physio.fs
+    if dtype is None:
+        dtype = ref_physio.data.dtype
+    history = ref_physio.history.copy() if copy_history else []
+    metadata = Bunch(**ref_physio._metadata) if copy_metadata else None
 
-    nyq_freq = fs * 0.5
-    nyq_cutoff = np.asarray(flims) / nyq_freq
-    b, a = butter(3, nyq_cutoff, btype=btype)
-    fsig = filtfilt(b, a, signal)
-
-    return fsig
-
-
-def normalize(data):
-    """
-    Normalizes `data` (subtracts mean and divides by std)
-
-    Parameters
-    ----------
-    data : array-like
-
-    Returns
-    -------
-    array: normalized data
-    """
-
-    data = np.squeeze(np.asarray(data))
-    if data.ndim > 1:
-        raise IndexError("Input must be one-dimensional.")
-    if data.std() == 0:
-        return data - data.mean()
-    return (data - data.mean()) / data.std()
+    # make new class
+    out = ref_physio.__class__(np.asarray(data, dtype=dtype),
+                               fs=fs, history=history, metadata=metadata)
+    return out
 
 
 def get_extrema(data, peaks=True, thresh=0.4):
@@ -121,71 +131,72 @@ def get_extrema(data, peaks=True, thresh=0.4):
 
     Parameters
     ----------
-    data : array-like
-    peaks : bool
-        Whether to look for peaks (True) or troughs (False)
-    thresh : float (0,1)
+    data : array_like or Physio_like
+        Input data on which to perform extrema detection
+    peaks : bool, optional
+        Whether to look for peaks instead of troughs. Default: True
+    thresh : float (0, 1), optional
+        Amplitude based threshold
 
     Returns
     -------
-    array : indices of extrema from `data`ex
+    locs : np.ndarray
+        Indices of extrema from `data`
     """
 
     if thresh < 0 or thresh > 1:
-        raise ValueError("Thresh must be in (0,1).")
+        raise ValueError('Provided threshold {} is not in range [0, 1]. '
+                         'Please provide a valid threshold.'
+                         .format(thresh))
 
     if peaks:
         uthresh = (thresh * np.diff(np.percentile(data, [5, 95])))
-        Indx = np.where(data > uthresh)[0]
+        Indx = np.argwhere(data > uthresh).squeeze()
     else:
         uthresh = (thresh * np.diff(np.percentile(data, [95, 5])))
-        Indx = np.where(data < uthresh)[0]
+        Indx = np.argwhere(data < uthresh).squeeze()
 
     trend = np.sign(np.diff(data))
-    idx = np.where(trend == 0)[0]
+    idx = np.argwhere(trend == 0).squeeze()
 
     for i in range(idx.size - 1, -1, -1):
-        if trend[min(idx[i] + 1, trend.size - 1)] >= 0:
-            trend[idx[i]] = 1
-        else:
-            trend[idx[i]] = -1
+        gtz = trend[min(idx[i] + 1, trend.size - 1)] >= 0
+        trend[idx[i]] = 1 if gtz else -1
 
-    if peaks:
-        idx = np.where(np.diff(trend) == -2)[0] + 1
-    else:
-        idx = np.where(np.diff(trend) == 2)[0] + 1
+    idx = np.argwhere(np.diff(trend) == (-2 if peaks else 2)).squeeze() + 1
 
     return np.intersect1d(Indx, idx)
 
 
-def min_peak_dist(locs, data, peaks=True, dist=250):
+def min_peak_dist(data, locs, peaks=True, dist=250):
     """
-    Ensures extrema `locs` in `data` are separated by at least `dist`
+    Ensures `locs` in `data` are separated by at least `dist`
 
     Parameters
     ----------
-    locs : array-like
-        Extrema, typically from get_extrema()
-    data : array-like
-    peaks : bool
-        Whether to look for peaks (True) or troughs (False)
-    dist : int
-        Minimum required distance (in datapoints) b/w `locs`
+    data : array_like or Physio_like
+        Input data for which `locs` were detected
+    locs : array_like
+        Extrema in `data`, typically from `get_extrema()`
+    peaks : bool, optional
+        Whether to look for peaks instead of troughs. Default: True
+    dist : int, optional
+        Minimum required distance (in datapoints) b/w `locs`. Default: 250
 
     Returns
     -------
-    array : extrema separated by at least `dist`
+    locs : np.ndarray
+        Extrema separated by at least `dist`
     """
 
     if not any(np.diff(sorted(locs)) <= dist):
         return locs
 
+    idx = data[locs].argsort()
     if peaks:
-        idx = data[locs].argsort()[::-1][:]
-    else:
-        idx = data[locs].argsort()[:]
+        idx = idx[::-1]
     locs = locs[idx]
-    idelete = np.ones(locs.size) < 0
+    idelete = np.zeros_like(locs, dtype=bool)
 
     for i in range(locs.size):
         if not idelete[i]:
@@ -194,72 +205,79 @@ def min_peak_dist(locs, data, peaks=True, dist=250):
             idelete = np.logical_or(idelete, dist_diff)
             idelete[i] = 0
 
-    return locs[~idelete]
+    return np.sort(locs[~idelete])
 
 
-def peakfinder(data, thresh=0.4, dist=250):
+def find_peaks(data, thresh=0.4, dist=250):
     """
     Finds peaks in `data`
 
     Parameters
     ----------
-    data : array_like
-    thresh : float (0,1)
+    data : array_like or Physio_like
+        Input data on which to perform peak detection
+    thresh : float (0, 1), optional
+        Amplitude based threshold
     dist : int
-        Minimum required distance (in datapoints) b/w peaks
+        Minimum required distance (in datapoints) b/w peaks in `data`
 
     Returns
     -------
-    array : peak locations (indices)
+    peaks : np.ndarray
+        Indices of peak locations in `data`
     """
 
-    locs = get_extrema(data, thresh=thresh)
-    locs = min_peak_dist(locs, data, dist=dist)
+    extrema = get_extrema(data, thresh=thresh)
+    peaks = min_peak_dist(data, extrema, dist=dist)
 
-    return np.array(sorted(locs))
+    return peaks.astype(int)
 
 
-def troughfinder(data, thresh=0.4, dist=250):
+def find_troughs(data, thresh=0.4, dist=250):
     """
     Finds troughs in `data`
 
     Parameters
     ----------
-    data : array-like
-    thresh : float (0,1)
+    data : array_like or Physio_like
+        Input data on which to perform trough detection
+    thresh : float (0, 1), optional
+        Amplitude based threshold
     dist : int
-        Minimum required distance (in datapoints) b/w troughs
+        Minimum required distance (in datapoints) b/w troughs in `data`
 
     Returns
     -------
-    array : trough locations (indices)
+    troughs : np.ndarray
+        Indices of trough locations in `data`
     """
 
-    locs = get_extrema(data, peaks=False, thresh=thresh)
-    locs = min_peak_dist(locs, data, peaks=False, dist=dist)
+    extrema = get_extrema(data, peaks=False, thresh=thresh)
+    troughs = min_peak_dist(data, extrema, peaks=False, dist=dist)
 
-    return np.array(sorted(locs))
+    return troughs.astype(int)
 
 
-def check_troughs(data, troughs, peaks):
+def check_troughs(data, peaks, troughs):
     """
-    Confirms that a trough exists between every set of `peaks` in `data`
+    Confirms that `troughs` exists between every set of `peaks` in `data`
 
     Parameters
     ----------
     data : array-like
-    troughs : array-like
-        Indices of current troughs
+        Input data for which `troughs` and `peaks` were detected
     peaks : array-like
-        Indices of suspected peak locations
+        Indices of suspected peak locations in `data`
+    troughs : array-like
+        Indices of suspected trough locations in `data`
 
     Returns
     -------
-    array : troughs
+    troughs : np.ndarray
+        Indices of trough locations in `data`, dependent on `peaks`
     """
 
-    all_troughs = np.zeros(peaks.size - 1,
-                           dtype='int')
+    all_troughs = np.zeros(peaks.size - 1, dtype=int)
 
     for f in range(peaks.size - 1):
         curr = np.logical_and(troughs > peaks[f],
@@ -271,7 +289,6 @@ def check_troughs(data, troughs, peaks):
             idx = troughs[curr]
             if idx.size > 1:
                 idx = idx[0]
-
         all_troughs[f] = idx
 
     return all_troughs
@@ -285,10 +302,10 @@ def gen_temp(data, locs, factor=0.5):
 
     Parameters
     ----------
-    data : array-like
-    locs : arrray
+    data : array_like
+    locs : arrray_like
         Indices of suspected peak locations
-    factor: float (0,1)
+    factor: float (0, 1), optional
 
     Returns
     -------
@@ -309,28 +326,9 @@ def gen_temp(data, locs, factor=0.5):
     return template
 
 
-def z_transform(z):
+def corr(x, y, zscored=[False, False]):
     """
-    Z-transform `z`
-
-    Parameters
-    ----------
-    z : array-like
-
-    Returns
-    -------
-    array : z-transformed input
-    """
-
-    z = z - (z.sum() / z.size)
-    z = z / np.sqrt(np.dot(z.T, z) * (1. / (z.size - 1)))
-
-    return z
-
-
-def corr(x, y, z_tran=[False, False]):
-    """
-    Returns correlation of `x` and `y`
+    Potentially faster correlation of `x` and `y`
 
     Will z-transform data before correlation.
 
@@ -338,7 +336,7 @@ def corr(x, y, z_tran=[False, False]):
     ----------
     x : array, n x 1
     y : array, n x 1
-    z_tran : [bool, bool]
+    zscored : [bool, bool]
         Whether x and y, respectively, have been z-transformed
 
     Returns
@@ -346,20 +344,23 @@ def corr(x, y, z_tran=[False, False]):
     float : [0,1] correlation between `x` and `y`
     """
 
-    if x.ndim > 1:
-        x = x.flatten()
-    if y.ndim > 1:
-        y = y.flatten()
+    x, y = np.asarray(x).squeeze(), np.asarray(y).squeeze()
 
-    if not z_tran[0]:
-        x = z_transform(x)
-    if not z_tran[1]:
-        y = z_transform(y)
+    if x.ndim > 1 or y.ndim > 1:
+        raise ValueError('Input arrays must have only one dimension.')
+    if x.size != y.size:
+        raise ValueError('Input array dimensions must be same size.')
 
-    if x.size == y.size:
-        return np.dot(x.T, y) * (1. / (x.size - 1))
-    else:
-        return None
+    # numpy corrcoef is faster if both variables need to be z-scored
+    if not np.any(zscored):
+        return np.corrcoef(x, y)[0, 1]
+
+    if not zscored[0]:
+        x = zscore(x, ddof=1)
+    if not zscored[1]:
+        y = zscore(y, ddof=1)
+
+    return np.dot(x.T, y) * (1. / (x.size - 1))
 
 
 def corr_template(temp, sim=0.95):
@@ -382,7 +383,7 @@ def corr_template(temp, sim=0.95):
 
     npulse = temp.shape[0]
 
-    mean_temp = z_transform(temp.mean(axis=0))
+    mean_temp = zscore(temp.mean(axis=0), ddof=1)
     sim_to_temp = np.zeros((temp.shape[0], 1))
 
     for n in range(temp.shape[0]):
@@ -422,7 +423,7 @@ def match_temp(data, locs, temp):
 
     avgrate = round(np.diff(locs).mean())
     THW = int(np.floor(temp.size / 2))
-    z_temp = z_transform(temp)
+    z_temp = zscore(temp, ddof=1)
     is_z_trans = [False, True]
 
     c_samp_start = int(round((2.0 * THW) + 1)) - 1
@@ -479,8 +480,8 @@ def match_temp(data, locs, temp):
     peak_num = 0
     cpulse = np.zeros(data.size)
     nlimit = data_padded.size - THW - search_pos - 1
-    location_weight = gaussian(2 * search_steps_tot + 1,
-                               std=(2 * search_steps_tot) / 5)
+    location_weight = signal.gaussian(2 * search_steps_tot + 1,
+                                      std=(2 * search_steps_tot) / 5)
 
     while n < nlimit:
         search_pos_array = np.arange(-search_steps_tot - 1, search_steps_tot,
