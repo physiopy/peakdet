@@ -26,8 +26,11 @@ class _PhysioEditor():
         fs = 1 if data.fs is None else data.fs
         self.time = np.arange(0, len(data.data) / fs, 1 / fs)
 
-        # we're going to store all the deletions / rejections
+        # we're going to store all the deletions / rejections in history
         self.history = []
+        # we need to create these variables in case someone doesn't "quit"
+        # the plot appropriately (i.e., clicks X instead of pressing ctrl+q)
+        self.deleted = self.rejected = []
 
         # make main plot objects
         self.fig, self.ax = plt.subplots(nrows=1, ncols=1, tight_layout=True)
@@ -77,6 +80,7 @@ class _PhysioEditor():
                 rejected.append(inp['remove'])
             elif func == 'delete_peaks':
                 deleted.append(inp['remove'])
+        # generate list of deleted / rejected
         self.rejected = list(itertools.chain.from_iterable(rejected))
         self.deleted = list(itertools.chain.from_iterable(deleted))
         plt.close(self.fig)
@@ -140,6 +144,8 @@ class _PhysioEditor():
 
 def delete_peaks(data, remove, copy=False):
     """
+    Deletes peaks in `remove` from peaks stored in `data`
+
     Parameters
     ----------
     data : Physio_like
@@ -162,6 +168,8 @@ def delete_peaks(data, remove, copy=False):
 
 def reject_peaks(data, remove, copy=False):
     """
+    Marks peaks in `remove` as rejected in `data`
+
     Parameters
     ----------
     data : Physio_like

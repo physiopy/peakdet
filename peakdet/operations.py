@@ -79,11 +79,15 @@ def interpolate_physio(data, target_fs):
     data = utils.check_physio(data, ensure_fs=True)
 
     # generate original and target "time" series
-    orig = np.arange(0, len(data.data) / data.fs, 1 / data.fs)[:len(data.data)]
-    new = np.arange(0, orig[-1] + (1 / target_fs), 1 / target_fs)
+    t_orig = np.arange(0, len(data.data) / data.fs, 1 / data.fs)
+    t_new = np.arange(0, t_orig[-1] + (1 / target_fs), 1 / target_fs)
+    # catch possibility for generated time series to be larger than data
+    t_orig = t_orig[:len(data.data)]
 
-    interp = InterpolatedUnivariateSpline(orig, data[:])(new)
+    # interpolate data and generate new Physio object
+    interp = InterpolatedUnivariateSpline(t_orig, data[:])(t_new)
     interp = utils.new_physio_like(data, interp, fs=target_fs)
+    # add call to history
     interp._history += [utils._get_call()]
 
     return interp
@@ -116,8 +120,9 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
     data._metadata.peaks = utils.find_peaks(data, dist=cdist, thresh=thresh)
     # perform trough detection based on detected peaks
     data._metadata.troughs = utils.check_troughs(data, data.peaks, [])
-
+    # add call to history
     data._history += [utils._get_call()]
+
     return data
 
 
@@ -142,13 +147,13 @@ def edit_physio(data, *, delete=None, reject=None):
         edits = editor._PhysioEditor(data)
         plt.show(block=True)
         delete, reject = edits.deleted, edits.rejected
-    # replay editing
+    # replay editing (or accept a priori edits)
     else:
         if reject is not None:
             data = editor.reject_peaks(data, remove=reject)[0]
         if delete is not None:
             data = editor.delete_peaks(data, remove=delete)[0]
-
+    # add call to history
     data._history += [utils._get_call()]
 
     return data
@@ -166,10 +171,12 @@ def plot_physio(data, *, ax=None):
         Axis to plot `data` on. Default: None
     """
 
+    # generate x-axis time series
     fs = 1 if data.fs is None else data.fs
     time = np.arange(0, len(data.data) / fs, 1 / fs)
     if ax is None:
         fig, ax = plt.subplots(1, 1)
+    # plot data with peaks + troughs, as appropriate
     ax.plot(time, data, 'b',
             time[data.peaks], data[data.peaks], '.r',
             time[data.troughs], data[data.troughs], '.g')

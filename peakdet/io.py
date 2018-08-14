@@ -86,7 +86,7 @@ def save_physio(file, data):
     file += '.phys' if not file.endswith('.phys') else ''
     with open(file, 'wb') as dest:
         np.savez_compressed(dest, data=data.data, fs=data.fs,
-                            history=data.history, metadata=data.metadata)
+                            history=data.history, metadata=data._metadata)
 
 
 def load_history(file, verbose=False):
@@ -115,9 +115,9 @@ def load_history(file, verbose=False):
         if verbose:
             print('Rerunning {}'.format(func))
         # loading functions don't have `data` input because it should be the
-        # first thing in `history` --- when the data was originally loaded!
-        # for safety, check if `data` is None
-        # someone could have potentially called load_physio on a Physio object
+        # first thing in `history` (when the data was originally loaded!).
+        # for safety, check if `data` is None; someone could have potentially
+        # called load_physio on a Physio object
         if 'load' in func and data is None:
             data = getattr(peakdet, func)(**kwargs)
         else:
@@ -145,7 +145,8 @@ def save_history(file, data):
     data = check_physio(data)
     if len(data.history) == 0:
         warnings.warn('History of provided Physio object is empty. Saving '
-                      'anyway, but reloading this {} will result in an error.')
+                      'anyway, but reloading this file will result in an '
+                      'error.')
     file += '.json' if not file.endswith('.json') else ''
     with open(file, 'w') as dest:
         json.dump(data.history, dest, indent=4)
