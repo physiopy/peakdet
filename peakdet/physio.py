@@ -15,21 +15,35 @@ class Physio():
     fs : float, optional
         Sampling rate of `data` (Hz). Default: None
     history : list of tuples, optional
-        Functions performed on `data`
+        Functions performed on `data`. Default: None
     metadata : dict, optional
-        Metadata associated with `data`
+        Metadata associated with `data`. Default: None
     """
 
-    def __init__(self, data, fs=None, history=[], metadata=None):
-        data = np.asarray(data).squeeze()
-        if data.ndim > 1:
-            raise ValueError('Provided data dimensionality {} > expected 1'
-                             .format(data.ndim))
-        self._data = data
+    def __init__(self, data, fs=None, history=None, metadata=None):
+        self._data = np.asarray(data).squeeze()
+        if self._data.ndim > 1:
+            raise ValueError('Provided data dimensionality {} > 1.'
+                             .format(self._data.ndim))
         self._fs = np.float64(fs)
-        self._history = history
+        self._history = [] if history is None else history
+        if (not isinstance(self._history, list) or
+                any([not isinstance(f, tuple) for f in self._history])):
+            raise TypeError('Provided history {} must be a list-of-tuples. '
+                            'Please check inputs.'.format(history))
         if metadata is not None:
-            self._metadata = metadata
+            if not isinstance(metadata, dict):
+                raise TypeError('Provided metadata {} must be dict-like.'
+                                .format(metadata))
+            for k in ['peaks', 'troughs', 'reject']:
+                metadata.setdefault(k, np.empty(0, dtype=int))
+                if not isinstance(metadata.get(k), np.ndarray):
+                    try:
+                        metadata[k] = np.asarray(metadata.get(k), dtype=int)
+                    except TypeError:
+                        raise TypeError('Provided metadata must be dict-like'
+                                        'with integer array entries.')
+            self._metadata = Bunch(**metadata)
         else:
             self._metadata = Bunch(peaks=np.empty(0, dtype=int),
                                    troughs=np.empty(0, dtype=int),
