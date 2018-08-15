@@ -9,10 +9,10 @@ DESCRIPTION = 'A physiological peak detection system'
 DOWNLOAD_URL = 'http://github.com/rmarkello/peakdet'
 
 INSTALL_REQUIRES = [
+    'matplotlib',
     'numpy',
     'scikit-learn',
     'scipy',
-    'matplotlib',
 ]
 
 TESTS_REQUIRE = [
