@@ -1,4 +1,4 @@
-scipy
-numpy
 matplotlib
-gooey
+numpy
+scikit-learn
+scipy
