@@ -63,6 +63,7 @@ def test_check_physio():
     assert utils.check_physio(data, copy=True) != data
 
 
+@pytest.mark.xfail
 def test_new_physio_like():
     assert False
 
@@ -121,6 +122,7 @@ def test_check_troughs():
                        true)
 
 
+@pytest.mark.xfail
 def test_gen_temp():
     assert False
 
@@ -144,9 +146,11 @@ def test_corr():
     utils.corr(x, x, zscored=[True, True])
 
 
+@pytest.mark.xfail
 def test_corr_template():
     assert False
 
 
+@pytest.mark.xfail
 def test_match_temp():
     assert False

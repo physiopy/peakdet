@@ -41,6 +41,10 @@ PHYSIO_TESTS = [
     dict(
         kwargs=dict(data=np.column_stack([DATA, DATA])),
         raises=ValueError
+    ),
+    dict(
+        kwargs=dict(data='hello'),
+        raises=ValueError
     )
 ]
 

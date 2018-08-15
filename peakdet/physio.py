@@ -22,9 +22,12 @@ class Physio():
 
     def __init__(self, data, fs=None, history=None, metadata=None):
         self._data = np.asarray(data).squeeze()
-        if self._data.ndim > 1:
+        if self.data.ndim > 1:
             raise ValueError('Provided data dimensionality {} > 1.'
-                             .format(self._data.ndim))
+                             .format(self.data.ndim))
+        if not np.issubdtype(self.data.dtype, np.number):
+            raise ValueError('Provided data of type {} is not numeric.'
+                             .format(self.data.dtype))
         self._fs = np.float64(fs)
         self._history = [] if history is None else history
         if (not isinstance(self._history, list) or
@@ -54,6 +57,9 @@ class Physio():
 
     def __getitem__(self, slicer):
         return self.data[slicer]
+
+    def __len__(self):
+        return len(self.data)
 
     def __str__(self):
         return '{name}(size={size}, fs={fs})'.format(

@@ -7,9 +7,9 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from peakdet import editor, utils
 
 
-def filter_physio(data, cutoffs, method):
+def filter_physio(data, cutoffs, method, order=3):
     """
-    Applies a 3rd-order digital Butterworth filter of type `method` to `data`
+    Applies an `order`-order digital `method` Butterworth filter to `data`
 
     Parameters
     ----------
@@ -22,6 +22,8 @@ def filter_physio(data, cutoffs, method):
         (in Hz).
     method : {'lowpass', 'highpass', 'bandpass', 'bandstop'}
         The type of filter to apply to `data`.
+    order : int, optional
+        Order of filter to be applied. Default: 3
 
     Returns
     -------
@@ -31,7 +33,7 @@ def filter_physio(data, cutoffs, method):
 
     _valid_methods = ['lowpass', 'highpass', 'bandpass', 'bandstop']
 
-    data = utils.check_physio(data)
+    data = utils.check_physio(data, ensure_fs=True)
     if method not in _valid_methods:
         raise ValueError('Provided method {} is not permitted; must be in {}.'
                          .format(method, _valid_methods))
@@ -50,7 +52,7 @@ def filter_physio(data, cutoffs, method):
                          'frequency for input data with sampling rate {}.'
                          .format(cutoffs, data.fs))
 
-    b, a = signal.butter(3, nyq_cutoff, btype=method)
+    b, a = signal.butter(int(order), nyq_cutoff, btype=method)
     filtered = utils.new_physio_like(data, signal.filtfilt(b, a, data))
 
     # log filter in history
@@ -136,8 +138,12 @@ def edit_physio(data, *, delete=None, reject=None):
         Physiological data to be edited
     """
 
-    # let's not alter things in-place
-    data = utils.check_physio(data, copy=True)
+    # check if we need fs info
+    if delete is None and reject is None:
+        ensure_fs = True
+    else:
+        ensure_fs = False
+    data = utils.check_physio(data, ensure_fs=ensure_fs, copy=True)
 
     # no point in manual edits if peaks/troughs aren't defined
     if not (len(data.peaks) and len(data.troughs)):
@@ -172,8 +178,8 @@ def plot_physio(data, *, ax=None):
     """
 
     # generate x-axis time series
-    fs = 1 if data.fs is None else data.fs
-    time = np.arange(0, len(data.data) / fs, 1 / fs)
+    fs = 1 if np.isnan(data.fs) else data.fs
+    time = np.arange(0, len(data) / fs, 1 / fs)
     if ax is None:
         fig, ax = plt.subplots(1, 1)
     # plot data with peaks + troughs, as appropriate
