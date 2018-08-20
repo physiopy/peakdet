@@ -9,7 +9,7 @@ from peakdet import physio
 from peakdet.io import load_physio
 
 
-def _get_call(exclude=['data'], serializable=True):
+def _get_call(*, exclude=['data'], serializable=True):
     """
     Returns calling function name and dict of provided arguments (name : value)
 
@@ -36,11 +36,14 @@ def _get_call(exclude=['data'], serializable=True):
     # get one function call up the stack (the bottom is _this_ function)
     calling = inspect.stack(0)[1]
     frame, function = calling.frame, calling.function
+
     # get all the args / kwargs from the calling function
     argspec = inspect.getfullargspec(frame.f_globals[function])
     args = argspec.args + argspec.kwonlyargs
+
     # save arguments + argument values for everything not in `exclude`
     provided = {k: frame.f_locals[k] for k in args if k not in exclude}
+
     # if we want `provided` to be serializable, we can do a little cleaning up
     # this is NOT foolproof, but will coerce numpy arrays to lists which tends
     # to be the main issue with these sorts of things

@@ -1,30 +1,48 @@
-sudo: true
-
 language: python
+sudo: false
 
 python:
-- "3.6"
+    - 3.6
+
+matrix:
+  include:
+    - python: 3.6
+      env:
+        - STYLE=1
+    - python: 3.6
+      env:
+        - COVERAGE=1
+
+before_install:
+    - python -m pip install --upgrade pip
+    - if [ "${STYLE}" == "1" ]; then
+          pip install flake8;
+      fi
+    - if [ "${COVERAGE}" == "1" ]; then
+          pip install coverage coveralls codecov pytest pytest-cov;
+      fi
 
 install:
-- sudo apt-get update
-- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-- bash miniconda.sh -b -p $HOME/miniconda
-- export PATH="$HOME/miniconda/bin:$PATH"
-- hash -r
-- conda config --set always_yes yes --set changeps1 no
-- conda update -q -y conda
-- conda info -a
-- conda create -y -q -n test-environment python=$TRAVIS_PYTHON_VERSION wxpython numpy scipy matplotlib
-- source activate test-environment
-- pip install --no-cache-dir https://github.com/chriskiehl/gooey/tarball/master
-- pip install pytest pytest-cov coveralls
-- python setup.py install
-- "export DISPLAY=:99.0"
-- "sh -e /etc/init.d/xvfb start"
-- sleep 3
+    - python setup.py install
+
+before_script:
+    # so that matplotlib calls don't utterly fail
+    - "export DISPLAY=:99.0"
+    - "sh -e /etc/init.d/xvfb start"
+    - sleep 3
 
 script:
-- py.test --cov-report term-missing --cov=peakdet
+    - |
+      if [ "${STYLE}" == "1" ]; then
+          flake8 peakdet
+      else
+          if [ "${COVERAGE}" == "1" ]; then
+              TEST_ARGS="--cov-report term-missing --cov=peakdet";
+          fi
+          py.test ${TEST_ARGS} peakdet;
+      fi
 
 after_success:
-- coveralls
+    - if [ "${COVERAGE}" == "1" ]; then
+          coveralls; codecov;
+      fi

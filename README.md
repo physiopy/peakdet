@@ -18,11 +18,11 @@ If you know where you're going, feel free to jump ahead:
 
 ## Purpose
 #### Overview
-This package is designed for use in the reproducible processing and analysis of physiological data, like those collected from respiration, pulse, or ECG monitors.
+This package is designed for use in the reproducible processing and analysis of physiological data, like those collected from respiratory belts, pulse photoplethysmography, or electrocardiogram (ECG/EKG) monitors.
 
 #### Background
-Physiological data are messy and prone to artifact (e.g., movement in respiration and pulse, ectopic beats in ECG), and despite leaps and bounds in recent algorithms for processing these data many still require manual inspection of the waveforms to ensure such artifacts have been appropriately removed.
-Largely because of this manual intervention step, understanding exactly what happened to go from "raw" data to processed or "analysis-ready" data can often be difficult.
+Physiological data are messy and prone to artifact (e.g., movement in respiration and pulse, ectopic beats in ECG), and despite leaps and bounds in recent algorithms for processing these data there still exists a need for manual inspection to ensure such artifacts have been appropriately removed.
+Because of this manual intervention step, understanding exactly what happened to go from "raw" data to processed or "analysis-ready" data can often be difficult (or impossible!).
 This toolbox aims to provide a set of tools that will work with a variety of input data to reproducibly generate manually-corrected, analysis-ready physiological data.
 
 #### Development
@@ -43,14 +43,14 @@ $ python setup.py install
 
 ## Usage
 The API of `peakdet` is under active development, so it's not quite stable enough for example usage instructions.
-If you're *super eager* to get started I would recommend creating an issue to let the developers know there's external interest in these sorts of things.
+If you're *super eager* to get started I would recommend creating an issue to let the developer(s) know there's external interest in these sorts of things.
 Otherwise, check back soon!
 
 ## How to get involved
 We're thrilled to welcome new contributors!
 If you're interesting in getting involved, you should start by reading our [contributing guidelines](CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md).
 
-Once you're done with that, you can take a look at our list of active [issues](https://github.com/rmarkello/pyls/issues) and let us know if there's something you'd like to begin working on.
+Once you're done with that, you can take a look at our list of active [issues](https://github.com/rmarkello/peakdet/issues) and let us know if there's something you'd like to begin working on.
 
 If you've found a bug, are experiencing a problem, or have a question, create a new issue with some information about it!
 

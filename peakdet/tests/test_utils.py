@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from os.path import join as pjoin
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
@@ -23,10 +22,10 @@ GET_CALL_ARGUMENTS = [
     dict(
         function='get_call_func',
         input=dict(
-            arg1=11, arg2=2, serializable=False
+            arg1=11, arg2=21, serializable=False
         ),
         expected=dict(
-            arg1=11, arg2=2, kwarg1=21, kwarg2=20
+            arg1=11, arg2=21, kwarg1=21, kwarg2=41
         )
     ),
     # confirm serializability is effective
@@ -50,7 +49,7 @@ def test_get_call():
 
 
 def test_check_physio():
-    fname = pjoin(testutils.get_test_data_path(), 'ECG.1D')
+    fname = testutils.get_test_data_path('ECG.csv')
     data = physio.Physio(np.loadtxt(fname), fs=1000.)
     # check that `ensure_fs` is functional
     with pytest.raises(ValueError):
@@ -64,7 +63,26 @@ def test_check_physio():
 
 
 def test_new_physio_like():
-    assert False
+    fname = testutils.get_test_data_path('ECG.csv')
+    data = physio.Physio(np.loadtxt(fname), fs=1000.)
+    data._history = [('does history', 'copy?')]
+    data._metadata.peaks = np.array([1, 2, 3])
+    # assert all copies happen by default
+    new_data = utils.new_physio_like(data, data[:])
+    assert np.allclose(data, utils.new_physio_like(data, data[:]))
+    assert new_data.fs == data.fs
+    assert new_data.data.dtype == data.data.dtype
+    assert new_data.history == data.history
+    assert new_data._metadata == data._metadata
+    # check if changes apply
+    new_data = utils.new_physio_like(data, data[:], fs=50, dtype=int,
+                                     copy_history=False, copy_metadata=False)
+    assert np.allclose(data, utils.new_physio_like(data, data[:]))
+    assert new_data.fs == 50
+    assert new_data.data.dtype == int
+    assert new_data.history == []
+    for k, v in new_data._metadata.items():
+        assert v.size == 0
 
 
 def test_get_extrema():
@@ -91,7 +109,7 @@ def test_min_peak_dist():
     assert_array_equal(utils.min_peak_dist(DATA, TROUGHS, False, dist=10),
                        TROUGHS)
     assert_array_equal(utils.min_peak_dist(DATA, TROUGHS, False, dist=20),
-                       np.array([22]))
+                       np.array([9, 34]))
 
 
 def test_find_peaks():
@@ -105,24 +123,20 @@ def test_find_peaks():
 def test_find_troughs():
     # check that `dist` parameter modulates detected troughs
     assert_array_equal(utils.find_troughs(DATA, dist=10), TROUGHS)
-    assert_array_equal(utils.find_troughs(DATA, dist=20), np.array([22]))
+    assert_array_equal(utils.find_troughs(DATA, dist=20), np.array([9, 34]))
     # ensure returned array is of correct type
     assert utils.find_peaks(DATA).dtype == np.int64
 
 
 def test_check_troughs():
-    true = np.array([9, 22])
+    true = np.array([9, 21])
     # check that func fills in when no troughs provided
     assert_array_equal(utils.check_troughs(DATA, PEAKS, []), true)
     # check that func disregard troughs outside of peak bounds
     assert_array_equal(utils.check_troughs(DATA, PEAKS, TROUGHS), true)
     # check that func removes when two points are "troughs" inside peaks
-    assert_array_equal(utils.check_troughs(DATA, PEAKS, np.array([9, 10, 22])),
+    assert_array_equal(utils.check_troughs(DATA, PEAKS, np.array([9, 10, 21])),
                        true)
-
-
-def test_gen_temp():
-    assert False
 
 
 def test_corr():
@@ -144,9 +158,16 @@ def test_corr():
     utils.corr(x, x, zscored=[True, True])
 
 
+@pytest.mark.xfail
+def test_gen_temp():
+    assert False
+
+
+@pytest.mark.xfail
 def test_corr_template():
     assert False
 
 
+@pytest.mark.xfail
 def test_match_temp():
     assert False
