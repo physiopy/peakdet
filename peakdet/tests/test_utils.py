@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from os.path import join as pjoin
 import numpy as np
 from numpy.testing import assert_array_equal
 import pytest
@@ -50,7 +49,7 @@ def test_get_call():
 
 
 def test_check_physio():
-    fname = pjoin(testutils.get_test_data_path(), 'ECG.csv')
+    fname = testutils.get_test_data_path('ECG.csv')
     data = physio.Physio(np.loadtxt(fname), fs=1000.)
     # check that `ensure_fs` is functional
     with pytest.raises(ValueError):
@@ -63,9 +62,27 @@ def test_check_physio():
     assert utils.check_physio(data, copy=True) != data
 
 
-@pytest.mark.xfail
 def test_new_physio_like():
-    assert False
+    fname = testutils.get_test_data_path('ECG.csv')
+    data = physio.Physio(np.loadtxt(fname), fs=1000.)
+    data._history = [('does history', 'copy?')]
+    data._metadata.peaks = np.array([1, 2, 3])
+    # assert all copies happen by default
+    new_data = utils.new_physio_like(data, data[:])
+    assert np.allclose(data, utils.new_physio_like(data, data[:]))
+    assert new_data.fs == data.fs
+    assert new_data.data.dtype == data.data.dtype
+    assert new_data.history == data.history
+    assert new_data._metadata == data._metadata
+    # check if changes apply
+    new_data = utils.new_physio_like(data, data[:], fs=50, dtype=int,
+                                     copy_history=False, copy_metadata=False)
+    assert np.allclose(data, utils.new_physio_like(data, data[:]))
+    assert new_data.fs == 50
+    assert new_data.data.dtype == int
+    assert new_data.history == []
+    for k, v in new_data._metadata.items():
+        assert v.size == 0
 
 
 def test_get_extrema():
@@ -122,11 +139,6 @@ def test_check_troughs():
                        true)
 
 
-@pytest.mark.xfail
-def test_gen_temp():
-    assert False
-
-
 def test_corr():
     x = np.random.rand(10, 1)
     # works both as 2D and 1D vectors (i.e., squeezeable)
@@ -144,6 +156,11 @@ def test_corr():
     utils.corr(x, x, zscored=[True, False])
     # zscore both
     utils.corr(x, x, zscored=[True, True])
+
+
+@pytest.mark.xfail
+def test_gen_temp():
+    assert False
 
 
 @pytest.mark.xfail

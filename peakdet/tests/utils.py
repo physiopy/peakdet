@@ -5,6 +5,7 @@ Utilities for testing
 from os.path import join as pjoin
 from pkg_resources import resource_filename
 import numpy as np
+from peakdet import io, operations
 from peakdet.utils import _get_call
 
 
@@ -31,3 +32,12 @@ def get_sample_data():
     peaks, troughs = np.array([3, 15, 28]), np.array([9, 21, 34])
 
     return data, peaks, troughs
+
+
+def get_peak_data():
+    """ Function for getting some pregenerated physio data """
+    physio = io.load_physio(get_test_data_path('ECG.csv'), fs=1000)
+    filt = operations.filter_physio(physio, [5., 15.], 'bandpass')
+    peaks = operations.peakfind_physio(filt)
+
+    return peaks

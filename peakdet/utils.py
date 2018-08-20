@@ -9,7 +9,7 @@ from peakdet import physio
 from peakdet.io import load_physio
 
 
-def _get_call(exclude=['data'], serializable=True):
+def _get_call(*, exclude=['data'], serializable=True):
     """
     Returns calling function name and dict of provided arguments (name : value)
 
