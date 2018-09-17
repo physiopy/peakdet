@@ -1,1 +1,2 @@
-recursive-include peakdet/tests/data * 
+recursive-include peakdet/tests/data *
+include README.md LICENSE
