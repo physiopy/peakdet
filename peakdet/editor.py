@@ -134,8 +134,7 @@ class _PhysioEditor():
                 np.searchsorted(self.data._metadata.peaks, peaks['remove']),
                 peaks['remove']
             )
-        else:
-            raise ValueError('This should never happen.')
+
         self.data._metadata.troughs = utils.check_troughs(self.data,
                                                           self.data.peaks,
                                                           self.data.troughs)

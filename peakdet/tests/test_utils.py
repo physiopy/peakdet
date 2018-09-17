@@ -158,16 +158,12 @@ def test_corr():
     utils.corr(x, x, zscored=[True, True])
 
 
-@pytest.mark.xfail
 def test_gen_temp():
-    assert False
+    peaks = testutils.get_peak_data()
+    utils.gen_temp(peaks.data, peaks.peaks)
 
 
-@pytest.mark.xfail
 def test_corr_template():
-    assert False
-
-
-@pytest.mark.xfail
-def test_match_temp():
-    assert False
+    peaks = testutils.get_peak_data()
+    temp = utils.gen_temp(peaks.data, peaks.peaks)
+    assert utils.corr_template(temp).size == temp.shape[-1]
