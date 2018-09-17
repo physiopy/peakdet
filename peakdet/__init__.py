@@ -1,7 +1,7 @@
 __all__ = [
     'edit_physio', 'filter_physio', 'interpolate_physio', 'peakfind_physio',
     'plot_physio', 'load_physio', 'save_physio', 'load_history',
-    'save_history', 'load_rtpeaks', '__version__'
+    'save_history', 'load_rtpeaks', 'Physio', '__version__'
 ]
 
 from peakdet.info import (__version__)
@@ -9,3 +9,4 @@ from peakdet.operations import (edit_physio, filter_physio, interpolate_physio,
                                 peakfind_physio, plot_physio)
 from peakdet.io import (load_physio, save_physio, load_history, save_history)
 from peakdet.external import (load_rtpeaks)
+from peakdet.physio import (Physio)

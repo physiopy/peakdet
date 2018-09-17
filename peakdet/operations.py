@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Functions for processing and interpreting physiological data
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,21 +17,21 @@ def filter_physio(data, cutoffs, method, order=3):
     Parameters
     ----------
     data : Physio_like
-        Input data to be filtered
+        Input physiological data to be filtered
     cutoffs : int or list
         If `method` is 'lowpass' or 'highpass', an integer specifying the lower
         or upper bound of the filter (in Hz). If method is 'bandpass' or
-        'bandstop', a list specifying the lower _and_ upper bound of the filter
+        'bandstop', a list specifying the lower and upper bound of the filter
         (in Hz).
     method : {'lowpass', 'highpass', 'bandpass', 'bandstop'}
-        The type of filter to apply to `data`.
+        The type of filter to apply to `data`
     order : int, optional
         Order of filter to be applied. Default: 3
 
     Returns
     -------
-    filtered : peakdet.Physio
-        Filtered input data
+    filtered : :class:`peakdet.Physio`
+        Filtered input `data`
     """
 
     _valid_methods = ['lowpass', 'highpass', 'bandpass', 'bandstop']
@@ -68,14 +71,14 @@ def interpolate_physio(data, target_fs):
     Parameters
     ----------
     data : Physio_like
-        Input data to be interpolated
+        Input physiological data to be interpolated
     target_fs : float
         Desired sampling rate for `data`
 
     Returns
     -------
-    interp : peakdet.Physio
-        Interpolated input data
+    interp : :class:`peakdet.Physio`
+        Interpolated input `data`
     """
 
     data = utils.check_physio(data, ensure_fs=True)
@@ -97,18 +100,23 @@ def interpolate_physio(data, target_fs):
 
 def peakfind_physio(data, *, thresh=0.2, dist=None):
     """
-    Finds peaks in `data`
+    Performs peak and trough detection on `data`
 
     Parameters
     ----------
     data : Physio_like
         Input data in which to find peaks
     thresh : float [0,1], optional
-        Relative height threshold data must surpass to be classified as a
-        peak. Default: 0.2
+        Relative height threshold a data point must surpass to be classified as
+        a peak. Default: 0.2
     dist : int, optional
-        Distance (in indices) that peaks must be separated by. If not
-        specified, this is estimated from data.
+        Distance in indices that peaks must be separated by in `data`. If None,
+        this is estimated. Default: None
+
+    Returns
+    -------
+    peaks : :class:`peakdet.Physio`
+        Input `data` with detected peaks and troughs
     """
 
     ensure_fs = True if dist is None else False
@@ -130,12 +138,23 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
 
 def edit_physio(data, *, delete=None, reject=None):
     """
-    Returns interactive physio editor for `data`
+    Opens interactive plot with `data` to permit manual editing of time series
 
     Parameters
     ----------
     data : Physio_like
         Physiological data to be edited
+    delete : array_like, optional
+        List or array of indices to delete from peaks associated with `data`.
+        Default: None
+    reject : array_like, optional
+        List or array of indices to reject from peaks associated with `data`.
+        Default: None
+
+    Returns
+    -------
+    edited : :class:`peakdet.Physio`
+        Input `data` with manual (or specified) edits
     """
 
     # check if we need fs info
@@ -167,14 +186,20 @@ def edit_physio(data, *, delete=None, reject=None):
 
 def plot_physio(data, *, ax=None):
     """
-    Small utility for plotting `data` with any detected peaks / troughs
+    Plots `data` and associated peaks / troughs
 
     Parameters
     ----------
     data : Physio_like
         Physiological data to plot
-    ax : matplotlib.axes.Axis, optional
-        Axis to plot `data` on. Default: None
+    ax : :class:`matplotlib.axes.Axes`, optional
+        Axis on which to plot `data`. If None, a new axis is created. Default:
+        None
+
+    Returns
+    -------
+    ax : :class:`matplotlib.axes.Axes`
+        Axis with plotted `data`
     """
 
     # generate x-axis time series

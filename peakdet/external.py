@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Functions for interacting with physiological data acquired by external packages
+"""
 
 import warnings
 import numpy as np
@@ -7,7 +10,7 @@ from peakdet import io, utils
 
 def load_rtpeaks(fname, channel, fs):
     """
-    Loads data file as obtained from the `rtpeaks` Python module
+    Loads data file as obtained from the ``rtpeaks`` Python module
 
     Data file `fname` should have a single, comma-delimited header of format:
 
@@ -29,7 +32,7 @@ def load_rtpeaks(fname, channel, fs):
 
     Returns
     -------
-    data : Physio_like
+    data : :class:`peakdet.Physio`
         Loaded physiological data
     """
 

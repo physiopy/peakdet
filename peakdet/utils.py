@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+Various utilities for processing physiological data. These should not be called
+directly but should support wrapper functions stored in `peakdet.operations`.
+"""
 
 import inspect
 import numpy as np
