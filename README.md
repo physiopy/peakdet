@@ -34,16 +34,14 @@ This package requires Python >= 3.5.
 Assuming you have the correct version of Python installed, you can install this package by opening a terminal and running the following:
 
 ```bash
-$ git clone https://github.com/rmarkello/peakdet.git
-$ cd peakdet
-$ python setup.py install
+git clone https://github.com/rmarkello/peakdet.git
+cd peakdet
+python setup.py install
 ```
-
-(Make sure to omit the `$` if copying and pasting these commands!)
 
 ## Usage
 The API of `peakdet` is under active development, so it's not quite stable enough for example usage instructions.
-If you're *super eager* to get started I would recommend creating an issue to let the developer(s) know there's external interest in these sorts of things.
+If you're *super eager* to get started I would recommend creating an issue to let the developers know there's external interest in these sorts of things.
 Otherwise, check back soon!
 
 ## How to get involved
