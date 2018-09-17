@@ -10,3 +10,5 @@ dist/*
 localtest
 .pytest_cache/
 __pycache__/
+_build/
+.vscode/

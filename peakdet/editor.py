@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Functions and class for performing interactive editing of physiological data
+"""
 
 import itertools
 import numpy as np

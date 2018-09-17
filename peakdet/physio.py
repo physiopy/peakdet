@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Helper class for holding physiological data and associated metadata inforamtion
+"""
 
 import numpy as np
 from sklearn.utils import Bunch
@@ -6,7 +9,7 @@ from sklearn.utils import Bunch
 
 class Physio():
     """
-    Helper class to hold physiological data and associated metadata
+    Class to hold physiological data and relevant information
 
     Parameters
     ----------
@@ -18,6 +21,20 @@ class Physio():
         Functions performed on `data`. Default: None
     metadata : dict, optional
         Metadata associated with `data`. Default: None
+
+    Attributes
+    ----------
+    data : :obj:`numpy.ndarray`
+        Physiological waveform
+    fs : float
+        Sampling rate of `data` in Hz
+    history : list of tuples
+        History of functions that have been performed on `data`, with relevant
+        parameters provided to functions.
+    peaks : :obj:`numpy.ndarray`
+        Indices of peaks in `data`
+    troughs : :obj:`numpy.ndarray`
+        Indices of troughs in `data`
     """
 
     def __init__(self, data, fs=None, history=None, metadata=None):

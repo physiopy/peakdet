@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Functions for loading and saving data and analyses
+"""
 
 import json
 import warnings
@@ -18,11 +21,13 @@ def load_physio(data, *, fs=None, dtype=None, history=None):
         Sampling rate of `data`. Default: None
     dtype : data_type, optional
         Data type to convert `data` to, if conversion needed. Default: None
+    history : list of tuples, optional
+        Functions that have been performed on `data`. Default: None
 
     Returns
     -------
-    data: peakdet.Physio
-        Loaded physio object
+    data: :class:`peakdet.Physio`
+        Loaded physiological data
 
     Raises
     ------
@@ -76,10 +81,15 @@ def save_physio(file, data):
 
     Parameters
     ----------
-    fname : str
+    file : str
         Path to output file; .phys will be appended if necessary
     data : Physio_like
         Data to be saved to file
+
+    Returns
+    -------
+    file : str
+        Full filepath to saved output
     """
 
     from peakdet.utils import check_physio
@@ -104,6 +114,11 @@ def load_history(file, verbose=False):
         Path to input JSON file
     verbose : bool, optional
         Whether to print messages as history is being replayed. Default: False
+
+    Returns
+    -------
+    file : str
+        Full filepath to saved output
     """
 
     # import inside function for safety!
@@ -140,10 +155,15 @@ def save_history(file, data):
 
     Parameters
     ----------
-    fname : str
+    file : str
         Path to output file; .json will be appended if necessary
     data : Physio_like
         Data with history to be saved to file
+
+    Returns
+    -------
+    file : str
+        Full filepath to saved output
     """
 
     from peakdet.utils import check_physio

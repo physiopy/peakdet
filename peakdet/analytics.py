@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Functions and classes for generating analytics on physiological data
+"""
 
 import numpy as np
 from scipy.signal import welch
@@ -12,6 +15,29 @@ class HRV():
     Parameters
     ----------
     data : Physio_like
+        Physiological data object with previously detected peaks and troughs
+
+    Attributes
+    ----------
+    rrtime : :obj:`numpy.ndarray`
+    rrint : :obj:`numpy.ndarray`
+    avgnn : float
+    sdnn : float
+    rmssd : float
+    sdsd : float
+    nn50 : float
+    pnn50 : float
+    nn20 : float
+    pnn20 : float
+    hf : float
+    hf_log : float
+    lf : float
+    lf_log : float
+    vlf : float
+    vlf_log : float
+    lftohf : float
+    hf_peak : float
+    lf_peak : float
 
     Notes
     -----
