@@ -25,9 +25,13 @@ recent algorithms for processing these data there still exists a need for
 manual inspection to ensure such artifacts have been appropriately removed.
 Because of this manual intervention step, understanding exactly what happened
 to go from "raw" data to processed, "analysis-ready" data can often be
-difficult or impossible. This toolbox aims to provide a set of tools that will
-work with a variety of input data to reproducibly generate manually-corrected,
-analysis-ready physiological data.
+difficult or impossible.
+
+This toolbox, ``peakdet`` aims to provide a set of tools that will work with a
+variety of input data to reproducibly generate manually-corrected, analysis-
+ready physiological data. If you'd like more information about the package,
+including how to install it and some example instructions on its use, check out
+out `documentation <https://peakdet.readthedocs.io>`_!
 
 .. _development:
 
