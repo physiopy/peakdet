@@ -9,8 +9,8 @@ LICENSE = 'GPLv3'
 DESCRIPTION = """\
 A toolbox for reproducible physiological data analysis\
 """
-LONG_DESCRIPTION = 'README.md'
-LONG_DESCRIPTION_CONTENT_TYPE = 'text/markdown'
+LONG_DESCRIPTION = 'README.rst'
+LONG_DESCRIPTION_CONTENT_TYPE = 'text/x-rst'
 URL = 'https://github.com/rmarkello/{name}'.format(name=NAME)
 DOWNLOAD_URL = ('http://github.com/rmarkello/{name}/archive/{ver}.tar.gz'
                 .format(name=NAME, ver=__version__))
@@ -29,7 +29,15 @@ TESTS_REQUIRES = [
 ]
 
 EXTRAS_REQUIRES = {
+    'doc': [
+        'sphinx>=1.2',
+        'sphinx_rtd_theme'
+    ]
 }
+
+EXTRAS_REQUIRES['all'] = list(
+    set([v for deps in EXTRAS_REQUIRES.values() for v in deps])
+)
 
 PACKAGE_DATA = {
     'peakdet.tests': [
