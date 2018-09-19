@@ -19,19 +19,19 @@ photoplethysmography, or electrocardiogram (ECG/EKG) monitors.
 Overview
 --------
 
-Physiological data are messy and prone to artifact (e.g.,) movement in
+Physiological data are messy and prone to artifact (e.g., movement in
 respiration and pulse, ectopic beats in ECG). Despite leaps and bounds in
 recent algorithms for processing these data there still exists a need for
 manual inspection to ensure such artifacts have been appropriately removed.
 Because of this manual intervention step, understanding exactly what happened
-to go from "raw" data to processed, "analysis-ready" data can often be
-difficult or impossible.
+to go from "raw" data to "analysis-ready" data can often be difficult or
+impossible.
 
-This toolbox, ``peakdet`` aims to provide a set of tools that will work with a
+This toolbox, ``peakdet``, aims to provide a set of tools that will work with a
 variety of input data to reproducibly generate manually-corrected, analysis-
 ready physiological data. If you'd like more information about the package,
 including how to install it and some example instructions on its use, check out
-out `documentation <https://peakdet.readthedocs.io>`_!
+our `documentation <https://peakdet.readthedocs.io>`_!
 
 .. _development:
 
@@ -61,10 +61,10 @@ Acknowledgments
 ---------------
 
 While this package was initially created in 2016, some of the behind-the-scenes
-functions in the project were translated from the `PhysIO <https://github.com/
+functions in the project were adopted from the `PhysIO <https://github.com/
 translationalneuromodeling/tapas/tree/master/PhysIO>`_ MATLAB toolbox. As such,
 if you use this code it would be good to (1) provide a link back to the
-``peakdet`` repostiory with the version of the code used, and (2) cite `their
+``peakdet`` repository with the version of the code used, and (2) cite `their
 paper <http://www.sciencedirect.com/science/article/pii/S016502701630259X>`_:
 
 .. [1] Kasper, L., Bollmann, S., Diaconescu, A. O., Hutton, C., Heinzle, J.,
