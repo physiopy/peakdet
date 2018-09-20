@@ -83,11 +83,11 @@ def interpolate_physio(data, target_fs):
 
     data = utils.check_physio(data, ensure_fs=True)
 
+    factor = target_fs / data.fs
+
     # generate original and target "time" series
-    t_orig = np.arange(0, len(data.data) / data.fs, 1 / data.fs)
-    t_new = np.arange(0, t_orig[-1] + (1 / target_fs), 1 / target_fs)
-    # catch possibility for generated time series to be larger than data
-    t_orig = t_orig[:len(data.data)]
+    t_orig = np.linspace(0, len(data) / data.fs, len(data))
+    t_new = np.linspace(0, len(data) / data.fs, int(len(data) * factor))
 
     # interpolate data and generate new Physio object
     interp = InterpolatedUnivariateSpline(t_orig, data[:])(t_new)
