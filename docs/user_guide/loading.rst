@@ -11,14 +11,15 @@ The :py:meth:`peakdet.load_physio` function is the most simple of these
 functions, and accepts data stored as single-column text file. For example, if
 we have a file `ECG.csv` that we might normally load with :py:mod:`numpy`:
 
-.. code-block:: python
+.. doctest::
 
+    >>> import numpy as np
     >>> np.loadtxt('ECG.csv')
     array([ 1.66656,  1.53076,  1.38153, ..., -0.05188, -0.05249, -0.05554])
 
 we can instead load it into a :py:class:`~.Physio` object in one step with:
 
-.. code-block:: python
+.. doctest::
 
     >>> from peakdet import load_physio
     >>> ecg = load_physio('ECG.csv', fs=1000.)
@@ -29,16 +30,16 @@ we can instead load it into a :py:class:`~.Physio` object in one step with:
 
 This way, the loading of the data is retained in the object's history:
 
-.. code-block:: python
+.. doctest::
 
     >>> ecg.history
-    [('load_physio', {'data': 'ECG.csv', 'fs': 1000., 'dtype': None, 'history': None})]
+    [('load_physio', {'data': 'ECG.csv', 'fs': 1000.0, 'dtype': None, 'history': None})]
 
 There are also a number of functions for loading data from "standard" formats.
 For example, if your data were collected using the `rtpeaks <https://github.com
 /rmarkello/rtpeaks>`_ module, it might look like this:
 
-.. code-block:: python
+.. doctest::
 
     >>> import pandas as pd
     >>> pd.read_csv('rtpeaks.csv').head()
@@ -52,7 +53,7 @@ For example, if your data were collected using the `rtpeaks <https://github.com
 Instead, you can load it with :py:meth:`peakdet.load_rtpeaks` so that it is
 recorded in the object's history:
 
-.. code-block:: python
+.. doctest::
 
     >>> from peakdet import load_rtpeaks
     >>> ecg = load_rtpeaks('rtpeaks.csv', fs=1000., channel=9)
@@ -61,4 +62,4 @@ recorded in the object's history:
     >>> ecg[:5]
     array([-0.3338623 , -0.32897949, -0.32562256, -0.3237915 , -0.31951904])
     >>> ecg.history
-    [('load_rtpeaks', {'fname': 'peakdet/tests/data/rtpeaks.csv', 'channel': 9, 'fs': 1000.0})]
+    [('load_rtpeaks', {'fname': 'rtpeaks.csv', 'channel': 9, 'fs': 1000.0})]

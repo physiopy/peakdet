@@ -1,5 +1,11 @@
 .. _usage_physio:
 
+.. testsetup::
+
+    import numpy as np
+    np.random.seed(1234)
+
+
 The ``Physio`` data object
 --------------------------
 
@@ -10,10 +16,9 @@ a little bit about this helper class!
 
 All you need to create a :py:class:`~.Physio` object is a data array:
 
-.. code-block:: python
+.. doctest::
 
     >>> import numpy as np
-    >>> np.random.seed(1234)
     >>> from peakdet import Physio
     >>> data = np.random.rand(5000)
     >>> phys = Physio(data)
@@ -23,7 +28,7 @@ All you need to create a :py:class:`~.Physio` object is a data array:
 However, it is *strongly* recommended that you provide the sampling rate of the
 data as well. Many functions in :py:mod:`peakdet` require this information:
 
-.. code-block:: python
+.. doctest::
 
     >>> sampling_rate = 100.0
     >>> phys = Physio(data, fs=sampling_rate)
@@ -36,7 +41,7 @@ place. In most instances it can be treated like a one-dimensional
 :py:class:`numpy.ndarray`; the underlying data can be accessed via slicing and
 the object can be passed directly to most :py:mod:`numpy` functions:
 
-.. code-block:: python
+.. doctest::
 
     >>> phys[:5]
     array([0.19151945, 0.62210877, 0.43772774, 0.78535858, 0.77997581])
@@ -48,7 +53,7 @@ few attributes that are of interest when working with real physiological data.
 Importantly, they have a :py:attr:`~.Physio.history` that records all
 operations performed on the data:
 
-.. code-block:: python
+.. doctest::
 
     >>> from peakdet import operations
     >>> phys = operations.filter_physio(phys, cutoffs=0.1, method='lowpass')
@@ -59,7 +64,7 @@ Moreover, if you perform peak finding on a :py:class:`~.Physio` object it will
 store the indices of the detected :py:attr:`~.Physio.peaks` and
 :py:attr:`~.Physio.troughs` alongside the object:
 
-.. code-block:: python
+.. doctest::
 
     >>> phys = operations.peakfind_physio(phys)
     >>> phys.peaks

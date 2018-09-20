@@ -6,6 +6,6 @@ Using peakdet
 .. toctree::
    :numbered:
 
-   guide/physio.rst
-   guide/loading.rst
-   guide/processing.rst
+   user_guide/physio.rst
+   user_guide/loading.rst
+   user_guide/processing.rst
