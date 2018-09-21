@@ -30,7 +30,7 @@ before_install:
 install:
     - python setup.py install
     - if [ "${DOCTEST}" == "1" ]; then
-          pip install -r docs/requirements.txt
+          pip install -r docs/requirements.txt;
       fi
 
 before_script:
