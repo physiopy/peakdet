@@ -29,18 +29,19 @@ Visual inspection
 One of the first steps to do with raw data is visually inspect it. No amount of
 processing can fix bad data, and so it's good to check that your data quality
 is appropriate before continuing. Plotting data can be achieved with
-:py:func:`~.operations.plot_physio`; for now, this will simply plot the raw
-waveform, but we'll see later how this function has some added benefits:
+:py:func:`~.operations.plot_physio`:
 
 .. plot::
     :format: doctest
     :context: close-figs
 
     >>> from peakdet import load_physio, operations
-    >>> data = load_physio('RESP.csv', fs=1000.0)
+    >>> data = load_physio('ECG.csv', fs=1000.0)
     >>> ax = operations.plot_physio(data)
+    >>> ax.set_xlim(0, 10)  # doctest: +SKIP
 
-This data looks good to go!
+For now this will simply plot the raw waveform, but we'll see later how this
+function has some added benefits.
 
 .. _usage_proc_interp:
 
@@ -108,10 +109,51 @@ lowpass filter with a 1.0 Hz cutoff we can do just that:
     >>> ax = operations.plot_physio(data)
     >>> ax.set_xlim(0, 10)  # doctest: +SKIP
 
+Filter settings are highly dependent on the data, so visually confirming that
+the filter is performing as expected is important!
+
 .. _usage_proc_peakdet:
 
 Peak detection
 ^^^^^^^^^^^^^^
+
+Many physiological processing pipelines requiring performing peak detection on
+the data (e.g., to calculate heart rate, respiratory rate, pulse rate). That
+process can be accomplished with :py:func:`~.operations.peakfind_physio`:
+
+.. plot::
+    :format: doctest
+    :context: close-figs
+
+    >>> data = operations.peakfind_physio(data, thresh=0.1, dist=100)
+    >>> data.peaks[:10]
+    array([ 164,  529,  901, 1278, 1628, 1983, 2381, 2774, 3153, 3486])
+    >>> data.troughs[:10]
+    array([ 356,  732, 1111, 1465, 1817, 2205, 2603, 2989, 3330, 3677])
+
+The :py:attr:`~.Physio.peaks` and :py:attr:`~.Physio.troughs` attributes mark
+the indices of the detected peaks and troughs in the data; these can be
+converted to time series by dividing by the sampling frequency:
+
+.. doctest::
+
+    >>> data.peaks[:10] / data.fs
+    array([ 0.656,  2.116,  3.604,  5.112,  6.512,  7.932,  9.524, 11.096,
+           12.612, 13.944])
+    >>> data.troughs[:10] / data.fs
+    array([ 1.424,  2.928,  4.444,  5.86 ,  7.268,  8.82 , 10.412, 11.956,
+           13.32 , 14.708])
+
+Once these attributes are instantiated, subsequent calls to
+:py:func:`~.operations.plot_physio` will denote peaks with red dots and troughs
+with green dots to aid visual inspection:
+
+.. plot::
+    :format: doctest
+    :context: close-figs
+
+    >>> ax = operations.plot_physio(data)
+    >>> ax.set_xlim(0, 10)  # doctest: +SKIP
 
 .. _usage_proc_artifact:
 
