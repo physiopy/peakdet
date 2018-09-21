@@ -109,3 +109,10 @@ import os
 from peakdet.tests.utils import get_test_data_path
 os.chdir(get_test_data_path())
 """
+
+from peakdet.tests.utils import get_test_data_path  # noqa
+plot_working_directory = get_test_data_path()
+plot_include_source = True
+plot_formats = [("png", 90)]
+plot_html_show_formats = False
+plot_html_show_source_link = False

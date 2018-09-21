@@ -65,7 +65,8 @@ functions in the project were adopted from the `PhysIO <https://github.com/
 translationalneuromodeling/tapas/tree/master/PhysIO>`_ MATLAB toolbox. As such,
 if you use this code it would be good to (1) provide a link back to the
 ``peakdet`` repository with the version of the code used, and (2) cite `their
-paper <http://www.sciencedirect.com/science/article/pii/S016502701630259X>`_:
+paper <http://www.sciencedirect.com/science/article/pii/S016502701630259X>`_
+([1]_):
 
 .. [1] Kasper, L., Bollmann, S., Diaconescu, A. O., Hutton, C., Heinzle, J.,
    Iglesias, S., ... & Stephan, K. E. (2017). The PhysIO toolbox for modeling
