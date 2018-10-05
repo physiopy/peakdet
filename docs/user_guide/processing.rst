@@ -1,9 +1,5 @@
 .. _usage_processing:
 
-.. testsetup::
-
-    from peakdet import load_physio, operations
-
 Processing physiological data
 -----------------------------
 
@@ -12,14 +8,12 @@ physiological data:
 
     1. :ref:`usage_proc_visual`,
     2. :ref:`usage_proc_interp`,
-    3. :ref:`usage_proc_filtering`,
-    4. :ref:`usage_proc_peakdet`, and
-    5. :ref:`usage_proc_artifact`
+    3. :ref:`usage_proc_filtering`, and
+    4. :ref:`usage_proc_peakdet`
 
 We have already seen that :py:mod:`peakdet.operations` has functions to perform
 a few of these steps, but it is worth going into all of them in a bit more
 detail:
-
 
 .. _usage_proc_visual:
 
@@ -65,6 +59,9 @@ higher rate it can be quite noisy. In this case, we might want to interpolate
     >>> data = operations.interpolate_physio(data, target_fs=250.)
     >>> print(data)
     Physio(size=6000, fs=250.0)
+
+Note that the size of the data decreased by a factor of four (24000 to 6000),
+the same as the decrease in sampling rate.
 
 Data can also be upsampled via interpolation, though care must be taken in
 interpreting the results of such a procedure:
@@ -154,8 +151,3 @@ with green dots to aid visual inspection:
 
     >>> ax = operations.plot_physio(data)
     >>> ax.set_xlim(0, 10)  # doctest: +SKIP
-
-.. _usage_proc_artifact:
-
-Artifact rejection
-^^^^^^^^^^^^^^^^^^

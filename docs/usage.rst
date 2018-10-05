@@ -1,7 +1,7 @@
 .. _usage:
 
-Using peakdet
-=============
+User guide
+==========
 
 .. toctree::
    :numbered:
@@ -9,3 +9,5 @@ Using peakdet
    user_guide/physio.rst
    user_guide/loading.rst
    user_guide/processing.rst
+   user_guide/editing.rst
+   user_guide/saving.rst
