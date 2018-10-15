@@ -44,7 +44,8 @@ def load_physio(data, *, fs=None, dtype=None, history=None):
             for k, v in inp.items():
                 inp[k] = v.dtype.type(v)
             # fix history, which needs to be list-of-tuple
-            inp['history'] = list(map(tuple, inp['history']))
+            if inp['history'] is not None:
+                inp['history'] = list(map(tuple, inp['history']))
         except IOError:
             inp = dict(data=np.loadtxt(data),
                        history=[utils._get_call(exclude=[])])

@@ -10,12 +10,12 @@ from scipy.interpolate import interp1d
 
 class HRV():
     """
-    Class designed purely for housing calculation of various HRV statistics
+    Class for calculating various HRV statistics
 
     Parameters
     ----------
     data : Physio_like
-        Physiological data object with previously detected peaks and troughs
+        Physiological data object with detected peaks and troughs
 
     Attributes
     ----------
