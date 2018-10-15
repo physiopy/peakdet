@@ -11,3 +11,4 @@ User guide
    user_guide/processing.rst
    user_guide/editing.rst
    user_guide/saving.rst
+   user_guide/metrics.rst

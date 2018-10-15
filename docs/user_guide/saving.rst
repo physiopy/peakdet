@@ -35,9 +35,9 @@ If later on you want to reload the processed data you can do so:
 
 .. note::
 
-    :py:func:`peakdet.save_physio` uses :py:func:`numpy.savez_compressed` to
-    save the data objects, meaning the generated files can actually be quite a
-    bit larger than the original data, themselves!
+    :py:func:`peakdet.save_physio` uses :py:func:`numpy.savez` to save the data
+    objects, meaning the generated files can actually be quite a bit larger
+    than the original data, themselves!
 
 Saving history
 ^^^^^^^^^^^^^^
@@ -51,6 +51,8 @@ this we can use :py:func:`peakdet.save_history`:
 .. doctest::
 
     >>> from peakdet import save_history
+    >>> print(data)
+    Physio(size=240000, fs=250.0)
     >>> path = save_history('out.json', data)
 
 The history is saved as a `JSON <https://en.wikipedia.org/wiki/JSON>`_ file. If
@@ -63,15 +65,20 @@ it described) with :py:func:`peakdet.load_history`:
 .. doctest::
 
     >>> from peakdet import load_history
-    >>> data = load_history('out.json')
+    >>> reloaded_data = load_history('out.json')
+    >>> print(reloaded_data)
+    Physio(size=240000, fs=250.0)
 
-The ``data`` object contains all the processing (including manual edits!) that
-were performed on the original physiological data.
+The ``data`` object contains all the processing steps (including manual edits!)
+that were performed on the original physiological data.
 
-While the saved history file (in this example, ``out.json``) can be stored
+Relative paths in history
+"""""""""""""""""""""""""
+
+While the saved history file (in the above example, ``out.json``) can be stored
 anywhere (next to the raw data file typically makes sense!), extra care must be
 taken when loading it back in. Because the history file contains a path to the
-raw data file, you must ensure that it is loaded with :py:func:`~.load_history`
+raw data file you must ensure that it is loaded with :py:func:`~.load_history`
 from the same directory in which the raw data were originally loaded.
 
 Let's say that we have a directory tree that looks like the following:
@@ -102,8 +109,8 @@ Now, say we zip the entire ``experiment`` directory to send to a collaborator
 who wants to run some analyses on our processed data. If they want to
 regenerate the :py:class:`~.Physio` objects we created from the saved history
 files, they must call :py:func:`~.load_history` from within the ``experiment``
-directory. Calling it from anywhere else in the directory tree will result in
-a ``FileNotFoundError`` with a suggestion as to why the call failed.
+directory—calling it from anywhere else in the directory tree will result in
+a ``FileNotFoundError``.
 
 .. note::
 

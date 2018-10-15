@@ -28,3 +28,8 @@ Saving data
 
 .. autofunction:: peakdet.save_physio
 .. autofunction:: peakdet.save_history
+
+Derived metrics
+---------------
+
+.. autoclass:: peakdet.HRV

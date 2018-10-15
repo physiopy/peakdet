@@ -54,15 +54,5 @@ selections, if desired. Once done, you can close the interactive viewer by
 pressing ``ctrl+q`` (``command+q``).
 
 All edits performed in the editor are stored in the :py:attr:`~.Physio.history`
-of the data object. Since we didn't actually perform 
-
-.. plot::
-    :format: doctest
-    :context: close-figs
-
-    >>> data.history[-1]
-    ('edit_physio', {'delete': [], 'reject': []})
-
-The lists ``delete`` and ``reject`` contain indices of peaks that were rejected
-or deleted during the interactive editing, ensuring a record of the manual
+of the data object, as with other operations, ensuring a record of your manual
 changes are retained.
