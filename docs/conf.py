@@ -10,6 +10,8 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 import os
 import sys
+import matplotlib as mpl
+mpl.use('Agg')
 
 # -- Project information -----------------------------------------------------
 
@@ -26,13 +28,13 @@ version = peakdet.__version__
 # The full version, including alpha/beta/rc tags
 release = peakdet.__version__
 
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.doctest',
@@ -89,12 +91,10 @@ html_theme_options = {}
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'peakdetdoc'
-
 
 # -- Extension configuration -------------------------------------------------
 intersphinx_mapping = {
@@ -103,3 +103,16 @@ intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
     'sklearn': ('http://scikit-learn.org/stable', None),
 }
+
+doctest_global_setup = """
+import os
+from peakdet.tests.utils import get_test_data_path
+os.chdir(get_test_data_path())
+"""
+
+from peakdet.tests.utils import get_test_data_path  # noqa
+plot_working_directory = get_test_data_path()
+plot_include_source = True
+plot_formats = [("png", 90)]
+plot_html_show_formats = False
+plot_html_show_source_link = False

@@ -9,7 +9,6 @@ import numpy as np
 from scipy.stats import zscore
 from sklearn.utils import Bunch
 from peakdet import physio
-from peakdet.io import load_physio
 
 
 def _get_call(*, exclude=['data'], serializable=True):
@@ -81,6 +80,8 @@ def check_physio(data, ensure_fs=True, copy=False):
     ValueError
         If `ensure_fs` is set and `data` doesn't have valid sampling rate
     """
+
+    from peakdet.io import load_physio
 
     if not isinstance(data, physio.Physio):
         data = load_physio(data)

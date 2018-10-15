@@ -10,14 +10,17 @@ matrix:
   include:
     - python: 3.6
       env:
-        - STYLE=1
+        - LINTING=1
     - python: 3.6
       env:
         - COVERAGE=1
+    - python: 3.6
+      env:
+        - DOCTEST=1
 
 before_install:
     - python -m pip install --upgrade pip
-    - if [ "${STYLE}" == "1" ]; then
+    - if [ "${LINTING}" == "1" ]; then
           pip install flake8;
       fi
     - if [ "${COVERAGE}" == "1" ]; then
@@ -26,6 +29,9 @@ before_install:
 
 install:
     - python setup.py install
+    - if [ "${DOCTEST}" == "1" ]; then
+          pip install -r docs/requirements.txt;
+      fi
 
 before_script:
     # so that matplotlib calls don't utterly fail
@@ -35,11 +41,17 @@ before_script:
 
 script:
     - |
-      if [ "${STYLE}" == "1" ]; then
+      if [ "${LINTING}" == "1" ]; then
           flake8 peakdet
       else
           if [ "${COVERAGE}" == "1" ]; then
               TEST_ARGS="--cov-report term-missing --cov=peakdet";
+          fi
+          if [ "DOCTEST" == "1" ]; then
+              cd docs;
+              make html;
+              make doctest;
+              cd ..;
           fi
           py.test ${TEST_ARGS} peakdet;
       fi

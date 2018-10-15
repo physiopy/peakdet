@@ -10,34 +10,54 @@ from scipy.interpolate import interp1d
 
 class HRV():
     """
-    Class designed purely for housing calculation of various HRV statistics
+    Class for calculating various HRV statistics
 
     Parameters
     ----------
     data : Physio_like
-        Physiological data object with previously detected peaks and troughs
+        Physiological data object with detected peaks and troughs
 
     Attributes
     ----------
-    rrtime : :obj:`numpy.ndarray`
     rrint : :obj:`numpy.ndarray`
+        R-R intervals derived from `data` (sometimes referred to as N-N
+        intervals in derived metrics)
+    rrtime : :obj:`numpy.ndarray`
+        Time stamps of `rrint`
     avgnn : float
+        Average heart rate (N-N interval)
     sdnn : float
+        Standard deviation of heart rate (N-N intervals)
     rmssd : float
+        Root mean square of successive differences
     sdsd : float
+        Standard deviation of successive differences
     nn50 : float
+        Number of N-N intervals greater than 50ms
     pnn50 : float
+        Percent of N-N intervals greater than 50ms
     nn20 : float
+        Number of N-N intervals greater than 20ms
     pnn20 : float
+        Percent of N-N intervals greater than 20ms
     hf : float
+        High-frequency power of R-R intervals, summed across 0.15-0.40 Hz
     hf_log : float
+        Log of `hf`
     lf : float
+        Low-frequency power of R-R intervals, summed across 0.04-0.15 Hz
     lf_log : float
+        Log of `lf`
     vlf : float
+        Very low frequency power of R-R intervals, summed across 0-0.04 Hz
     vlf_log : float
+        Log of `vlf`
     lftohf : float
+        Ratio of `lf` over `hf`
     hf_peak : float
+        Peak frequency in `hf` band (0.15-0.40 Hz)
     lf_peak : float
+        Peak frequency in `lf` band (0.04-0.15 Hz)
 
     Notes
     -----

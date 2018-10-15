@@ -4,6 +4,7 @@ Functions for loading and saving data and analyses
 """
 
 import json
+import os.path as op
 import warnings
 import numpy as np
 from peakdet import physio, utils
@@ -42,6 +43,9 @@ def load_physio(data, *, fs=None, dtype=None, history=None):
             inp = dict(np.load(data))
             for k, v in inp.items():
                 inp[k] = v.dtype.type(v)
+            # fix history, which needs to be list-of-tuple
+            if inp['history'] is not None:
+                inp['history'] = list(map(tuple, inp['history']))
         except IOError:
             inp = dict(data=np.loadtxt(data),
                        history=[utils._get_call(exclude=[])])
@@ -140,6 +144,15 @@ def load_history(file, verbose=False):
         # called load_physio on a Physio object (which is a valid, albeit
         # confusing, thing to do)
         if 'load' in func and data is None:
+            if not op.exists(kwargs['data']):
+                if kwargs['data'].startswith('/'):
+                    msg = ('Perhaps you are trying to load a history file '
+                           'that was generated with an absolute path?')
+                else:
+                    msg = ('Perhaps you are trying to load a history file '
+                           'that was generated from a different directory?')
+                raise FileNotFoundError('{} does not exist. {}'
+                                        .format(kwargs['data'], msg))
             data = getattr(peakdet, func)(**kwargs)
         else:
             data = getattr(peakdet, func)(data, **kwargs)

@@ -1,11 +1,14 @@
 .. _usage:
 
-Using peakdet
-=============
+User guide
+==========
 
-The API of ``peakdet`` is under active development, so it's not quite stable
-enough for example usage instructions. Try taking a look at the :ref:`api_ref`
-to get an idea about the available functions and methods. If you're *super
-eager* to get started, try `opening an issue <https://github.com/rmarkello/
-peakdet/issues>`_  to let the developers know there's external interest in these
-sorts of things. Otherwise, check back soon!
+.. toctree::
+   :numbered:
+
+   user_guide/physio.rst
+   user_guide/loading.rst
+   user_guide/processing.rst
+   user_guide/editing.rst
+   user_guide/saving.rst
+   user_guide/metrics.rst

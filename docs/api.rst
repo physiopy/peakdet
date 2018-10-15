@@ -1,9 +1,9 @@
 .. _api_ref:
 
-.. currentmodule:: peakdet
-
 API
 ===
+
+.. py:module:: peakdet
 
 Physiological data
 ------------------
@@ -20,14 +20,16 @@ Loading data
 Processing data
 ---------------
 
-.. autofunction:: peakdet.interpolate_physio
-.. autofunction:: peakdet.filter_physio
-.. autofunction:: peakdet.peakfind_physio
-.. autofunction:: peakdet.edit_physio
-.. autofunction:: peakdet.plot_physio
+.. automodule:: peakdet.operations
+   :members: interpolate_physio, filter_physio, peakfind_physio, plot_physio, edit_physio
 
 Saving data
 -----------
 
 .. autofunction:: peakdet.save_physio
 .. autofunction:: peakdet.save_history
+
+Derived metrics
+---------------
+
+.. autoclass:: peakdet.HRV
