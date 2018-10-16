@@ -53,12 +53,10 @@ function check_peakdet_env() {
     # see if peakdet env exists
     if [ -z "$( conda env list | grep peakdet )" ]; then
         echo 'Creating peakdet environment. This should only happen once but might take a while'
-        # create peakdet env, activate, and install required packages
-        conda create -y -n peakdet python=3.6 \
-            numpy scipy matplotlib wxpython psutil pillow
-        conda activate peakdet
-        pip install --no-cache-dir https://github.com/chriskiehl/gooey/tarball/master
-        pip install --no-cache-dir https://github.com/rmarkello/peakdet/tarball/master
+        env_file=https://github.com/rmarkello/peakdet/blob/master/scripts/environment.yml
+        curl -sSL --retry 5 -o ${PWD}/env.yml ${env_file}
+        conda env create -f ${PWD}env.yml
+        rm -f ${PWD}/env.yml
     else
         conda activate peakdet
     fi
@@ -92,7 +90,7 @@ if [ "$( uname )" == "Darwin" ]; then
     COMMAND="pythonw ${HOME}/miniconda3/envs/peakdet/lib/python3.6/site-packages/peakdet/cli/run.py"
     URL='https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh'
 else
-    COMMAND="peakdet"
+    COMMAND="python ${HOME}/miniconda3/envs/peakdet/lib/python3.6/site-packages/peakdet/cli/run.py"
     URL='https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh'
 fi
 
@@ -115,8 +113,8 @@ else
 Peakdet appears to have been improperly installed. Please remove the peakdet
 environment in conda by typing:
 
-    $ source ${HOME}/miniconda3/etc/profile.d/conda.sh
-    $ conda remove -y -n peakdet --all
+    source ${HOME}/miniconda3/etc/profile.d/conda.sh
+    conda remove -y -n peakgdet --all
 
 and running this script again.
 REINSTALL

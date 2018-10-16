@@ -34,7 +34,7 @@ def main():
         package_data=ldict['PACKAGE_DATA'],
         tests_require=ldict['TESTS_REQUIRES'],
         url=ldict['URL'],
-        version=ldict['VERSION'],
+        version=ldict['VERSION']
     )
 
 
