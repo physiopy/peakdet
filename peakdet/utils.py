@@ -4,11 +4,89 @@ Various utilities for processing physiological data. These should not be called
 directly but should support wrapper functions stored in `peakdet.operations`.
 """
 
+from functools import wraps
 import inspect
+import sys
 import numpy as np
 from scipy.stats import zscore
 from sklearn.utils import Bunch
 from peakdet import physio
+
+
+class _grab_locals(object):
+    """
+    Creates class instance with which to wrap functions to extract their locals
+
+    Helper class for `make_operation()`
+    """
+
+    def __call__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            old_trace = sys.gettrace()  # store old trace
+
+            def trace_returns(frame, event, arg):
+                if event == 'return':
+                    self.f_locals = frame.f_locals
+                if old_trace:
+                    return old_trace(frame, event, arg)
+                return trace_returns
+
+            sys.settrace(trace_returns)
+            try:
+                retval = func(*args, **kwargs)
+            finally:
+                sys.settrace(old_trace)
+
+            return retval
+        return wrapper
+
+
+def make_operation(*, exclude=None):
+    """
+    Wrapper to make functions into operations that get stored in Physio history
+
+    Wrapped functions should accept a Physio instance, `data`, as their first
+    parameter, and should return a Physio instance
+
+    Parameters
+    ----------
+    exclude : list, optional
+        What function parameters to exclude from being stored in history.
+        Default: 'data'
+    """
+
+    def get_call(func):
+        @wraps(func)
+        def wrapper(data, *args, **kwargs):
+            # exclude 'data', by default
+            ignore = ['data'] if exclude is None else exclude
+
+            # grab parameters from `func`
+            name = func.__name__
+            sig = inspect.signature(func).parameters.keys()
+
+            # store `func` locals with `_grab_locals` instance
+            frame = _grab_locals()
+            fn = frame(func)
+            data = fn(data, *args, **kwargs)
+
+            # it shouldn't be, but don't bother appending to history if it is
+            if data is None:
+                return data
+
+            # get parameter settings
+            provided = {k: frame.f_locals[k] for k in sig if k not in ignore}
+            for k, v in provided.items():
+                if hasattr(v, 'tolist'):
+                    provided[k] = v.tolist()
+
+            # append everything to data instance history
+            data._history += [(name, provided)]
+
+            return data
+        return wrapper
+    return get_call
 
 
 def _get_call(*, exclude=['data'], serializable=True):
