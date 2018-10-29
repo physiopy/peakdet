@@ -53,9 +53,9 @@ function check_peakdet_env() {
     # see if peakdet env exists
     if [ -z "$( conda env list | grep peakdet )" ]; then
         echo 'Creating peakdet environment. This should only happen once but might take a while'
-        env_file=https://github.com/rmarkello/peakdet/blob/master/scripts/environment.yml
+        env_file=https://raw.githubusercontent.com/rmarkello/peakdet/master/scripts/environment.yml
         curl -sSL --retry 5 -o ${PWD}/env.yml ${env_file}
-        conda env create -f ${PWD}/env.yml
+        conda env create -q -f ${PWD}/env.yml
         rm -f ${PWD}/env.yml
     else
         conda activate peakdet
