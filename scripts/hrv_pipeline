@@ -108,13 +108,13 @@ elif [ "$INSTALL_ONLY" -eq 1 ]; then
 else
     check_conda_install
     check_peakdet_env
-    if [ -z "$( which peakdet 2> /dev/null )" ]; then
+    if [ ! -f "${COMMAND/python /}" ]; then
         cat << REINSTALL
 Peakdet appears to have been improperly installed. Please remove the peakdet
 environment in conda by typing:
 
     source ${HOME}/miniconda3/etc/profile.d/conda.sh
-    conda remove -y -n peakgdet --all
+    conda remove -y -n peakdet --all
 
 and running this script again.
 REINSTALL
