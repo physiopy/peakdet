@@ -55,7 +55,7 @@ function check_peakdet_env() {
         echo 'Creating peakdet environment. This should only happen once but might take a while'
         env_file=https://github.com/rmarkello/peakdet/blob/master/scripts/environment.yml
         curl -sSL --retry 5 -o ${PWD}/env.yml ${env_file}
-        conda env create -f ${PWD}env.yml
+        conda env create -f ${PWD}/env.yml
         rm -f ${PWD}/env.yml
     else
         conda activate peakdet
