@@ -47,8 +47,8 @@ class Physio():
                              .format(self.data.dtype))
         self._fs = np.float64(fs)
         self._history = [] if history is None else history
-        if (not isinstance(self._history, list) or
-                any([not isinstance(f, tuple) for f in self._history])):
+        if (not isinstance(self._history, list)
+                or any([not isinstance(f, tuple) for f in self._history])):
             raise TypeError('Provided history {} must be a list-of-tuples. '
                             'Please check inputs.'.format(history))
         if metadata is not None:

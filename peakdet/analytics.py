@@ -74,8 +74,8 @@ class HRV():
     def rrtime(self):
         """ Times of R-R intervals (in seconds) """
         if len(self.data.peaks):
-            diff = ((self.data._masked[:-1] + self.data._masked[1:]) /
-                    (2 * self.data.fs))
+            diff = ((self.data._masked[:-1] + self.data._masked[1:])
+                    / (2 * self.data.fs))
             return diff.compressed()
 
     @property
