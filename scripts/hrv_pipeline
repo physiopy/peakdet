@@ -86,7 +86,7 @@ done
 
 # get OS specifics
 if [ "$( uname )" == "Darwin" ]; then
-    # can't use entry-point on Mac OSX because Gooey requires framework build
+    # Gooey requires framework build on Macs
     COMMAND="pythonw ${HOME}/miniconda3/envs/peakdet/lib/python3.6/site-packages/peakdet/cli/run.py"
     URL='https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh'
 else
@@ -108,7 +108,7 @@ elif [ "$INSTALL_ONLY" -eq 1 ]; then
 else
     check_conda_install
     check_peakdet_env
-    if [ ! -f "${COMMAND/python /}" ]; then
+    if [ ! -f "${COMMAND#* }" ]; then
         cat << REINSTALL
 Peakdet appears to have been improperly installed. Please remove the peakdet
 environment in conda by typing:

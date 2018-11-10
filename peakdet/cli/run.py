@@ -83,6 +83,8 @@ def get_parser():
     out_group.add_argument('-m', '--measurements', metavar='Measurements',
                            nargs='+', widget='Listbox',
                            choices=list(ATTR_CONV.keys()),
+                           default=['Average NN intervals',
+                                    'Standard deviation of NN intervals'],
                            help='Desired physiological measurements.\nChoose '
                                 'multiple with shift+click or ctrl+click.')
     out_group.add_argument('-s', '--savehistory', metavar='Save history',
@@ -113,22 +115,28 @@ def workflow(*, file_template, modality, fs, source='MRI', channel=1,
     ----------
     file_template : str
         Template filename for data inputs
-    modality : str
-        One of [ECG, PPG, RESP]
+    modality : {'ECG', 'PPG', 'RESP'}
+        Currently support data modalities
     fs : float
         Sampling rate of input data
-    col : int
-        Column of input file where data is stored
-    header : bool
-        Whether input files have header
-    output : str
-        Path to output file
-    measurements : list-of-str
-        Desired output datapoints
-    noedit : bool
-        Whether to enable interactive editing
-    thresh : float
-        Threshold for peak detection
+    source : {'rtpeaks', 'MRI'}, optional
+        How data were acquired. Default: 'MRI'
+    channel : int, optional
+        Which channel of data to analyze; only applies if source is 'rtpeaks'.
+        Default: 1
+    output : str, optional
+        Desired output filename. Default: 'peakdet.csv'
+    savehistory : bool, optional
+        Whether to save editing history of each file with
+        ``peakdet.save_history``. History will be used if this workflow is
+        run again on the samed data files. Default: True
+    noedit : bool, optional
+        Whether to disable interactive editing of physio data. Default: False
+    thresh : [0, 1] float, optional
+        Threshold for peak detection. Default: 0.2
+    measurements : list, optional
+        Which HRV-related measurements to save from data. See ``peakdet.HRV``
+        for available measurements. Default: all available measurements.
     """
 
     # output file
@@ -138,7 +146,12 @@ def workflow(*, file_template, modality, fs, source='MRI', channel=1,
     files = glob.glob(file_template, recursive=True)
 
     # convert measurements to peakdet.HRV attribute friendly names
-    print('REQUESTED MEASUREMENTS: {}\n'.format(', '.join(measurements)))
+    try:
+        print('REQUESTED MEASUREMENTS: {}\n'.format(', '.join(measurements)))
+    except TypeError:
+        raise TypeError('It looks like you didn\'t select any of the options '
+                        'specifying desired output measurements. Please '
+                        'select at least one measurement and try again.')
     measurements = [ATTR_CONV[attr] for attr in measurements]
 
     # get appropriate loader
@@ -153,9 +166,10 @@ def workflow(*, file_template, modality, fs, source='MRI', channel=1,
         # requested on command line, warn and use existing measurements so
         # as not to totally fork up existing file
         if eheader != head:
-            warnings.warn('Desired output file exists and requested '
-                          'measurements do not match with existing outputs '
-                          'Using existing measurements, instead.')
+            warnings.warn('Desired output file already exists and requested '
+                          'measurements do not match with measurements in '
+                          'existing output file. Using the pre-existing '
+                          'measurements, instead.')
             measurements = [f.strip() for f in eheader.split(',')[1:]]
         head = ''
     # if output file doesn't exist, nbd
@@ -168,27 +182,44 @@ def workflow(*, file_template, modality, fs, source='MRI', channel=1,
         for fname in files:
             fname = os.path.relpath(fname)
             print('Currently processing {}'.format(fname))
-            # load data into class instance
-            if source == 'rtpeaks':
-                data = load_func(fname, fs=fs, channel=channel)
+
+            # if we want to save history, this is the output name it would take
+            outname = os.path.join(os.path.dirname(fname),
+                                   '.' + os.path.basename(fname) + '.json')
+
+            # let's check if history already exists and load that file, if so
+            if os.path.exists(outname):
+                data = peakdet.load_history(outname)
             else:
-                data = load_func(fname, fs=fs)
-            # filter, as appropriate
-            flims, method = MODALITIES[modality]
-            data = peakdet.filter_physio(data, cutoffs=flims, method=method)
-            # perform peak detection
-            data = peakdet.peakfind_physio(data, thresh=thresh)
+                # load data with appropriate function, depending on source
+                if source == 'rtpeaks':
+                    data = load_func(fname, fs=fs, channel=channel)
+                else:
+                    data = load_func(fname, fs=fs)
+
+                # filter
+                flims, method = MODALITIES[modality]
+                data = peakdet.filter_physio(data, cutoffs=flims,
+                                             method=method)
+
+                # perform peak detection
+                data = peakdet.peakfind_physio(data, thresh=thresh)
+
             # edit peaks, if desired (HIGHLY RECOMMENDED)
+            # we'll do this even if we loaded from history
+            # just to give another chance to check things over
             if not noedit:
                 data = peakdet.edit_physio(data)
+
+            # save back out to history, if desired
             if savehistory:
-                outname = os.path.join(os.path.dirname(fname),
-                                       '.' + os.path.basename(fname) + '.json')
                 peakdet.save_history(outname, data)
+
             # keep requested outputs
             hrv = peakdet.HRV(data)
-            outputs = ['{:.5f}'.format(getattr(hrv, attr, '')) for attr in
-                       measurements]
+            outputs = ['{:.5f}'.format(getattr(hrv, attr, ''))
+                       for attr in measurements]
+
             # save as we go so that interruptions don't screw everything up
             dest.write(','.join([fname] + outputs) + '\n')
 
