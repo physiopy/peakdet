@@ -400,8 +400,8 @@ def corr_template(temp, sim=0.95):
     if good_temp_ind.shape[0] >= np.ceil(npulse * 0.1):
         clean_temp = temp[good_temp_ind]
     else:
-        new_temp_ind = np.where(sim_to_temp >
-                                (1 - np.ceil(npulse * 0.1) / npulse))[0]
+        new_temp_ind = np.where(sim_to_temp
+                                > (1 - np.ceil(npulse * 0.1) / npulse))[0]
         clean_temp = np.atleast_2d(temp[new_temp_ind]).T
 
     return clean_temp.mean(axis=0)
