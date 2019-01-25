@@ -23,8 +23,7 @@ INSTALL_REQUIRES = [
 ]
 
 TESTS_REQUIRES = [
-    'codecov',
-    'pytest',
+    'pytest>=3.6',
     'pytest-cov'
 ]
 
@@ -32,7 +31,8 @@ EXTRAS_REQUIRES = {
     'doc': [
         'sphinx>=1.2',
         'sphinx_rtd_theme'
-    ]
+    ],
+    'tests': TESTS_REQUIRES
 }
 
 EXTRAS_REQUIRES['all'] = list(

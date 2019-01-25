@@ -41,9 +41,9 @@ Development and getting involved
 This package has been largely developed in the spare time of a single graduate
 student (`@rmarkello <https://github.com/rmarkello>`_) with help from some
 incredible `contributors <https://github.com/rmarkello/peakdet/graphs/
-contributors>`_. While it would be |sparkles| amazing |sparkles| if anyone else
-finds it helpful, given the limited time constraints of graduate school, the
-current package is not currently accepting requests for new features.
+contributors>`_. While it would be amazing if anyone else finds it helpful,
+given the limited time constraints of graduate school, the current package is
+not currently accepting requests for new features.
 
 However, if you're interested in getting involved in the project, we're
 thrilled to welcome new contributors! You should start by reading our
@@ -83,5 +83,3 @@ The full license can be found in the `LICENSE <https://github.com/rmarkello/
 peakdet/blob/master/LICENSE>`_ file in the ``peakdet`` distribution.
 
 All trademarks referenced herein are property of their respective holders.
-
-.. |sparkles| replace:: ✨
