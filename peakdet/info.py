@@ -29,6 +29,7 @@ TESTS_REQUIRES = [
 
 EXTRAS_REQUIRES = {
     'doc': [
+        'pandas',
         'sphinx>=1.2',
         'sphinx_rtd_theme'
     ],
