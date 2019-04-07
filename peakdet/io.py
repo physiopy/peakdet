@@ -9,6 +9,8 @@ import warnings
 import numpy as np
 from peakdet import physio, utils
 
+EXPECTED = ['data', 'fs', 'history', 'metadata']
+
 
 def load_physio(data, *, fs=None, dtype=None, history=None):
     """
@@ -41,8 +43,13 @@ def load_physio(data, *, fs=None, dtype=None, history=None):
     if isinstance(data, str):
         try:
             inp = dict(np.load(data))
-            for k, v in inp.items():
-                inp[k] = v.dtype.type(v)
+            for attr in EXPECTED:
+                try:
+                    inp[attr] = inp[attr].dtype.type(inp[attr])
+                except KeyError:
+                    raise ValueError('Provided npz file {} must have all of '
+                                     'the following attributes: {}'
+                                     .format(data, EXPECTED))
             # fix history, which needs to be list-of-tuple
             if inp['history'] is not None:
                 inp['history'] = list(map(tuple, inp['history']))
