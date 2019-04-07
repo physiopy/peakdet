@@ -1,54 +1,44 @@
 language: python
 sudo: false
 notifications:
-    email: change
+  email: change
 
 python:
-    - 3.5
-    - 3.6
+  - 3.5
+  - 3.6
 
 env:
-    - LINTING=1
-    - COVERAGE=1
-    - DOCTEST=1
+  - LINTING=1
+  - TESTING=1
+  - DOCTEST=1
 
 before_install:
-    - python -m pip install --upgrade pip
-    - if [ "${LINTING}" == "1" ]; then
-          pip install flake8;
-      fi
-    - if [ "${COVERAGE}" == "1" ]; then
-          pip install coverage coveralls codecov;
-      fi
+  - python -m pip install --upgrade pip
+  - if [ "${LINTING}" == "1" ]; then
+      pip install flake8;
+    fi
 
 install:
-    - if [ "${DOCTEST}" == "1" ]; then
-          pip install -e .[doc,tests];
-      else
-          pip install -e .[tests];
-      fi
+  - if [ "${DOCTEST}" == "1" ]; then
+      pip install -e .[doc,tests];
+    else
+      pip install -e .[tests];
+    fi
 
 before_script:
-    - "export DISPLAY=:99.0"
-    - "sh -e /etc/init.d/xvfb start"
-    - sleep 3
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3
 
 script:
-    - |
-      if [ "${LINTING}" == "1" ]; then
-          flake8 peakdet;
-      elif [ "${DOCTEST}" == "1" ]; then
-          cd docs;
-          make html;
-          make doctest;
-      else
-          if [ "${COVERAGE}" == "1" ]; then
-              TEST_ARGS="--cov-report term-missing --cov=peakdet";
-          fi
-          py.test ${TEST_ARGS} peakdet;
-      fi
-
-after_success:
-    - if [ "${COVERAGE}" == "1" ]; then
-          coveralls; codecov;
-      fi
+  - |
+    if [ "${LINTING}" == "1" ]; then
+      flake8 peakdet;
+    elif [ "${DOCTEST}" == "1" ]; then
+      cd docs;
+      pip install -r ./requirements.txt;
+      make html;
+      make doctest;
+    else
+      py.test --doctest-modules peakdet;
+    fi
