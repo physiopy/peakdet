@@ -42,15 +42,6 @@ script:
           make html;
           make doctest;
       else
-<<<<<<< HEAD
-          if [ "DOCTEST" == "1" ]; then
-              cd docs;
-              make html;
-              make doctest;
-              cd ..;
-          fi
-=======
->>>>>>> [TEST] Fix and improve .travis.yml
           if [ "${COVERAGE}" == "1" ]; then
               TEST_ARGS="--cov-report term-missing --cov=peakdet";
           fi
