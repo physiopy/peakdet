@@ -62,4 +62,4 @@ recorded in the object's history:
     >>> ecg[:5]
     array([-0.3338623 , -0.32897949, -0.32562256, -0.3237915 , -0.31951904])
     >>> ecg.history
-    [('load_rtpeaks', {'fname': 'rtpeaks.csv', 'channel': 9, 'fs': 1000.0})]
+    [('load_rtpeaks', {'channel': 9', 'fname': 'rtpeaks.csv', 'fs': 1000.0})]

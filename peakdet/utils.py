@@ -64,7 +64,7 @@ def make_operation(*, exclude=None):
 
             # grab parameters from `func`
             name = func.__name__
-            sig = inspect.signature(func).parameters.keys()
+            sig = sorted(inspect.signature(func).parameters.keys())
 
             # store `func` locals with `_grab_locals` instance
             frame = _grab_locals()
@@ -89,7 +89,7 @@ def make_operation(*, exclude=None):
     return get_call
 
 
-def _get_call(*, exclude=['data'], serializable=True):
+def _get_call(*, exclude=None, serializable=True):
     """
     Returns calling function name and dict of provided arguments (name : value)
 
@@ -110,6 +110,7 @@ def _get_call(*, exclude=['data'], serializable=True):
         Dictionary of function arguments and provided values
     """
 
+    exclude = ['data'] if exclude is None else exclude
     if not isinstance(exclude, list):
         exclude = [exclude]
 
@@ -478,8 +479,8 @@ def corr_template(temp, sim=0.95):
     if good_temp_ind.shape[0] >= np.ceil(npulse * 0.1):
         clean_temp = temp[good_temp_ind]
     else:
-        new_temp_ind = np.where(sim_to_temp
-                                > (1 - np.ceil(npulse * 0.1) / npulse))[0]
+        comp = 1 - np.ceil(npulse * 0.1) / npulse
+        new_temp_ind = np.where(sim_to_temp > comp)[0]
         clean_temp = np.atleast_2d(temp[new_temp_ind]).T
 
     return clean_temp.mean(axis=0)
