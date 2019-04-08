@@ -120,7 +120,7 @@ def _get_call(*, exclude=None, serializable=True):
 
     # get all the args / kwargs from the calling function
     argspec = inspect.getfullargspec(frame.f_globals[function])
-    args = argspec.args + argspec.kwonlyargs
+    args = sorted(argspec.args + argspec.kwonlyargs)
 
     # save arguments + argument values for everything not in `exclude`
     provided = {k: frame.f_locals[k] for k in args if k not in exclude}
