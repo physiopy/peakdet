@@ -44,9 +44,9 @@ the object can be passed directly to most :py:mod:`numpy` functions:
 .. doctest::
 
     >>> phys[:5]
-    array([0.19151945, 0.62210877, 0.43772774, 0.78535858, 0.77997581])
+    array([ 0.19151945,  0.62210877,  0.43772774,  0.78535858,  0.77997581])
     >>> np.mean(phys)
-    0.4991523987519155
+    0.49915239875191553
 
 Beyond being a simple container, however, :py:class:`~.Physio` objects have a
 few attributes that are of interest when working with real physiological data.
