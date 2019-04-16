@@ -44,9 +44,9 @@ the object can be passed directly to most :py:mod:`numpy` functions:
 .. doctest::
 
     >>> phys[:5]
-    array([ 0.19151945,  0.62210877,  0.43772774,  0.78535858,  0.77997581])
+    array([0.19151945, 0.62210877, 0.43772774, 0.78535858, 0.77997581])
     >>> np.mean(phys)
-    0.49915239875191553
+    0.4991523987519155
 
 Beyond being a simple container, however, :py:class:`~.Physio` objects have a
 few attributes that are of interest when working with real physiological data.
@@ -58,7 +58,7 @@ operations performed on the data:
     >>> from peakdet import operations
     >>> phys = operations.filter_physio(phys, cutoffs=0.1, method='lowpass')
     >>> phys.history
-    [('filter_physio', {'cutoffs': 0.1, 'method': 'lowpass', 'order': 3})]
+    [('filter_physio', {'cutoffs': 0.1, 'method': 'lowpass'})]
 
 Moreover, if you perform peak finding on a :py:class:`~.Physio` object it will
 store the indices of the detected :py:attr:`~.Physio.peaks` and

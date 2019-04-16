@@ -135,11 +135,11 @@ converted to time series by dividing by the sampling frequency:
 .. doctest::
 
     >>> data.peaks[:10] / data.fs
-    array([  0.656,   2.116,   3.604,   5.112,   6.512,   7.932,   9.524,
-            11.096,  12.612,  13.944])
+    array([ 0.656,  2.116,  3.604,  5.112,  6.512,  7.932,  9.524, 11.096,
+           12.612, 13.944])
     >>> data.troughs[:10] / data.fs
-    array([  1.424,   2.928,   4.444,   5.86 ,   7.268,   8.82 ,  10.412,
-            11.956,  13.32 ,  14.708])
+    array([ 1.424,  2.928,  4.444,  5.86 ,  7.268,  8.82 , 10.412, 11.956,
+           13.32 , 14.708])
 
 Once these attributes are instantiated, subsequent calls to
 :py:func:`~.operations.plot_physio` will denote peaks with red dots and troughs
