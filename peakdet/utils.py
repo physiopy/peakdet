@@ -6,48 +6,19 @@ directly but should support wrapper functions stored in `peakdet.operations`.
 
 from functools import wraps
 import inspect
-import sys
 import numpy as np
 from scipy.stats import zscore
 from sklearn.utils import Bunch
 from peakdet import physio
 
 
-class _grab_locals(object):
-    """
-    Creates class instance with which to wrap functions to extract their locals
-
-    Helper class for `make_operation()`
-    """
-
-    def __call__(self, func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            old_trace = sys.gettrace()  # store old trace
-
-            def trace_returns(frame, event, arg):
-                if event == 'return':
-                    self.f_locals = frame.f_locals
-                if old_trace:
-                    return old_trace(frame, event, arg)
-                return trace_returns
-
-            sys.settrace(trace_returns)
-            try:
-                retval = func(*args, **kwargs)
-            finally:
-                sys.settrace(old_trace)
-
-            return retval
-        return wrapper
-
-
 def make_operation(*, exclude=None):
     """
-    Wrapper to make functions into operations that get stored in Physio history
+    Wrapper to make functions into Physio operations
 
-    Wrapped functions should accept a Physio instance, `data`, as their first
-    parameter, and should return a Physio instance
+    Wrapped functions should accept a :class:`peakdet.Physio` instance, `data`,
+    as their first parameter, and should return a :class:`peakdet.Physio`
+    instance
 
     Parameters
     ----------
@@ -62,21 +33,24 @@ def make_operation(*, exclude=None):
             # exclude 'data', by default
             ignore = ['data'] if exclude is None else exclude
 
-            # grab parameters from `func`
+            # grab parameters from `func` by binding signature
             name = func.__name__
-            sig = sorted(inspect.signature(func).parameters.keys())
+            sig = inspect.signature(func)
+            params = sig.bind(data, *args, **kwargs).arguments
 
-            # store `func` locals with `_grab_locals` instance
-            frame = _grab_locals()
-            fn = frame(func)
-            data = fn(data, *args, **kwargs)
+            # actually run function on data
+            data = func(data, *args, **kwargs)
 
             # it shouldn't be, but don't bother appending to history if it is
             if data is None:
                 return data
 
-            # get parameter settings
-            provided = {k: frame.f_locals[k] for k in sig if k not in ignore}
+            # get parameters and sort by key name, dropping ignored items and
+            # attempting to coerce any numpy arrays or pandas dataframes (?!)
+            # into serializable objects; this isn't foolproof but gets 80% of
+            # the way there
+            provided = {k: params[k] for k in sorted(params.keys())
+                        if k not in ignore}
             for k, v in provided.items():
                 if hasattr(v, 'tolist'):
                     provided[k] = v.tolist()
@@ -202,11 +176,11 @@ def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
         fs = ref_physio.fs
     if dtype is None:
         dtype = ref_physio.data.dtype
-    history = ref_physio.history.copy() if copy_history else []
+    history = list(ref_physio.history) if copy_history else []
     metadata = Bunch(**ref_physio._metadata) if copy_metadata else None
 
     # make new class
-    out = ref_physio.__class__(np.asarray(data, dtype=dtype),
+    out = ref_physio.__class__(np.array(data, dtype=dtype),
                                fs=fs, history=history, metadata=metadata)
     return out
 
