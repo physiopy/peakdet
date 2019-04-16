@@ -3,11 +3,11 @@
 Functions and class for performing interactive editing of physiological data
 """
 
-import itertools
+import functools
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import SpanSelector
-from peakdet import physio, utils
+from peakdet import operations, utils
 
 
 class _PhysioEditor():
@@ -21,19 +21,14 @@ class _PhysioEditor():
     """
 
     def __init__(self, data):
-        if not isinstance(data, physio.Physio):
-            raise TypeError('Input must be a Physio instance')
-
         # save reference to data and generate "time" for interpretable X-axis
-        self.data = data
+        self.data = utils.check_physio(data, copy=True)
         fs = 1 if data.fs is None else data.fs
         self.time = np.arange(0, len(data.data) / fs, 1 / fs)
 
-        # we're going to store all the deletions / rejections in history
-        self.history = []
         # we need to create these variables in case someone doesn't "quit"
         # the plot appropriately (i.e., clicks X instead of pressing ctrl+q)
-        self.deleted = self.rejected = []
+        self.deleted, self.rejected = set(), set()
 
         # make main plot objects
         self.fig, self.ax = plt.subplots(nrows=1, ncols=1, tight_layout=True)
@@ -41,10 +36,12 @@ class _PhysioEditor():
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 
         # two selectors for rejection (left mouse) and deletion (right mouse)
-        self.span1 = SpanSelector(self.ax, self.on_reject, 'horizontal',
+        reject = functools.partial(self.on_remove, reject=True)
+        delete = functools.partial(self.on_remove, reject=False)
+        self.span1 = SpanSelector(self.ax, reject, 'horizontal',
                                   button=1, useblit=True,
                                   rectprops=dict(facecolor='red', alpha=0.3))
-        self.span2 = SpanSelector(self.ax, self.on_delete, 'horizontal',
+        self.span2 = SpanSelector(self.ax, delete, 'horizontal',
                                   button=3, useblit=True,
                                   rectprops=dict(facecolor='blue', alpha=0.3))
 
@@ -75,17 +72,7 @@ class _PhysioEditor():
         self.fig.canvas.draw()
 
     def quit(self):
-        """ Quits editor and consolidates manual edits"""
-        # clean up all the deleted / rejected entries
-        deleted, rejected = [], []
-        for (func, inp) in self.history:
-            if func == 'reject_peaks':
-                rejected.append(inp['remove'])
-            elif func == 'delete_peaks':
-                deleted.append(inp['remove'])
-        # generate list of deleted / rejected
-        self.rejected = list(itertools.chain.from_iterable(rejected))
-        self.deleted = list(itertools.chain.from_iterable(deleted))
+        """ Quits editor """
         plt.close(self.fig)
 
     def on_key(self, event):
@@ -96,97 +83,48 @@ class _PhysioEditor():
         elif event.key in ['ctrl+q', 'super+d']:
             self.quit()
 
-    def on_reject(self, xmin, xmax):
-        """ Manually removes physio peaks on span select """
-        bad = np.arange(*np.searchsorted(self.data.peaks,
-                                         np.searchsorted(self.time,
-                                                         (xmin, xmax))),
-                        dtype=int)
-        if len(bad) == 0:
-            return
-        self.data, call = reject_peaks(self.data, self.data.peaks[bad])
-        self.history += [call]
-        self.plot_signals()
+    def on_remove(self, xmin, xmax, *, reject):
+        """ Removes specified peaks by either rejection / deletion """
+        tmin, tmax = np.searchsorted(self.time, (xmin, xmax))
+        pmin, pmax = np.searchsorted(self.data.peaks, (tmin, tmax))
+        bad = np.arange(pmin, pmax, dtype=int)
 
-    def on_delete(self, xmin, xmax):
-        """ Manually delete physio peaks on span select """
-        bad = np.arange(*np.searchsorted(self.data.peaks,
-                                         np.searchsorted(self.time,
-                                                         (xmin, xmax))),
-                        dtype=int)
         if len(bad) == 0:
             return
-        self.data, call = delete_peaks(self.data, self.data.peaks[bad])
-        self.history += [call]
+
+        if reject:
+            rej, fcn = self.rejected, operations.reject_peaks
+        else:
+            rej, fcn = self.deleted, operations.delete_peaks
+
+        # store edits in local history
+        rej.update(self.data.peaks[bad].tolist())
+        self.data = fcn(self.data, self.data.peaks[bad])
         self.plot_signals()
 
     def undo(self):
         """ Resets last span select peak removal """
         # check if last history entry was a manual reject / delete
-        if len(self.history) == 0:
+        if self.data._history[-1][0] not in ['reject_peaks', 'delete_peaks']:
             return
+
         # pop off last edit and delete
-        func, peaks = self.history.pop()
+        func, peaks = self.data._history.pop()
+
         if func == 'reject_peaks':
             self.data._metadata.reject = np.setdiff1d(
                 self.data._metadata.reject, peaks['remove']
             )
+            self.rejected.difference_update(peaks['remove'])
         elif func == 'delete_peaks':
             self.data._metadata.peaks = np.insert(
                 self.data._metadata.peaks,
                 np.searchsorted(self.data._metadata.peaks, peaks['remove']),
                 peaks['remove']
             )
+            self.deleted.difference_update(peaks['remove'])
 
         self.data._metadata.troughs = utils.check_troughs(self.data,
                                                           self.data.peaks,
                                                           self.data.troughs)
         self.plot_signals()
-
-
-def delete_peaks(data, remove, copy=False):
-    """
-    Deletes peaks in `remove` from peaks stored in `data`
-
-    Parameters
-    ----------
-    data : Physio_like
-    remove : array_like
-    copy : bool, optional
-        Whether to delete peaks on `data` in-place. Default: False
-
-    Returns
-    -------
-    data : Physio_like
-    """
-
-    data = utils.check_physio(data, ensure_fs=False, copy=copy)
-    data._metadata.peaks = np.setdiff1d(data._metadata.peaks, remove)
-    data._metadata.troughs = utils.check_troughs(data, data.peaks,
-                                                 data.troughs)
-
-    return data, utils._get_call()
-
-
-def reject_peaks(data, remove, copy=False):
-    """
-    Marks peaks in `remove` as rejected in `data`
-
-    Parameters
-    ----------
-    data : Physio_like
-    remove : array_like
-    copy : bool, optional
-        Whether to reject peaks on `data` in-place. Default: False
-
-    Returns
-    -------
-    data : Physio_like
-    """
-
-    data = utils.check_physio(data, ensure_fs=False, copy=copy)
-    data._metadata.reject = np.append(data._metadata.reject, remove)
-    data._metadata.troughs = utils.check_troughs(data, data.peaks,
-                                                 data.troughs)
-
-    return data, utils._get_call()

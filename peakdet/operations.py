@@ -11,7 +11,7 @@ from peakdet import editor, utils
 
 
 @utils.make_operation()
-def filter_physio(data, cutoffs, method, order=3):
+def filter_physio(data, cutoffs, method, *, order=3):
     """
     Applies an `order`-order digital `method` Butterworth filter to `data`
 
@@ -133,7 +133,52 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
 
 
 @utils.make_operation()
-def edit_physio(data, *, delete=None, reject=None):
+def delete_peaks(data, remove):
+    """
+    Deletes peaks in `remove` from peaks stored in `data`
+
+    Parameters
+    ----------
+    data : Physio_like
+    remove : array_like
+
+    Returns
+    -------
+    data : Physio_like
+    """
+
+    data = utils.check_physio(data, ensure_fs=False, copy=True)
+    data._metadata.peaks = np.setdiff1d(data._metadata.peaks, remove)
+    data._metadata.troughs = utils.check_troughs(data, data.peaks,
+                                                 data.troughs)
+
+    return data
+
+
+@utils.make_operation()
+def reject_peaks(data, remove):
+    """
+    Marks peaks in `remove` as rejected artifacts in `data`
+
+    Parameters
+    ----------
+    data : Physio_like
+    remove : array_like
+
+    Returns
+    -------
+    data : Physio_like
+    """
+
+    data = utils.check_physio(data, ensure_fs=False, copy=True)
+    data._metadata.reject = np.append(data._metadata.reject, remove)
+    data._metadata.troughs = utils.check_troughs(data, data.peaks,
+                                                 data.troughs)
+
+    return data
+
+
+def edit_physio(data):
     """
     Opens interactive plot with `data` to permit manual editing of time series
 
@@ -141,40 +186,29 @@ def edit_physio(data, *, delete=None, reject=None):
     ----------
     data : Physio_like
         Physiological data to be edited
-    delete : array_like, optional
-        List or array of indices to delete from peaks associated with `data`.
-        Default: None
-    reject : array_like, optional
-        List or array of indices to reject from peaks associated with `data`.
-        Default: None
 
     Returns
     -------
     edited : :class:`peakdet.Physio`
-        Input `data` with manual (or specified) edits
+        Input `data` with manual edits
     """
 
-    # check if we need fs info
-    if delete is None and reject is None:
-        ensure_fs = True
-    else:
-        ensure_fs = False
-    data = utils.check_physio(data, ensure_fs=ensure_fs, copy=True)
+    data = utils.check_physio(data, ensure_fs=True)
 
     # no point in manual edits if peaks/troughs aren't defined
     if not (len(data.peaks) and len(data.troughs)):
         return
+
     # perform manual editing
-    if delete is None and reject is None:
-        edits = editor._PhysioEditor(data)
-        plt.show(block=True)
-        delete, reject = edits.deleted, edits.rejected
-    # replay editing (or accept a priori edits)
-    else:
-        if reject is not None:
-            data = editor.reject_peaks(data, remove=reject)[0]
-        if delete is not None:
-            data = editor.delete_peaks(data, remove=delete)[0]
+    edits = editor._PhysioEditor(data)
+    plt.show(block=True)
+    delete, reject = sorted(edits.deleted), sorted(edits.rejected)
+
+    # replay editing on original provided data object
+    if reject is not None:
+        data = reject_peaks(data, remove=reject)
+    if delete is not None:
+        data = delete_peaks(data, remove=delete)
 
     return data
 
