@@ -66,20 +66,26 @@ def test_peakfind_physio():
     operations.peakfind_physio(WITHFS, thresh=0.4)
 
 
+def test_delete_peaks():
+    to_delete = [192, 24685, 44169]
+    peaks = operations.peakfind_physio(WITHFS)
+    deleted = operations.delete_peaks(peaks, to_delete)
+    assert len(deleted.peaks) == len(peaks.peaks) - len(to_delete)
+
+
+def test_reject_peaks():
+    to_reject = [192, 24685, 44169]
+    peaks = operations.peakfind_physio(WITHFS)
+    rejected = operations.reject_peaks(peaks, to_reject)
+    assert len(rejected.peaks) == len(peaks.peaks) - len(to_reject)
+
+
 def test_edit_physio():
     # value error when no sampling rate provided for interactive editing
     with pytest.raises(ValueError):
         operations.edit_physio(NOFS)
-    # don't error if not interactive editing
-    nofs_peaks = operations.peakfind_physio(NOFS, dist=250)
-    operations.edit_physio(nofs_peaks,
-                           delete=nofs_peaks.peaks[:2],
-                           reject=nofs_peaks.peaks[-2:])
+    # if sampling rate provided but no peaks/troughs just return
     operations.edit_physio(WITHFS)
-    withfs_peaks = operations.peakfind_physio(WITHFS)
-    operations.edit_physio(withfs_peaks,
-                           delete=withfs_peaks.peaks[:2],
-                           reject=withfs_peaks.peaks[-2:])
 
 
 def test_plot_physio():

@@ -4,6 +4,7 @@ Various utilities for processing physiological data. These should not be called
 directly but should support wrapper functions stored in `peakdet.operations`.
 """
 
+from functools import wraps
 import inspect
 import numpy as np
 from scipy.stats import zscore
@@ -11,7 +12,58 @@ from sklearn.utils import Bunch
 from peakdet import physio
 
 
-def _get_call(*, exclude=['data'], serializable=True):
+def make_operation(*, exclude=None):
+    """
+    Wrapper to make functions into Physio operations
+
+    Wrapped functions should accept a :class:`peakdet.Physio` instance, `data`,
+    as their first parameter, and should return a :class:`peakdet.Physio`
+    instance
+
+    Parameters
+    ----------
+    exclude : list, optional
+        What function parameters to exclude from being stored in history.
+        Default: 'data'
+    """
+
+    def get_call(func):
+        @wraps(func)
+        def wrapper(data, *args, **kwargs):
+            # exclude 'data', by default
+            ignore = ['data'] if exclude is None else exclude
+
+            # grab parameters from `func` by binding signature
+            name = func.__name__
+            sig = inspect.signature(func)
+            params = sig.bind(data, *args, **kwargs).arguments
+
+            # actually run function on data
+            data = func(data, *args, **kwargs)
+
+            # it shouldn't be, but don't bother appending to history if it is
+            if data is None:
+                return data
+
+            # get parameters and sort by key name, dropping ignored items and
+            # attempting to coerce any numpy arrays or pandas dataframes (?!)
+            # into serializable objects; this isn't foolproof but gets 80% of
+            # the way there
+            provided = {k: params[k] for k in sorted(params.keys())
+                        if k not in ignore}
+            for k, v in provided.items():
+                if hasattr(v, 'tolist'):
+                    provided[k] = v.tolist()
+
+            # append everything to data instance history
+            data._history += [(name, provided)]
+
+            return data
+        return wrapper
+    return get_call
+
+
+def _get_call(*, exclude=None, serializable=True):
     """
     Returns calling function name and dict of provided arguments (name : value)
 
@@ -32,6 +84,7 @@ def _get_call(*, exclude=['data'], serializable=True):
         Dictionary of function arguments and provided values
     """
 
+    exclude = ['data'] if exclude is None else exclude
     if not isinstance(exclude, list):
         exclude = [exclude]
 
@@ -41,7 +94,7 @@ def _get_call(*, exclude=['data'], serializable=True):
 
     # get all the args / kwargs from the calling function
     argspec = inspect.getfullargspec(frame.f_globals[function])
-    args = argspec.args + argspec.kwonlyargs
+    args = sorted(argspec.args + argspec.kwonlyargs)
 
     # save arguments + argument values for everything not in `exclude`
     provided = {k: frame.f_locals[k] for k in args if k not in exclude}
@@ -123,11 +176,11 @@ def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
         fs = ref_physio.fs
     if dtype is None:
         dtype = ref_physio.data.dtype
-    history = ref_physio.history.copy() if copy_history else []
+    history = list(ref_physio.history) if copy_history else []
     metadata = Bunch(**ref_physio._metadata) if copy_metadata else None
 
     # make new class
-    out = ref_physio.__class__(np.asarray(data, dtype=dtype),
+    out = ref_physio.__class__(np.array(data, dtype=dtype),
                                fs=fs, history=history, metadata=metadata)
     return out
 
@@ -400,8 +453,8 @@ def corr_template(temp, sim=0.95):
     if good_temp_ind.shape[0] >= np.ceil(npulse * 0.1):
         clean_temp = temp[good_temp_ind]
     else:
-        new_temp_ind = np.where(sim_to_temp
-                                > (1 - np.ceil(npulse * 0.1) / npulse))[0]
+        comp = 1 - np.ceil(npulse * 0.1) / npulse
+        new_temp_ind = np.where(sim_to_temp > comp)[0]
         clean_temp = np.atleast_2d(temp[new_temp_ind]).T
 
     return clean_temp.mean(axis=0)

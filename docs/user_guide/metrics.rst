@@ -25,8 +25,8 @@ directly to the :py:class:`~.HRV` class:
 
     >>> from peakdet import HRV
     >>> metrics = HRV(data)
-    >>> print(metrics.rmssd)
-    27.750973301382444
+    >>> print(f'{metrics.rmssd:.2f} ms')
+    27.75 ms
 
 The :py:class:`~.HRV` class contains many common heart rate variability metrics
 including the root mean square of successive differences, as shown above. It

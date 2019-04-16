@@ -58,7 +58,7 @@ operations performed on the data:
     >>> from peakdet import operations
     >>> phys = operations.filter_physio(phys, cutoffs=0.1, method='lowpass')
     >>> phys.history
-    [('filter_physio', {'cutoffs': 0.1, 'method': 'lowpass', 'order': 3})]
+    [('filter_physio', {'cutoffs': 0.1, 'method': 'lowpass'})]
 
 Moreover, if you perform peak finding on a :py:class:`~.Physio` object it will
 store the indices of the detected :py:attr:`~.Physio.peaks` and

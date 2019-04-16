@@ -14,30 +14,18 @@ def test_PhysioEditor():
     edits.on_wheel(Bunch(step=10))
     # test reject / delete functionality
     for m in range(2):
-        edits.on_reject(0, 10)
-        edits.on_delete(10, 20)
+        edits.on_remove(0, 10, reject=True)
+        edits.on_remove(10, 20, reject=False)
     # undo delete + reject
     for m in range(2):
         edits.undo()
     # test key undo (and undo when history doesn't exist)
     edits.on_key(Bunch(key='ctrl+z'))
     # redo so that there is history on quit
-    edits.on_reject(0, 10)
-    edits.on_delete(10, 20)
+    edits.on_remove(0, 10, reject=True)
+    edits.on_remove(10, 20, reject=False)
     # quit editor and clean up edits
     edits.on_key(Bunch(key='ctrl+q'))
 
     with pytest.raises(TypeError):
         editor._PhysioEditor([0, 1, 2])
-
-
-def test_delete_peaks():
-    to_delete = [82, 24682, 44166]
-    deleted = editor.delete_peaks(PEAKS, to_delete, copy=True)[0]
-    assert len(deleted.peaks) == len(PEAKS.peaks) - len(to_delete)
-
-
-def test_reject_peaks():
-    to_reject = [82, 24682, 44166]
-    rejected = editor.reject_peaks(PEAKS, to_reject, copy=True)[0]
-    assert len(rejected.peaks) == len(PEAKS.peaks) - len(to_reject)

@@ -5,16 +5,17 @@ Functions for interacting with physiological data acquired by external packages
 
 import warnings
 import numpy as np
-from peakdet import io, utils
+from peakdet import physio, utils
 
 
+@utils.make_operation(exclude=[])
 def load_rtpeaks(fname, channel, fs):
     """
     Loads data file as obtained from the ``rtpeaks`` Python module
 
     Data file `fname` should have a single, comma-delimited header of format:
 
-        time,channelA,channelB,...,channelZ
+        time,channel#,channel#,...,channel#
 
     Raw data should be stored in columnar format, also comma-delimited, beneath
     this header. All data should be stored as integers. For more information,
@@ -46,4 +47,6 @@ def load_rtpeaks(fname, channel, fs):
 
     col = header.index('channel{}'.format(channel))
     data = np.loadtxt(fname, usecols=col, skiprows=1, delimiter=',')
-    return io.load_physio(data, fs=fs, history=[utils._get_call()])
+    phys = physio.Physio(data, fs=fs)
+
+    return phys
