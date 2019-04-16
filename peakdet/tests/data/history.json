@@ -6,8 +6,7 @@
                 5.0,
                 15.0
             ],
-            "method": "bandpass",
-            "order": 3
+            "method": "bandpass"
         }
     ]
 ]
