@@ -122,12 +122,16 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
 
     # first pass peak detection to get approximate distance between peaks
     cdist = data.fs // 4 if dist is None else dist
-    locs = utils.find_peaks(data, dist=cdist, thresh=thresh)
-    cdist = np.diff(locs).mean() // 2
+    thresh = np.squeeze(np.diff(np.percentile(data, [5, 95]))) * thresh
+    locs, heights = signal.find_peaks(data[:], distance=cdist, height=thresh)
+
     # second, more thorough peak detection
-    data._metadata.peaks = utils.find_peaks(data, dist=cdist, thresh=thresh)
+    cdist = np.diff(locs).mean() // 2
+    heights = np.percentile(heights['peak_heights'], 1)
+    data._metadata['peaks'] = signal.find_peaks(data[:], distance=cdist,
+                                                height=heights)[0]
     # perform trough detection based on detected peaks
-    data._metadata.troughs = utils.check_troughs(data, data.peaks, [])
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
 
     return data
 
@@ -148,9 +152,8 @@ def delete_peaks(data, remove):
     """
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    data._metadata.peaks = np.setdiff1d(data._metadata.peaks, remove)
-    data._metadata.troughs = utils.check_troughs(data, data.peaks,
-                                                 data.troughs)
+    data._metadata['peaks'] = np.setdiff1d(data._metadata['peaks'], remove)
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
 
     return data
 
@@ -171,9 +174,8 @@ def reject_peaks(data, remove):
     """
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    data._metadata.reject = np.append(data._metadata.reject, remove)
-    data._metadata.troughs = utils.check_troughs(data, data.peaks,
-                                                 data.troughs)
+    data._metadata['reject'] = np.append(data._metadata['reject'], remove)
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
 
     return data
 

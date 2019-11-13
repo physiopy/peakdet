@@ -185,140 +185,7 @@ def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
     return out
 
 
-def get_extrema(data, peaks=True, thresh=0.4):
-    """
-    Find extrema in `data` by changes in sign of first derivative
-
-    Parameters
-    ----------
-    data : array_like or Physio_like
-        Input data on which to perform extrema detection
-    peaks : bool, optional
-        Whether to look for peaks instead of troughs. Default: True
-    thresh : float (0, 1), optional
-        Amplitude based threshold
-
-    Returns
-    -------
-    locs : np.ndarray
-        Indices of extrema from `data`
-    """
-
-    if thresh < 0 or thresh > 1:
-        raise ValueError('Provided threshold {} is not in range [0, 1]. '
-                         'Please provide a valid threshold.'
-                         .format(thresh))
-
-    if peaks:
-        uthresh = (thresh * np.diff(np.percentile(data, [5, 95])))
-        Indx = np.argwhere(data > uthresh).squeeze()
-    else:
-        uthresh = (thresh * np.diff(np.percentile(data, [95, 5])))
-        Indx = np.argwhere(data < uthresh).squeeze()
-
-    trend = np.sign(np.diff(data))
-    idx = np.argwhere(trend == 0).squeeze()
-
-    for i in range(idx.size - 1, -1, -1):
-        gtz = trend[min(idx[i] + 1, trend.size - 1)] >= 0
-        trend[idx[i]] = 1 if gtz else -1
-
-    idx = np.argwhere(np.diff(trend) == (-2 if peaks else 2)).squeeze() + 1
-
-    return np.intersect1d(Indx, idx)
-
-
-def min_peak_dist(data, locs, peaks=True, dist=250):
-    """
-    Ensures `locs` in `data` are separated by at least `dist`
-
-    Parameters
-    ----------
-    data : array_like or Physio_like
-        Input data for which `locs` were detected
-    locs : array_like
-        Extrema in `data`, typically from `get_extrema()`
-    peaks : bool, optional
-        Whether to look for peaks instead of troughs. Default: True
-    dist : int, optional
-        Minimum required distance (in datapoints) b/w `locs`. Default: 250
-
-    Returns
-    -------
-    locs : np.ndarray
-        Extrema separated by at least `dist`
-    """
-
-    if not any(np.diff(sorted(locs)) <= dist):
-        return locs
-
-    idx = data[locs].argsort()
-    if peaks:
-        idx = idx[::-1]
-    locs = locs[idx]
-    idelete = np.zeros_like(locs, dtype=bool)
-
-    for i in range(locs.size):
-        if not idelete[i]:
-            dist_diff = np.logical_and(locs >= locs[i] - dist,
-                                       locs <= locs[i] + dist)
-            idelete = np.logical_or(idelete, dist_diff)
-            idelete[i] = 0
-
-    return np.sort(locs[~idelete])
-
-
-def find_peaks(data, thresh=0.4, dist=250):
-    """
-    Finds peaks in `data`
-
-    Parameters
-    ----------
-    data : array_like or Physio_like
-        Input data on which to perform peak detection
-    thresh : float (0, 1), optional
-        Amplitude based threshold
-    dist : int
-        Minimum required distance (in datapoints) b/w peaks in `data`
-
-    Returns
-    -------
-    peaks : np.ndarray
-        Indices of peak locations in `data`
-    """
-
-    extrema = get_extrema(data, thresh=thresh)
-    peaks = min_peak_dist(data, extrema, dist=dist)
-
-    return peaks.astype(int)
-
-
-def find_troughs(data, thresh=0.4, dist=250):
-    """
-    Finds troughs in `data`
-
-    Parameters
-    ----------
-    data : array_like or Physio_like
-        Input data on which to perform trough detection
-    thresh : float (0, 1), optional
-        Amplitude based threshold
-    dist : int
-        Minimum required distance (in datapoints) b/w troughs in `data`
-
-    Returns
-    -------
-    troughs : np.ndarray
-        Indices of trough locations in `data`
-    """
-
-    extrema = get_extrema(data, peaks=False, thresh=thresh)
-    troughs = min_peak_dist(data, extrema, peaks=False, dist=dist)
-
-    return troughs.astype(int)
-
-
-def check_troughs(data, peaks, troughs):
+def check_troughs(data, peaks):
     """
     Confirms that `troughs` exists between every set of `peaks` in `data`
 
@@ -328,8 +195,6 @@ def check_troughs(data, peaks, troughs):
         Input data for which `troughs` and `peaks` were detected
     peaks : array-like
         Indices of suspected peak locations in `data`
-    troughs : array-like
-        Indices of suspected trough locations in `data`
 
     Returns
     -------
@@ -340,15 +205,8 @@ def check_troughs(data, peaks, troughs):
     all_troughs = np.zeros(peaks.size - 1, dtype=int)
 
     for f in range(peaks.size - 1):
-        curr = np.logical_and(troughs > peaks[f],
-                              troughs < peaks[f + 1])
-        if not np.any(curr):
-            dp = data[peaks[f]:peaks[f + 1]]
-            idx = peaks[f] + np.argwhere(dp == dp.min())[0]
-        else:
-            idx = troughs[curr]
-            if idx.size > 1:
-                idx = idx[0]
+        dp = data[peaks[f]:peaks[f + 1]]
+        idx = peaks[f] + np.argwhere(dp == dp.min())[0]
         all_troughs[f] = idx
 
     return all_troughs
