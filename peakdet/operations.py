@@ -5,9 +5,7 @@ Functions for processing and interpreting physiological data
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy import signal
-from scipy.interpolate import InterpolatedUnivariateSpline
-
+from scipy import interpolate, signal
 from peakdet import editor, utils
 
 
@@ -64,7 +62,7 @@ def filter_physio(data, cutoffs, method, *, order=3):
 
 
 @utils.make_operation()
-def interpolate_physio(data, target_fs):
+def interpolate_physio(data, target_fs, *, kind='cubic'):
     """
     Interpolates `data` to desired sampling rate `target_fs`
 
@@ -74,6 +72,9 @@ def interpolate_physio(data, target_fs):
         Input physiological data to be interpolated
     target_fs : float
         Desired sampling rate for `data`
+    kind : str or int, optional
+        Type of interpolation to perform. Must be one of available kinds in
+        :func:`scipy.interpolate.interp1d`. Default: 'cubic'
 
     Returns
     -------
@@ -90,7 +91,7 @@ def interpolate_physio(data, target_fs):
     t_new = np.linspace(0, len(data) / data.fs, int(len(data) * factor))
 
     # interpolate data and generate new Physio object
-    interp = InterpolatedUnivariateSpline(t_orig, data[:])(t_new)
+    interp = interpolate.interp1d(t_orig, data, kind=kind)(t_new)
     interp = utils.new_physio_like(data, interp, fs=target_fs)
 
     return interp
