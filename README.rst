@@ -11,8 +11,8 @@ photoplethysmography, or electrocardiogram (ECG/EKG) monitors.
    :target: https://codecov.io/gh/rmarkello/peakdet
 .. image:: https://readthedocs.org/projects/peakdet/badge/?version=latest
    :target: http://peakdet.readthedocs.io/en/latest
-.. image:: https://img.shields.io/badge/License-GPL%20v3-blue.svg
-   :target: https://www.gnu.org/licenses/gpl-3.0
+.. image:: https://img.shields.io/badge/license-Apache%202-blue.svg
+   :target: http://www.apache.org/licenses/LICENSE-2.0
 
 .. _overview:
 
@@ -55,31 +55,12 @@ anything you might like to work on. Alternatively, if you've found a bug, are
 experiencing a problem, or have a question, create a new issue with some
 information about it!
 
-.. _acknowledgments:
-
-Acknowledgments
----------------
-
-While this package was initially created in 2016, some of the behind-the-scenes
-functions in the project were adopted from the `PhysIO <https://github.com/
-translationalneuromodeling/tapas/tree/master/PhysIO>`_ MATLAB toolbox. As such,
-if you use this code it would be good to (1) provide a link back to the
-``peakdet`` repository with the version of the code used, and (2) cite `their
-paper <http://www.sciencedirect.com/science/article/pii/S016502701630259X>`_
-([1]_):
-
-.. [1] Kasper, L., Bollmann, S., Diaconescu, A. O., Hutton, C., Heinzle, J.,
-   Iglesias, S., ... & Stephan, K. E. (2017). The PhysIO toolbox for modeling
-   physiological noise in fMRI data. Journal of Neuroscience Methods, 276,
-   56-72.
-
 .. _licensing:
 
 License Information
 -------------------
 
-This codebase is licensed under the GNU General Public License version 3.
-The full license can be found in the `LICENSE <https://github.com/rmarkello/
-peakdet/blob/master/LICENSE>`_ file in the ``peakdet`` distribution.
-
-All trademarks referenced herein are property of their respective holders.
+This codebase is licensed under the Apache License, Version 2.0. The full
+license can be found in the `LICENSE <https://github.com/rmarkello/peakdet/
+blob/master/LICENSE>`_ file in the ``peakdet`` distribution. You may also
+obtain a copy of the license at: http://www.apache.org/licenses/LICENSE-2.0.

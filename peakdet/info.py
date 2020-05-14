@@ -5,7 +5,7 @@ NAME = 'peakdet'
 MAINTAINER = 'Ross Markello'
 EMAIL = 'rossmarkello@gmail.com'
 VERSION = __version__
-LICENSE = 'GPLv3'
+LICENSE = 'Apache-2.0'
 DESCRIPTION = """\
 A toolbox for reproducible physiological data analysis\
 """
@@ -48,6 +48,6 @@ PACKAGE_DATA = {
 CLASSIFIERS = [
     'Development Status :: 3 - Alpha',
     'Intended Audience :: Science/Research',
-    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+    'License :: OSI Approved :: Apache Software License',
     'Programming Language :: Python :: 3.6',
 ]
