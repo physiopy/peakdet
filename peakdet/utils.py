@@ -7,8 +7,6 @@ directly but should support wrapper functions stored in `peakdet.operations`.
 from functools import wraps
 import inspect
 import numpy as np
-from scipy.stats import zscore
-from sklearn.utils import Bunch
 from peakdet import physio
 
 
@@ -177,7 +175,7 @@ def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
     if dtype is None:
         dtype = ref_physio.data.dtype
     history = list(ref_physio.history) if copy_history else []
-    metadata = Bunch(**ref_physio._metadata) if copy_metadata else None
+    metadata = dict(**ref_physio._metadata) if copy_metadata else None
 
     # make new class
     out = ref_physio.__class__(np.array(data, dtype=dtype),
@@ -210,109 +208,3 @@ def check_troughs(data, peaks):
         all_troughs[f] = idx
 
     return all_troughs
-
-
-def gen_temp(data, locs, factor=0.5):
-    """
-    Generate waveform template array from `data`
-
-    Waveforms are taken from around peak locations in `locs`
-
-    Parameters
-    ----------
-    data : array_like
-    locs : arrray_like
-        Indices of suspected peak locations
-    factor: float (0, 1), optional
-
-    Returns
-    -------
-    array : peak waveforms
-    """
-
-    avgrate = round(np.diff(locs).mean())
-    THW = int(np.ceil(factor * (avgrate / 2)))
-    nsamptemp = (THW * 2) + 1
-    npulse = locs.size
-    template = np.zeros([npulse - 2, nsamptemp])
-
-    for n in range(1, npulse - 1):
-        template[n - 1] = data[locs[n] - THW:locs[n] + THW + 1]
-        template[n - 1] = template[n - 1] - template[n - 1].mean()
-        template[n - 1] = template[n - 1] / max(abs(template[n - 1]))
-
-    return template
-
-
-def corr(x, y, zscored=[False, False]):
-    """
-    Potentially faster correlation of `x` and `y`
-
-    Will z-transform data before correlation.
-
-    Parameters
-    ----------
-    x : array, n x 1
-    y : array, n x 1
-    zscored : [bool, bool]
-        Whether x and y, respectively, have been z-transformed
-
-    Returns
-    -------
-    float : [0,1] correlation between `x` and `y`
-    """
-
-    x, y = np.asarray(x).squeeze(), np.asarray(y).squeeze()
-
-    if x.ndim > 1 or y.ndim > 1:
-        raise ValueError('Input arrays must have only one dimension.')
-    if x.size != y.size:
-        raise ValueError('Input array dimensions must be same size.')
-
-    # numpy corrcoef is faster if both variables need to be z-scored
-    if not np.any(zscored):
-        return np.corrcoef(x, y)[0, 1]
-
-    if not zscored[0]:
-        x = zscore(x, ddof=1)
-    if not zscored[1]:
-        y = zscore(y, ddof=1)
-
-    return np.dot(x.T, y) * (1. / (x.size - 1))
-
-
-def corr_template(temp, sim=0.95):
-    """
-    Generates single waveform template from output of `gen_temp`.
-
-    Correlates each row of `temp` to averaged template and selects rows with
-    correlation >=`sim` for use in final, averaged template.
-
-    Parameters
-    ----------
-    temp : array of waveforms
-    sim : float (0,1)
-        Cutoff for correlation of waveforms to average template
-
-    Returns
-    -------
-    array : template waveform
-    """
-
-    npulse = temp.shape[0]
-
-    mean_temp = zscore(temp.mean(axis=0), ddof=1)
-    sim_to_temp = np.zeros((temp.shape[0], 1))
-
-    for n in range(temp.shape[0]):
-        sim_to_temp[n] = corr(temp[n], mean_temp, [False, True])
-
-    good_temp_ind = np.where(sim_to_temp > sim)[0]
-    if good_temp_ind.shape[0] >= np.ceil(npulse * 0.1):
-        clean_temp = temp[good_temp_ind]
-    else:
-        comp = 1 - np.ceil(npulse * 0.1) / npulse
-        new_temp_ind = np.where(sim_to_temp > comp)[0]
-        clean_temp = np.atleast_2d(temp[new_temp_ind]).T
-
-    return clean_temp.mean(axis=0)

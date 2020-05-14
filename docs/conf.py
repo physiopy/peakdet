@@ -101,7 +101,6 @@ intersphinx_mapping = {
     'matplotlib': ('https://matplotlib.org', None),
     'numpy': ('https://docs.scipy.org/doc/numpy', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
-    'sklearn': ('http://scikit-learn.org/stable', None),
 }
 
 doctest_global_setup = """

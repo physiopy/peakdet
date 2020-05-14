@@ -18,7 +18,6 @@ DOWNLOAD_URL = ('http://github.com/rmarkello/{name}/archive/{ver}.tar.gz'
 INSTALL_REQUIRES = [
     'matplotlib',
     'numpy',
-    'scikit-learn',
     'scipy',
 ]
 

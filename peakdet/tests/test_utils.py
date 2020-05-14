@@ -66,7 +66,7 @@ def test_new_physio_like():
     fname = testutils.get_test_data_path('ECG.csv')
     data = physio.Physio(np.loadtxt(fname), fs=1000.)
     data._history = [('does history', 'copy?')]
-    data._metadata.peaks = np.array([1, 2, 3])
+    data._metadata['peaks'] = np.array([1, 2, 3])
     # assert all copies happen by default
     new_data = utils.new_physio_like(data, data[:])
     assert np.allclose(data, utils.new_physio_like(data, data[:]))
@@ -88,33 +88,3 @@ def test_new_physio_like():
 def test_check_troughs():
     true = np.array([9, 21])
     assert_array_equal(utils.check_troughs(DATA, PEAKS), true)
-
-
-def test_corr():
-    x = np.random.rand(10, 1)
-    # works both as 2D and 1D vectors (i.e., squeezeable)
-    assert np.allclose(utils.corr(x, x), 1)
-    assert np.allclose(utils.corr(x.squeeze(), x.squeeze()), 1)
-    # error raised when inputs aren't the same size
-    with pytest.raises(ValueError):
-        utils.corr(x, np.random.rand(9, 1))
-    # error raised when one of the inputs is not squeezeable
-    with pytest.raises(ValueError):
-        utils.corr(x, np.random.rand(10, 2))
-    # zscore only first
-    utils.corr(x, x, zscored=[False, True])
-    # zscore only second
-    utils.corr(x, x, zscored=[True, False])
-    # zscore both
-    utils.corr(x, x, zscored=[True, True])
-
-
-def test_gen_temp():
-    peaks = testutils.get_peak_data()
-    utils.gen_temp(peaks.data, peaks.peaks)
-
-
-def test_corr_template():
-    peaks = testutils.get_peak_data()
-    temp = utils.gen_temp(peaks.data, peaks.peaks)
-    assert utils.corr_template(temp).size == temp.shape[-1]

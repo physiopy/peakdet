@@ -4,7 +4,6 @@ Helper class for holding physiological data and associated metadata inforamtion
 """
 
 import numpy as np
-from sklearn.utils import Bunch
 
 
 class Physio():
@@ -63,11 +62,11 @@ class Physio():
                     except TypeError:
                         raise TypeError('Provided metadata must be dict-like'
                                         'with integer array entries.')
-            self._metadata = Bunch(**metadata)
+            self._metadata = dict(**metadata)
         else:
-            self._metadata = Bunch(peaks=np.empty(0, dtype=int),
-                                   troughs=np.empty(0, dtype=int),
-                                   reject=np.empty(0, dtype=int))
+            self._metadata = dict(peaks=np.empty(0, dtype=int),
+                                  troughs=np.empty(0, dtype=int),
+                                  reject=np.empty(0, dtype=int))
 
     def __array__(self):
         return self.data
@@ -110,10 +109,10 @@ class Physio():
     @property
     def troughs(self):
         """ Indices of detected troughs in `data` """
-        return self._metadata.troughs
+        return self._metadata['troughs']
 
     @property
     def _masked(self):
-        return np.ma.masked_array(self._metadata.peaks,
-                                  mask=np.isin(self._metadata.peaks,
-                                               self._metadata.reject))
+        return np.ma.masked_array(self._metadata['peaks'],
+                                  mask=np.isin(self._metadata['peaks'],
+                                               self._metadata['reject']))

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
 from scipy.interpolate import InterpolatedUnivariateSpline
+
 from peakdet import editor, utils
 
 
@@ -128,8 +129,8 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
     # second, more thorough peak detection
     cdist = np.diff(locs).mean() // 2
     heights = np.percentile(heights['peak_heights'], 1)
-    data._metadata['peaks'] = signal.find_peaks(data[:], distance=cdist,
-                                                height=heights)[0]
+    locs, heights = signal.find_peaks(data[:], distance=cdist, height=heights)
+    data._metadata['peaks'] = locs
     # perform trough detection based on detected peaks
     data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
 
