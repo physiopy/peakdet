@@ -12,14 +12,14 @@ class HRModality():
         time = np.arange(start - mod, end + mod + 1, self.TR, dtype='int')
         HR = np.zeros(len(time) - step)
 
-        for l in range(step, time.size):
-            inds = np.logical_and(self.rrtime >= time[l - step],
-                                  self.rrtime < time[l])
+        for tpoint in range(step, time.size):
+            inds = np.logical_and(self.rrtime >= time[tpoint - step],
+                                  self.rrtime < time[tpoint])
             relevant = self.rrint[inds]
 
             if relevant.size == 0:
                 continue
-            HR[l - step] = (60 / relevant).mean()
+            HR[tpoint - step] = (60 / relevant).mean()
 
         return HR
 

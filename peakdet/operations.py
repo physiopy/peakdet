@@ -5,8 +5,7 @@ Functions for processing and interpreting physiological data
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy import signal
-from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy import interpolate, signal
 from peakdet import editor, utils
 
 
@@ -63,7 +62,7 @@ def filter_physio(data, cutoffs, method, *, order=3):
 
 
 @utils.make_operation()
-def interpolate_physio(data, target_fs):
+def interpolate_physio(data, target_fs, *, kind='cubic'):
     """
     Interpolates `data` to desired sampling rate `target_fs`
 
@@ -73,6 +72,9 @@ def interpolate_physio(data, target_fs):
         Input physiological data to be interpolated
     target_fs : float
         Desired sampling rate for `data`
+    kind : str or int, optional
+        Type of interpolation to perform. Must be one of available kinds in
+        :func:`scipy.interpolate.interp1d`. Default: 'cubic'
 
     Returns
     -------
@@ -89,7 +91,7 @@ def interpolate_physio(data, target_fs):
     t_new = np.linspace(0, len(data) / data.fs, int(len(data) * factor))
 
     # interpolate data and generate new Physio object
-    interp = InterpolatedUnivariateSpline(t_orig, data[:])(t_new)
+    interp = interpolate.interp1d(t_orig, data, kind=kind)(t_new)
     interp = utils.new_physio_like(data, interp, fs=target_fs)
 
     return interp
@@ -122,12 +124,16 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
 
     # first pass peak detection to get approximate distance between peaks
     cdist = data.fs // 4 if dist is None else dist
-    locs = utils.find_peaks(data, dist=cdist, thresh=thresh)
-    cdist = np.diff(locs).mean() // 2
+    thresh = np.squeeze(np.diff(np.percentile(data, [5, 95]))) * thresh
+    locs, heights = signal.find_peaks(data[:], distance=cdist, height=thresh)
+
     # second, more thorough peak detection
-    data._metadata.peaks = utils.find_peaks(data, dist=cdist, thresh=thresh)
+    cdist = np.diff(locs).mean() // 2
+    heights = np.percentile(heights['peak_heights'], 1)
+    locs, heights = signal.find_peaks(data[:], distance=cdist, height=heights)
+    data._metadata['peaks'] = locs
     # perform trough detection based on detected peaks
-    data._metadata.troughs = utils.check_troughs(data, data.peaks, [])
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
 
     return data
 
@@ -148,9 +154,8 @@ def delete_peaks(data, remove):
     """
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    data._metadata.peaks = np.setdiff1d(data._metadata.peaks, remove)
-    data._metadata.troughs = utils.check_troughs(data, data.peaks,
-                                                 data.troughs)
+    data._metadata['peaks'] = np.setdiff1d(data._metadata['peaks'], remove)
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
 
     return data
 
@@ -171,9 +176,8 @@ def reject_peaks(data, remove):
     """
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    data._metadata.reject = np.append(data._metadata.reject, remove)
-    data._metadata.troughs = utils.check_troughs(data, data.peaks,
-                                                 data.troughs)
+    data._metadata['reject'] = np.append(data._metadata['reject'], remove)
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
 
     return data
 

@@ -67,14 +67,14 @@ def test_peakfind_physio():
 
 
 def test_delete_peaks():
-    to_delete = [192, 24685, 44169]
+    to_delete = [24685, 44169]
     peaks = operations.peakfind_physio(WITHFS)
     deleted = operations.delete_peaks(peaks, to_delete)
     assert len(deleted.peaks) == len(peaks.peaks) - len(to_delete)
 
 
 def test_reject_peaks():
-    to_reject = [192, 24685, 44169]
+    to_reject = [24685, 44169]
     peaks = operations.peakfind_physio(WITHFS)
     rejected = operations.reject_peaks(peaks, to_reject)
     assert len(rejected.peaks) == len(peaks.peaks) - len(to_reject)

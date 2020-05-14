@@ -112,19 +112,18 @@ class _PhysioEditor():
         func, peaks = self.data._history.pop()
 
         if func == 'reject_peaks':
-            self.data._metadata.reject = np.setdiff1d(
-                self.data._metadata.reject, peaks['remove']
+            self.data._metadata['reject'] = np.setdiff1d(
+                self.data._metadata['reject'], peaks['remove']
             )
             self.rejected.difference_update(peaks['remove'])
         elif func == 'delete_peaks':
-            self.data._metadata.peaks = np.insert(
-                self.data._metadata.peaks,
-                np.searchsorted(self.data._metadata.peaks, peaks['remove']),
+            self.data._metadata['peaks'] = np.insert(
+                self.data._metadata['peaks'],
+                np.searchsorted(self.data._metadata['peaks'], peaks['remove']),
                 peaks['remove']
             )
             self.deleted.difference_update(peaks['remove'])
 
-        self.data._metadata.troughs = utils.check_troughs(self.data,
-                                                          self.data.peaks,
-                                                          self.data.troughs)
+        self.data._metadata['troughs'] = utils.check_troughs(self.data,
+                                                             self.data.peaks)
         self.plot_signals()
