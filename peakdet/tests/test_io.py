@@ -10,19 +10,22 @@ from peakdet.tests.utils import get_test_data_path
 
 def test_load_physio():
     # try loading pickle file (from io.save_physio)
-    pckl = io.load_physio(get_test_data_path('ECG.phys'))
+    pckl = io.load_physio(get_test_data_path('ECG.phys'), allow_pickle=True)
     assert isinstance(pckl, physio.Physio)
     assert pckl.data.size == 44611
     assert pckl.fs == 1000.
     with pytest.warns(UserWarning):
-        pckl = io.load_physio(get_test_data_path('ECG.phys'), fs=500.)
+        pckl = io.load_physio(get_test_data_path('ECG.phys'), fs=500.,
+                              allow_pickle=True)
     assert pckl.fs == 500.
+
     # try loading CSV file
     csv = io.load_physio(get_test_data_path('ECG.csv'))
     assert isinstance(csv, physio.Physio)
     assert np.allclose(csv, pckl)
     assert np.isnan(csv.fs)
     assert csv.history[0][0] == 'load_physio'
+
     # try loading array
     with pytest.warns(UserWarning):
         arr = io.load_physio(np.loadtxt(get_test_data_path('ECG.csv')))
@@ -30,6 +33,7 @@ def test_load_physio():
     arr = io.load_physio(np.loadtxt(get_test_data_path('ECG.csv')),
                          history=[('np.loadtxt', {'fname': 'ECG.csv'})])
     assert isinstance(arr, physio.Physio)
+
     # try loading physio object (and resetting dtype)
     out = io.load_physio(arr, dtype='float32')
     assert out.data.dtype == np.dtype('float32')
@@ -40,10 +44,10 @@ def test_load_physio():
 
 
 def test_save_physio(tmpdir):
-    pckl = io.load_physio(get_test_data_path('ECG.phys'))
+    pckl = io.load_physio(get_test_data_path('ECG.phys'), allow_pickle=True)
     out = io.save_physio(tmpdir.join('tmp').purebasename, pckl)
     assert os.path.exists(out)
-    assert isinstance(io.load_physio(out), physio.Physio)
+    assert isinstance(io.load_physio(out, allow_pickle=True), physio.Physio)
 
 
 def test_load_history(tmpdir):

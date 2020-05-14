@@ -12,7 +12,8 @@ from peakdet import physio, utils
 EXPECTED = ['data', 'fs', 'history', 'metadata']
 
 
-def load_physio(data, *, fs=None, dtype=None, history=None):
+def load_physio(data, *, fs=None, dtype=None, history=None,
+                allow_pickle=False):
     """
     Returns `Physio` object with provided data
 
@@ -26,6 +27,9 @@ def load_physio(data, *, fs=None, dtype=None, history=None):
         Data type to convert `data` to, if conversion needed. Default: None
     history : list of tuples, optional
         Functions that have been performed on `data`. Default: None
+    allow_pickle : bool, optional
+        Whether to allow loading if `data` contains pickled objects. Default:
+        False
 
     Returns
     -------
@@ -42,7 +46,7 @@ def load_physio(data, *, fs=None, dtype=None, history=None):
     # load it as a plain text file and instantiate a history
     if isinstance(data, str):
         try:
-            inp = dict(np.load(data))
+            inp = dict(np.load(data, allow_pickle=allow_pickle))
             for attr in EXPECTED:
                 try:
                     inp[attr] = inp[attr].dtype.type(inp[attr])
@@ -53,7 +57,7 @@ def load_physio(data, *, fs=None, dtype=None, history=None):
             # fix history, which needs to be list-of-tuple
             if inp['history'] is not None:
                 inp['history'] = list(map(tuple, inp['history']))
-        except IOError:
+        except (IOError, OSError, ValueError):
             inp = dict(data=np.loadtxt(data),
                        history=[utils._get_call(exclude=[])])
         phys = physio.Physio(**inp)
@@ -86,33 +90,33 @@ def load_physio(data, *, fs=None, dtype=None, history=None):
     return phys
 
 
-def save_physio(file, data):
+def save_physio(fname, data):
     """
     Saves `data` to `fname`
 
     Parameters
     ----------
-    file : str
+    fname : str
         Path to output file; .phys will be appended if necessary
     data : Physio_like
         Data to be saved to file
 
     Returns
     -------
-    file : str
+    fname : str
         Full filepath to saved output
     """
 
     from peakdet.utils import check_physio
 
     data = check_physio(data)
-    file += '.phys' if not file.endswith('.phys') else ''
-    with open(file, 'wb') as dest:
+    fname += '.phys' if not fname.endswith('.phys') else ''
+    with open(fname, 'wb') as dest:
         hist = data.history if data.history != [] else None
         np.savez_compressed(dest, data=data.data, fs=data.fs,
                             history=hist, metadata=data._metadata)
 
-    return file
+    return fname
 
 
 def load_history(file, verbose=False):
