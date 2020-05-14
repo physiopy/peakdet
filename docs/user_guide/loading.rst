@@ -33,7 +33,7 @@ This way, the loading of the data is retained in the object's history:
 .. doctest::
 
     >>> ecg.history
-    [('load_physio', {'data': 'ECG.csv', 'dtype': None, 'fs': 1000.0, 'history': None})]
+    [('load_physio', {'allow_pickle': False, 'data': 'ECG.csv', 'dtype': None, 'fs': 1000.0, 'history': None})]
 
 There are also a number of functions for loading data from "standard" formats.
 For example, if your data were collected using the `rtpeaks <https://github.com

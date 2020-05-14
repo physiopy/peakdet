@@ -7,6 +7,7 @@
     data = operations.interpolate_physio(data, target_fs=250.0)
     data = operations.filter_physio(data, cutoffs=1.0, method='lowpass')
     data = operations.peakfind_physio(data, thresh=0.1, dist=100)
+    data = operations.reject_peaks(data, [81441, 160786, 163225])
 
 Deriving physiological metrics
 ------------------------------
@@ -26,7 +27,7 @@ directly to the :py:class:`~.HRV` class:
     >>> from peakdet import HRV
     >>> metrics = HRV(data)
     >>> print(f'{metrics.rmssd:.2f} ms')
-    27.75 ms
+    26.61 ms
 
 The :py:class:`~.HRV` class contains many common heart rate variability metrics
 including the root mean square of successive differences, as shown above. It

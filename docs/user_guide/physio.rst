@@ -68,9 +68,9 @@ store the indices of the detected :py:attr:`~.Physio.peaks` and
 
     >>> phys = operations.peakfind_physio(phys)
     >>> phys.peaks
-    array([ 477, 2120, 3253, 4128])
+    array([ 477, 2120, 3253])
     >>> phys.troughs
-    array([1413, 2611, 3756])
+    array([1413, 2611])
 
 Next, we'll move on to how you can load your data into a :py:class:`~.Physio`
 object in a more reproducible manner. Feel free to refer to the :ref:`api_ref`
