@@ -6,7 +6,7 @@ function Usage {
 Description:
 
     hrv_pipeline runs a simple peak detection workflow using the peakdet
-    package (see https://github.com/rmarkello/peakdet). It accepts raw
+    package (see https://github.com/physiopy/peakdet). It accepts raw
     physiological files and outputs a summary file with requested HRV
     measurements.
 
@@ -53,7 +53,7 @@ function check_peakdet_env() {
     # see if peakdet env exists
     if [ -z "$( conda env list | grep peakdet )" ]; then
         echo 'Creating peakdet environment. This should only happen once but might take a while'
-        env_file=https://raw.githubusercontent.com/rmarkello/peakdet/master/scripts/environment.yml
+        env_file=https://raw.githubusercontent.com/physiopy/peakdet/master/scripts/environment.yml
         curl -sSL --retry 5 -o ${PWD}/env.yml ${env_file}
         conda env create -q -f ${PWD}/env.yml
         rm -f ${PWD}/env.yml
@@ -99,7 +99,7 @@ if [ "$UPDATE" -eq 1 ]; then
     check_conda_install
     check_peakdet_env
     echo 'Updating peakdet for hrv_pipeline'
-    pip install -U --no-deps --no-cache-dir https://github.com/rmarkello/peakdet/tarball/master
+    pip install -U --no-deps --no-cache-dir https://github.com/physiopy/peakdet/tarball/master
 # if we're just installing
 elif [ "$INSTALL_ONLY" -eq 1 ]; then
     check_conda_install

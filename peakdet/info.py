@@ -11,8 +11,8 @@ A toolbox for reproducible physiological data analysis\
 """
 LONG_DESCRIPTION = 'README.rst'
 LONG_DESCRIPTION_CONTENT_TYPE = 'text/x-rst'
-URL = 'https://github.com/rmarkello/{name}'.format(name=NAME)
-DOWNLOAD_URL = ('http://github.com/rmarkello/{name}/archive/{ver}.tar.gz'
+URL = 'https://github.com/physiopy/{name}'.format(name=NAME)
+DOWNLOAD_URL = ('http://github.com/physiopy/{name}/archive/{ver}.tar.gz'
                 .format(name=NAME, ver=__version__))
 
 INSTALL_REQUIRES = [

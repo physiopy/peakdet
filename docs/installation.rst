@@ -14,6 +14,6 @@ the following:
 
 .. code-block:: bash
 
-   git clone https://github.com/rmarkello/peakdet.git
+   git clone https://github.com/physiopy/peakdet.git
    cd peakdet
    python setup.py install
