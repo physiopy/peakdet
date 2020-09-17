@@ -1,6 +1,7 @@
 import os
 import sys
 
+import versioneer
 
 def main():
     from setuptools import setup, find_packages
@@ -36,7 +37,8 @@ def main():
         package_data=ldict['PACKAGE_DATA'],
         tests_require=ldict['TESTS_REQUIRES'],
         url=ldict['URL'],
-        version=ldict['VERSION']
+        version=versioneer.get_version(),
+        cmdclass=versioneer.get_cmdclass()
     )
 
 

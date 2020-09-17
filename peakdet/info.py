@@ -1,5 +1,6 @@
+import versioneer
 
-__version__ = '0.0.1'
+__version__ = versioneer.get_version()
 
 NAME = 'peakdet'
 MAINTAINER = 'Ross Markello'
