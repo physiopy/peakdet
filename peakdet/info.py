@@ -1,11 +1,6 @@
-from ._version import get_versions
-
-__version__ = get_versions()
-
 NAME = 'peakdet'
 MAINTAINER = 'Ross Markello'
 EMAIL = 'rossmarkello@gmail.com'
-VERSION = __version__
 LICENSE = 'Apache-2.0'
 DESCRIPTION = """\
 A toolbox for reproducible physiological data analysis\
@@ -13,8 +8,8 @@ A toolbox for reproducible physiological data analysis\
 LONG_DESCRIPTION = 'README.rst'
 LONG_DESCRIPTION_CONTENT_TYPE = 'text/x-rst'
 URL = 'https://github.com/physiopy/{name}'.format(name=NAME)
-DOWNLOAD_URL = ('http://github.com/physiopy/{name}/archive/{ver}.tar.gz'
-                .format(name=NAME, ver=__version__))
+DOWNLOAD_URL = ('http://github.com/physiopy/{name}/archive/'
+                .format(name=NAME))
 
 INSTALL_REQUIRES = [
     'matplotlib',
