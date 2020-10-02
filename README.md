@@ -1,7 +1,49 @@
+<!--(https://raw.githubusercontent.com/physiopy/phys2bids/master/docs/_static/phys2bids_card.jpg)-->
+<a name="readme"></a>
+<!-- <img alt="Phys2BIDS" src="https://github.com/physiopy/phys2bids/blob/master/docs/_static/phys2bids_logo1280×640.png" height="150"> -->
+
+peakdet: A toolbox for physiological peak detection analyses
+============================================================
+
+[![Apache 2.0](https://img.shields.io/badge/license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+[![Join the chat at Gitter: https://gitter.im/physiopy](https://badges.gitter.im/physiopy/phys2bids.svg)](https://gitter.im/physiopy?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge)
+[![codecov](https://codecov.io/gh/rmarkello/peakdet/branch/master/graph/badge.svg)](https://codecov.io/gh/rmarkello/peakdet)
+
+[![TravisCI](https://travis-ci.org/rmarkello/peakdet.svg?branch=master)](https://travis-ci.org/rmarkello/peakdet)
+[![See the documentation at: http://peakdet.readthedocs.io](https://readthedocs.org/projects/peakdet/badge/?version=latest)](http://peakdet.readthedocs.io/en/latest)
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
+
+This package is designed for use in the reproducible processing and analysis of
+physiological data, like those collected from respiratory belts, pulse
+photoplethysmography, or electrocardiogram (ECG/EKG) monitors.
+
+## Overview
+
+Physiological data are messy and prone to artifact (e.g., movement in
+respiration and pulse, ectopic beats in ECG). Despite leaps and bounds in
+recent algorithms for processing these data there still exists a need for
+manual inspection to ensure such artifacts have been appropriately removed.
+Because of this manual intervention step, understanding exactly what happened
+to go from "raw" data to "analysis-ready" data can often be difficult or
+impossible.
+
+This toolbox, ``peakdet``, aims to provide a set of tools that will work with a
+variety of input data to reproducibly generate manually-corrected, analysis-
+ready physiological data. If you'd like more information about the package,
+including how to install it and some example instructions on its use, check out
+our `documentation <https://peakdet.readthedocs.io>`_!
+
+## License Information
+
+This codebase is licensed under the Apache License, Version 2.0. The full
+license can be found in the `LICENSE <https://github.com/physiopy/peakdet/
+blob/master/LICENSE>`_ file in the ``peakdet`` distribution. You may also
+obtain a copy of the license at: http://www.apache.org/licenses/LICENSE-2.0.
+
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
