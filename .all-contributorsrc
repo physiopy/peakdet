@@ -1,0 +1,53 @@
+{
+  "projectName": "peakdet",
+  "projectOwner": "physiopy",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat)](#contributors)",
+  "imageSize": 100,
+  "commit": true,
+  "commitConvention": "none",
+  "contributorsPerLine": 4,
+  "contributors": [
+    {
+      "login": "rmarkello",
+      "name": "Ross Markello",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/14265705?v=4",
+      "profile": "https://github.com/rmarkello",
+      "contributions": [
+        "bug",
+        "code",
+        "doc",
+        "ideas",
+        "infra",
+        "maintenance",
+        "projectManagement",
+        "review",
+        "test",
+        "tutorial"
+      ]
+    },
+    {
+      "login": "emdupre",
+      "name": "Elizabeth DuPre",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/15017191?v=4",
+      "profile": "https://github.com/emdupre",
+      "contributions": [
+        "code",
+        "infra"
+      ]
+    },
+    {
+      "login": "xl624",
+      "name": "xl624",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/25593301?v=4",
+      "profile": "https://github.com/xl624",
+      "contributions": [
+        "code"
+      ]
+    }
+  ]
+}
