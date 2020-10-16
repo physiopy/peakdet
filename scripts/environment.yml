@@ -12,4 +12,4 @@ dependencies:
     - wxpython
     - pip:
         - git+https://github.com/chriskiehl/Gooey.git#egg=gooey
-        - git+https://github.com/rmarkello/peakdet.git#egg=peakdet
+        - git+https://github.com/physiopy/peakdet.git#egg=peakdet
