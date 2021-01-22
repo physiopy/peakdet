@@ -182,6 +182,28 @@ def reject_peaks(data, remove):
     return data
 
 
+@utils.make_operation()
+def add_peaks(data, scan):
+    """
+    Find peaks in `remove` to add them in `data`
+
+    Parameters
+    ----------
+    data : Physio_like
+    remove : array_like
+
+    Returns
+    -------
+    data : Physio_like
+    """
+
+    data = utils.check_physio(data, ensure_fs=False, copy=True)
+    data._metadata['reject'] = np.append(data._metadata['reject'], remove)
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
+
+    return data
+
+
 def edit_physio(data):
     """
     Opens interactive plot with `data` to permit manual editing of time series
