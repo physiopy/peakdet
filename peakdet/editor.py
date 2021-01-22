@@ -28,22 +28,26 @@ class _PhysioEditor():
 
         # we need to create these variables in case someone doesn't "quit"
         # the plot appropriately (i.e., clicks X instead of pressing ctrl+q)
-        self.deleted, self.rejected = set(), set()
+        self.deleted, self.rejected, self.included = set(), set(), set()
 
         # make main plot objects
         self.fig, self.ax = plt.subplots(nrows=1, ncols=1, tight_layout=True)
         self.fig.canvas.mpl_connect('scroll_event', self.on_wheel)
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 
-        # two selectors for rejection (left mouse) and deletion (right mouse)
+        # three selectors for rejection (left mouse), addition (central mouse), and deletion (right mouse)
         reject = functools.partial(self.on_remove, reject=True)
         delete = functools.partial(self.on_remove, reject=False)
+        include = functools.partial(self.on_include)
         self.span1 = SpanSelector(self.ax, reject, 'horizontal',
                                   button=1, useblit=True,
                                   rectprops=dict(facecolor='red', alpha=0.3))
         self.span2 = SpanSelector(self.ax, delete, 'horizontal',
                                   button=3, useblit=True,
                                   rectprops=dict(facecolor='blue', alpha=0.3))
+        self.span3 = SpanSelector(self.ax, include, 'horizontal',
+                                  button=2, useblit=True,
+                                  rectprops=dict(facecolor='green', alpha=0.3))
 
         self.plot_signals(False)
 
