@@ -106,6 +106,22 @@ class _PhysioEditor():
         self.data = fcn(self.data, self.data.peaks[bad])
         self.plot_signals()
 
+    def on_include(self, xmin, xmax):
+        """ Include specified peaks by slecting the highest point in the selection """
+        tmin, tmax = np.searchsorted(self.time, (xmin, xmax))
+        pmin, pmax = np.searchsorted(self.data.peaks, (tmin, tmax))
+        good = np.arange(pmin, pmax, dtype=int)
+
+        if len(good) == 0:
+            return
+
+        add, fcn = self.included, operations.add_peaks
+
+        # store edits in local history
+        add.update(self.data.peaks[good].tolist())
+        self.data = fcn(self.data, self.data.peaks[good])
+        self.plot_signals()
+
     def undo(self):
         """ Resets last span select peak removal """
         # check if last history entry was a manual reject / delete
