@@ -185,7 +185,7 @@ def reject_peaks(data, remove):
 @utils.make_operation()
 def add_peaks(data, scan):
     """
-    Find peaks in `remove` to add them in `data`
+    Find peaks in `scan` to add them in `data`
 
     Parameters
     ----------
@@ -198,7 +198,7 @@ def add_peaks(data, scan):
     """
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    data._metadata['reject'] = np.append(data._metadata['reject'], remove)
+    data._metadata['peaks'] = np.append(data._metadata['peaks'], scan)
     data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
 
     return data
