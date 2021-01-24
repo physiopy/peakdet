@@ -107,19 +107,20 @@ class _PhysioEditor():
         self.plot_signals()
 
     def on_include(self, xmin, xmax):
-        """ Include specified peaks by slecting the highest point in the selection """
+        """ Include ONE peak by slecting the highest point in the selection """
         tmin, tmax = np.searchsorted(self.time, (xmin, xmax))
-        pmin, pmax = np.searchsorted(self.data.peaks, (tmin, tmax))
-        good = np.arange(pmin, pmax, dtype=int)
+        pins = np.searchsorted(self.data.peaks, tmin)
+        temp_peak = np.argmax(self.data.data[tmin:tmax])
 
-        if len(good) == 0:
+        if temp_peak == 0:
             return
 
+        newpeak = tmin + temp_peak
         add, fcn = self.included, operations.add_peaks
 
         # store edits in local history
-        add.update(self.data.peaks[good].tolist())
-        self.data = fcn(self.data, self.data.peaks[good])
+        add.update(newpeak.tolist())
+        self.data = fcn(self.data, newpeak, pins)
         self.plot_signals()
 
     def undo(self):
