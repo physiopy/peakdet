@@ -183,14 +183,14 @@ def reject_peaks(data, remove):
 
 
 @utils.make_operation()
-def add_peaks(data, scan):
+def add_peaks(data, newpeak, pins):
     """
-    Find peaks in `scan` to add them in `data`
+    Add `newpeak` to add them in `data`
 
     Parameters
     ----------
     data : Physio_like
-    remove : array_like
+    newpeak : int
 
     Returns
     -------
@@ -198,7 +198,7 @@ def add_peaks(data, scan):
     """
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    data._metadata['peaks'] = np.append(data._metadata['peaks'], scan)
+    data._metadata['peaks'] = np.insert(data._metadata['peaks'], pins, newpeak)
     data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
 
     return data
