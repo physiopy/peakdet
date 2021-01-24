@@ -36,9 +36,9 @@ class _PhysioEditor():
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 
         # three selectors for rejection (left mouse), addition (central mouse), and deletion (right mouse)
-        reject = functools.partial(self.on_remove, reject=True)
-        delete = functools.partial(self.on_remove, reject=False)
-        include = functools.partial(self.on_include)
+        reject = functools.partial(self.on_edit, reject=True)
+        delete = functools.partial(self.on_edit, reject=False)
+        include = functools.partial(self.on_edit, insert=True)
         self.span1 = SpanSelector(self.ax, reject, 'horizontal',
                                   button=1, useblit=True,
                                   rectprops=dict(facecolor='red', alpha=0.3))
@@ -87,40 +87,45 @@ class _PhysioEditor():
         elif event.key in ['ctrl+q', 'super+d']:
             self.quit()
 
-    def on_remove(self, xmin, xmax, *, reject):
-        """ Removes specified peaks by either rejection / deletion """
+    def on_edit(self, xmin, xmax, *, reject=False, insert=False):
+        """
+        Edit peaks by rejection, deletion, or insert.
+
+        Removes specified peaks by either rejection / deletion, OR
+        Include one peak by finding the max in the selection.
+
+        If both reject and insert are True, error!
+        """
+
+        if reject and insert:
+            raise Exception('Selected to both reject and insert! Program goes kaput.')
+
         tmin, tmax = np.searchsorted(self.time, (xmin, xmax))
         pmin, pmax = np.searchsorted(self.data.peaks, (tmin, tmax))
-        bad = np.arange(pmin, pmax, dtype=int)
 
-        if len(bad) == 0:
-            return
+        if insert:
+            temp_peak = np.argmax(self.data.data[tmin:tmax])
+            if temp_peak == 0:
+                return
+            newpeak = tmin + temp_peak
+        else:
+            bad = np.arange(pmin, pmax, dtype=int)
+            if len(bad) == 0:
+                return
 
         if reject:
             rej, fcn = self.rejected, operations.reject_peaks
-        else:
+        elif not insert:
             rej, fcn = self.deleted, operations.delete_peaks
 
-        # store edits in local history
-        rej.update(self.data.peaks[bad].tolist())
-        self.data = fcn(self.data, self.data.peaks[bad])
-        self.plot_signals()
+        # store edits in local history & call function
+        if insert:
+            self.included.update(newpeak.tolist())
+            self.data = operations.add_peaks(self.data, newpeak, pmin)
+        else:
+            rej.update(self.data.peaks[bad].tolist())
+            self.data = fcn(self.data, self.data.peaks[bad])
 
-    def on_include(self, xmin, xmax):
-        """ Include ONE peak by slecting the highest point in the selection """
-        tmin, tmax = np.searchsorted(self.time, (xmin, xmax))
-        pins = np.searchsorted(self.data.peaks, tmin)
-        temp_peak = np.argmax(self.data.data[tmin:tmax])
-
-        if temp_peak == 0:
-            return
-
-        newpeak = tmin + temp_peak
-        add, fcn = self.included, operations.add_peaks
-
-        # store edits in local history
-        add.update(newpeak.tolist())
-        self.data = fcn(self.data, newpeak, pins)
         self.plot_signals()
 
     def undo(self):
