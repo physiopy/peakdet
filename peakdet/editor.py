@@ -38,7 +38,7 @@ class _PhysioEditor():
         # three selectors for rejection (left mouse), addition (central mouse), and deletion (right mouse)
         reject = functools.partial(self.on_edit, reject=True)
         delete = functools.partial(self.on_edit, reject=False)
-        include = functools.partial(self.on_edit, insert=True)
+        include = functools.partial(self.on_edit, reject=False, insert=True)
         self.span1 = SpanSelector(self.ax, reject, 'horizontal',
                                   button=1, useblit=True,
                                   rectprops=dict(facecolor='red', alpha=0.3))
@@ -107,7 +107,7 @@ class _PhysioEditor():
             temp_peak = np.argmax(self.data.data[tmin:tmax])
             if temp_peak == 0:
                 return
-            newpeak = tmin + temp_peak
+            newpeak = [tmin + temp_peak]
         else:
             bad = np.arange(pmin, pmax, dtype=int)
             if len(bad) == 0:
@@ -120,7 +120,7 @@ class _PhysioEditor():
 
         # store edits in local history & call function
         if insert:
-            self.included.update(newpeak.tolist())
+            self.included.add(newpeak)
             self.data = operations.add_peaks(self.data, newpeak, pmin)
         else:
             rej.update(self.data.peaks[bad].tolist())
