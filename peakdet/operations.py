@@ -183,7 +183,7 @@ def reject_peaks(data, remove):
 
 
 @utils.make_operation()
-def add_peaks(data, newpeak, pins):
+def add_peaks(data, add):
     """
     Add `newpeak` to add them in `data`
 
@@ -191,6 +191,7 @@ def add_peaks(data, newpeak, pins):
     ----------
     data : Physio_like
     newpeak : int
+    pins : int
 
     Returns
     -------
@@ -198,7 +199,8 @@ def add_peaks(data, newpeak, pins):
     """
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    data._metadata['peaks'] = np.insert(data._metadata['peaks'], pins, newpeak)
+    idx = np.searchsorted(data._metadata['peaks'], add)
+    data._metadata['peaks'] = np.insert(data._metadata['peaks'], idx, add)
     data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
 
     return data
@@ -228,13 +230,14 @@ def edit_physio(data):
     # perform manual editing
     edits = editor._PhysioEditor(data)
     plt.show(block=True)
-    delete, reject = sorted(edits.deleted), sorted(edits.rejected)
 
     # replay editing on original provided data object
-    if reject is not None:
-        data = reject_peaks(data, remove=reject)
-    if delete is not None:
-        data = delete_peaks(data, remove=delete)
+    if len(edits.rejected) > 0:
+        data = reject_peaks(data, remove=sorted(edits.rejected))
+    if len(edits.deleted) > 0:
+        data = delete_peaks(data, remove=sorted(edits.deleted))
+    if len(edits.included) > 0:
+        data = add_peaks(data, add=sorted(edits.included))
 
     return data
 

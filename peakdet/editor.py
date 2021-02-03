@@ -35,7 +35,10 @@ class _PhysioEditor():
         self.fig.canvas.mpl_connect('scroll_event', self.on_wheel)
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 
-        # three selectors for rejection (left mouse), addition (central mouse), and deletion (right mouse)
+        # three selectors for:
+        #    1. rejection (left mouse),
+        #    2. addition (central mouse), and
+        #    3. deletion (right mouse)
         reject = functools.partial(self.on_edit, reject=True)
         delete = functools.partial(self.on_edit, reject=False)
         include = functools.partial(self.on_edit, reject=False, insert=True)
@@ -98,19 +101,21 @@ class _PhysioEditor():
         """
 
         if reject and insert:
-            raise Exception('Selected to both reject and insert! Program goes kaput.')
+            raise ValueError('Cannot select both reject and insert!')
 
         tmin, tmax = np.searchsorted(self.time, (xmin, xmax))
         pmin, pmax = np.searchsorted(self.data.peaks, (tmin, tmax))
 
         if insert:
-            temp_peak = np.argmax(self.data.data[tmin:tmax])
-            if temp_peak == 0:
+            tmp = np.argmax(self.data.data[tmin:tmax]) if tmin != tmax else 0
+            newpeak = tmin + tmp
+            if newpeak == tmin:
+                self.plot_signals()
                 return
-            newpeak = [tmin + temp_peak]
         else:
             bad = np.arange(pmin, pmax, dtype=int)
             if len(bad) == 0:
+                self.plot_signals()
                 return
 
         if reject:
@@ -121,7 +126,7 @@ class _PhysioEditor():
         # store edits in local history & call function
         if insert:
             self.included.add(newpeak)
-            self.data = operations.add_peaks(self.data, newpeak, pmin)
+            self.data = operations.add_peaks(self.data, newpeak)
         else:
             rej.update(self.data.peaks[bad].tolist())
             self.data = fcn(self.data, self.data.peaks[bad])
@@ -131,7 +136,8 @@ class _PhysioEditor():
     def undo(self):
         """ Resets last span select peak removal """
         # check if last history entry was a manual reject / delete
-        if self.data._history[-1][0] not in ['reject_peaks', 'delete_peaks']:
+        relevant = ['reject_peaks', 'delete_peaks', 'add_peaks']
+        if self.data._history[-1][0] not in relevant:
             return
 
         # pop off last edit and delete
@@ -149,7 +155,12 @@ class _PhysioEditor():
                 peaks['remove']
             )
             self.deleted.difference_update(peaks['remove'])
-
+        elif func == 'add_peaks':
+            self.data._metadata['peaks'] = np.delete(
+                self.data._metadata['peaks'],
+                np.searchsorted(self.data._metadata['peaks'], peaks['add']),
+            )
+            self.included.remove(peaks['add'])
         self.data._metadata['troughs'] = utils.check_troughs(self.data,
                                                              self.data.peaks,
                                                              self.data.troughs)
