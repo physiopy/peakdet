@@ -35,8 +35,8 @@ class _PhysioEditor():
 
         # three selectors for:
         #    1. rejection (left mouse),
-        #    2. addition (central mouse), and
-        #    3. deletion (right mouse)
+        #    2. addition (right mouse), and
+        #    3. deletion (left mouse)
         reject = functools.partial(self.on_edit, method='reject')
         delete = functools.partial(self.on_edit, method='delete')
         insert = functools.partial(self.on_edit, method='insert')
@@ -44,10 +44,10 @@ class _PhysioEditor():
                                   button=1, useblit=True,
                                   rectprops=dict(facecolor='red', alpha=0.3))
         self.span2 = SpanSelector(self.ax, delete, 'horizontal',
-                                  button=3, useblit=True,
+                                  button=2, useblit=True,
                                   rectprops=dict(facecolor='blue', alpha=0.3))
         self.span3 = SpanSelector(self.ax, insert, 'horizontal',
-                                  button=2, useblit=True,
+                                  button=3, useblit=True,
                                   rectprops=dict(facecolor='green', alpha=0.3))
 
         self.plot_signals(False)
