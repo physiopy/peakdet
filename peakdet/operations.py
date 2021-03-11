@@ -190,8 +190,7 @@ def add_peaks(data, add):
     Parameters
     ----------
     data : Physio_like
-    newpeak : int
-    pins : int
+    add : int
 
     Returns
     -------
