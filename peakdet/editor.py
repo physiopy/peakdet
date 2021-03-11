@@ -42,10 +42,10 @@ class _PhysioEditor():
         insert = functools.partial(self.on_edit, method='insert')
         self.span2 = SpanSelector(self.ax, delete, 'horizontal',
                                   button=1, useblit=True,
-                                  rectprops=dict(facecolor='blue', alpha=0.3))
+                                  rectprops=dict(facecolor='red', alpha=0.3))
         self.span1 = SpanSelector(self.ax, reject, 'horizontal',
                                   button=2, useblit=True,
-                                  rectprops=dict(facecolor='red', alpha=0.3))
+                                  rectprops=dict(facecolor='blue', alpha=0.3))
         self.span3 = SpanSelector(self.ax, insert, 'horizontal',
                                   button=3, useblit=True,
                                   rectprops=dict(facecolor='green', alpha=0.3))
