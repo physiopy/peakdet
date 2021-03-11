@@ -34,18 +34,18 @@ class _PhysioEditor():
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 
         # three selectors for:
-        #    1. rejection (left mouse),
+        #    1. rejection (central mouse),
         #    2. addition (right mouse), and
         #    3. deletion (left mouse)
-        reject = functools.partial(self.on_edit, method='reject')
         delete = functools.partial(self.on_edit, method='delete')
+        reject = functools.partial(self.on_edit, method='reject')
         insert = functools.partial(self.on_edit, method='insert')
-        self.span1 = SpanSelector(self.ax, reject, 'horizontal',
-                                  button=1, useblit=True,
-                                  rectprops=dict(facecolor='red', alpha=0.3))
         self.span2 = SpanSelector(self.ax, delete, 'horizontal',
-                                  button=2, useblit=True,
+                                  button=1, useblit=True,
                                   rectprops=dict(facecolor='blue', alpha=0.3))
+        self.span1 = SpanSelector(self.ax, reject, 'horizontal',
+                                  button=2, useblit=True,
+                                  rectprops=dict(facecolor='red', alpha=0.3))
         self.span3 = SpanSelector(self.ax, insert, 'horizontal',
                                   button=3, useblit=True,
                                   rectprops=dict(facecolor='green', alpha=0.3))
