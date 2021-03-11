@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Functions and class for performing interactive editing of physiological data
-"""
+"""Functions and class for performing interactive editing of physiological data."""
 
 import functools
 import numpy as np
@@ -12,7 +10,7 @@ from peakdet import operations, utils
 
 class _PhysioEditor():
     """
-    Class for editing physiological data
+    Class for editing physiological data.
 
     Parameters
     ----------
@@ -55,7 +53,7 @@ class _PhysioEditor():
         self.plot_signals(False)
 
     def plot_signals(self, plot=True):
-        """ Clears axes and plots data / peaks / troughs """
+        """Clear axes and plots data / peaks / troughs."""
         # don't reset x-/y-axis zooms on replot
         if plot:
             xlim, ylim = self.ax.get_xlim(), self.ax.get_ylim()
@@ -73,40 +71,39 @@ class _PhysioEditor():
         self.fig.canvas.draw()
 
     def on_wheel(self, event):
-        """ Moves axis on wheel scroll """
+        """Move axis on wheel scroll."""
         (xlo, xhi), move = self.ax.get_xlim(), event.step * -10
         self.ax.set_xlim(xlo + move, xhi + move)
         self.fig.canvas.draw()
 
     def quit(self):
-        """ Quits editor """
+        """Quit editor."""
         plt.close(self.fig)
 
     def on_key(self, event):
-        """ Undoes last span select or quits peak editor """
+        """Undo last span select or quits peak editor."""
         # accept both control or Mac command key as selector
         if event.key in ['ctrl+z', 'super+d']:
             self.undo()
         elif event.key in ['ctrl+q', 'super+d']:
             self.quit()
 
-    def on_edit(self, xmin, xmax, *, reject=False, insert=False):
+    def on_edit(self, xmin, xmax, *, method):
         """
         Edit peaks by rejection, deletion, or insert.
 
         Removes specified peaks by either rejection / deletion, OR
         Include one peak by finding the max in the selection.
 
-        If both reject and insert are True, error!
+        method accepts 'insert', 'reject', 'delete'
         """
-
-        if reject and insert:
-            raise ValueError('Cannot select both reject and insert!')
+        if method not in ['insert', 'reject', 'delete']:
+            raise ValueError(f'Action "{method}" not supported.')
 
         tmin, tmax = np.searchsorted(self.time, (xmin, xmax))
         pmin, pmax = np.searchsorted(self.data.peaks, (tmin, tmax))
 
-        if insert:
+        if method == 'insert':
             tmp = np.argmax(self.data.data[tmin:tmax]) if tmin != tmax else 0
             newpeak = tmin + tmp
             if newpeak == tmin:
@@ -118,13 +115,13 @@ class _PhysioEditor():
                 self.plot_signals()
                 return
 
-        if reject:
+        if method == 'reject':
             rej, fcn = self.rejected, operations.reject_peaks
-        elif not insert:
+        elif method == 'delete':
             rej, fcn = self.deleted, operations.delete_peaks
 
         # store edits in local history & call function
-        if insert:
+        if method == 'insert':
             self.included.add(newpeak)
             self.data = operations.add_peaks(self.data, newpeak)
         else:
@@ -134,7 +131,7 @@ class _PhysioEditor():
         self.plot_signals()
 
     def undo(self):
-        """ Resets last span select peak removal """
+        """Reset last span select peak removal."""
         # check if last history entry was a manual reject / delete
         relevant = ['reject_peaks', 'delete_peaks', 'add_peaks']
         if self.data._history[-1][0] not in relevant:
