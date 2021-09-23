@@ -33,7 +33,8 @@ class _PhysioEditor():
         # make main plot objects depending on supplementary data
         nrows = 1 if self.suppdata is None else 2
         self.fig, self._ax = plt.subplots(nrows=nrows, ncols=1,
-                                          tight_layout=True, sharex=True)
+                                          tight_layout=True, sharex=True,
+                                          gridspec_kw={'height_ratios': [3, 2]})
         self.fig.canvas.mpl_connect('scroll_event', self.on_wheel)
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 
@@ -76,7 +77,7 @@ class _PhysioEditor():
                      self.data[self.data.troughs], '.g')
 
         if self.suppdata is not None:
-            self._ax[1].plot(self.time, self.suppdata, 'b')
+            self._ax[1].plot(self.time, self.suppdata, 'k', linewidth=0.7)
 
         self.ax.set(xlim=xlim, ylim=ylim, yticklabels='')
         self.fig.canvas.draw()
