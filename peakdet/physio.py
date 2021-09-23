@@ -37,7 +37,7 @@ class Physio():
         Indices of troughs in `data`
     """
 
-    def __init__(self, data, fs=None, history=None, metadata=None):
+    def __init__(self, data, fs=None, history=None, metadata=None, suppldata=None):
         self._data = np.asarray(data).squeeze()
         if self.data.ndim > 1:
             raise ValueError('Provided data dimensionality {} > 1.'
@@ -68,6 +68,7 @@ class Physio():
             self._metadata = dict(peaks=np.empty(0, dtype=int),
                                   troughs=np.empty(0, dtype=int),
                                   reject=np.empty(0, dtype=int))
+        self._suppldata = None if suppldata is None else np.asarray(suppldata).squeeze()
 
     def __array__(self):
         return self.data
