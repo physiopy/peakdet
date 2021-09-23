@@ -24,21 +24,21 @@ class _PhysioEditor():
         fs = 1 if data.fs is None else data.fs
         self.time = np.arange(0, len(data.data) / fs, 1 / fs)
         # Read if there is support data
-        self.suppldata = data.suppldata
+        self.suppdata = data.suppdata
 
         # we need to create these variables in case someone doesn't "quit"
         # the plot appropriately (i.e., clicks X instead of pressing ctrl+q)
         self.deleted, self.rejected, self.included = set(), set(), set()
 
         # make main plot objects depending on supplementary data
-        nrows = 1 if self.suppldata is None else 2
+        nrows = 1 if self.suppdata is None else 2
         self.fig, self._ax = plt.subplots(nrows=nrows, ncols=1,
                                           tight_layout=True, sharex=True)
         self.fig.canvas.mpl_connect('scroll_event', self.on_wheel)
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 
         # Set axis handler
-        self.ax = self._ax if self.suppldata is None else self._ax[0]
+        self.ax = self._ax if self.suppdata is None else self._ax[0]
 
         # three selectors for:
         #    1. rejection (central mouse),
@@ -75,8 +75,8 @@ class _PhysioEditor():
                      self.time[self.data.troughs],
                      self.data[self.data.troughs], '.g')
 
-        if self.suppldata is not None:
-            self._ax[1].plot(self.time, self.suppldata, 'b')
+        if self.suppdata is not None:
+            self._ax[1].plot(self.time, self.suppdata, 'b')
 
         self.ax.set(xlim=xlim, ylim=ylim, yticklabels='')
         self.fig.canvas.draw()
