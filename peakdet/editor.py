@@ -28,10 +28,15 @@ class _PhysioEditor():
         # the plot appropriately (i.e., clicks X instead of pressing ctrl+q)
         self.deleted, self.rejected, self.included = set(), set(), set()
 
-        # make main plot objects
-        self.fig, self.ax = plt.subplots(nrows=1, ncols=1, tight_layout=True)
+        # make main plot objects depending on supplementary data
+        nrows = 1 if self._suppldata is None else 2
+        self.fig, self._ax = plt.subplots(nrows=nrows, ncols=1,
+                                          tight_layout=True, sharex=True)
         self.fig.canvas.mpl_connect('scroll_event', self.on_wheel)
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
+
+        # Set axis handler
+        self.ax = self._ax if self._suppldata is None else self._ax[0]
 
         # three selectors for:
         #    1. rejection (central mouse),
@@ -67,6 +72,10 @@ class _PhysioEditor():
                      self.data[self.data.peaks], '.r',
                      self.time[self.data.troughs],
                      self.data[self.data.troughs], '.g')
+
+        if self._suppldata is not None:
+            self._ax[1].plot(self.time, self._suppldata, 'b')
+
         self.ax.set(xlim=xlim, ylim=ylim, yticklabels='')
         self.fig.canvas.draw()
 
