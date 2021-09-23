@@ -20,6 +20,8 @@ class Physio():
         Functions performed on `data`. Default: None
     metadata : dict, optional
         Metadata associated with `data`. Default: None
+    suppdata : array_like, optional
+        Support data array. Default: None
 
     Attributes
     ----------
@@ -34,9 +36,11 @@ class Physio():
         Indices of peaks in `data`
     troughs : :obj:`numpy.ndarray`
         Indices of troughs in `data`
+    suppdata : :obj:`numpy.ndarray`
+        Secondary physiological waveform
     """
 
-    def __init__(self, data, fs=None, history=None, metadata=None, suppldata=None):
+    def __init__(self, data, fs=None, history=None, metadata=None, suppdata=None):
         self._data = np.asarray(data).squeeze()
         if self.data.ndim > 1:
             raise ValueError('Provided data dimensionality {} > 1.'
@@ -67,7 +71,7 @@ class Physio():
             self._metadata = dict(peaks=np.empty(0, dtype=int),
                                   troughs=np.empty(0, dtype=int),
                                   reject=np.empty(0, dtype=int))
-        self._suppldata = None if suppldata is None else np.asarray(suppldata).squeeze()
+        self._suppdata = None if suppdata is None else np.asarray(suppdata).squeeze()
 
     def __array__(self):
         return self.data
@@ -119,6 +123,6 @@ class Physio():
                                                self._metadata['reject']))
 
     @property
-    def suppldata(self):
+    def suppdata(self):
         """ Physiological data """
-        return self._suppldata
+        return self._suppdata
