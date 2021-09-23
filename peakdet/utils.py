@@ -181,7 +181,7 @@ def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
         dtype = ref_physio.data.dtype
     history = list(ref_physio.history) if copy_history else []
     metadata = dict(**ref_physio._metadata) if copy_metadata else None
-    suppdata = np.asarray(ref_physio._suppdata).squeeze() if copy_suppdata else None
+    suppdata = ref_physio._suppdata if copy_suppdata else None
 
     # make new class
     out = ref_physio.__class__(np.array(data, dtype=dtype),
