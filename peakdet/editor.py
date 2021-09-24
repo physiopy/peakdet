@@ -31,10 +31,14 @@ class _PhysioEditor():
         self.deleted, self.rejected, self.included = set(), set(), set()
 
         # make main plot objects depending on supplementary data
-        nrows = 1 if self.suppdata is None else 2
-        self.fig, self._ax = plt.subplots(nrows=nrows, ncols=1,
-                                          tight_layout=True, sharex=True,
-                                          gridspec_kw={'height_ratios': [3, 2]})
+        if self.suppdata is None:
+            self.fig, self._ax = plt.subplots(nrows=1, ncols=1,
+                                              tight_layout=True, sharex=True)
+        else:
+            self.fig, self._ax = plt.subplots(nrows=2, ncols=1,
+                                              tight_layout=True, sharex=True,
+                                              gridspec_kw={'height_ratios': [3, 2]})
+        
         self.fig.canvas.mpl_connect('scroll_event', self.on_wheel)
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 
