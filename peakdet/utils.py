@@ -146,7 +146,7 @@ def check_physio(data, ensure_fs=True, copy=False):
     return data
 
 
-def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
+def new_physio_like(ref_physio, data, *, fs=None, suppdata=None, dtype=None,
                     copy_history=True, copy_metadata=True, copy_suppdata=True):
     """
     Makes `data` into physio object like `ref_data`
@@ -160,6 +160,8 @@ def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
     fs : float, optional
         Sampling rate of `data`. If not supplied, assumed to be the same as
         in `ref_physio`
+    suppdata : array_like, optional
+        New supplementary data. If not supplied, assumed to be the same.
     dtype : data_type, optional
         Data type to convert `data` to, if conversion needed. Default: None
     copy_history : bool, optional
@@ -181,7 +183,9 @@ def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
         dtype = ref_physio.data.dtype
     history = list(ref_physio.history) if copy_history else []
     metadata = dict(**ref_physio._metadata) if copy_metadata else None
-    suppdata = ref_physio._suppdata if copy_suppdata else None
+
+    if suppdata is None:
+        suppdata = ref_physio._suppdata if copy_suppdata else None
 
     # make new class
     out = ref_physio.__class__(np.array(data, dtype=dtype),
