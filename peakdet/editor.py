@@ -82,6 +82,7 @@ class _PhysioEditor():
 
         if self.suppdata is not None:
             self._ax[1].plot(self.time, self.suppdata, 'k', linewidth=0.7)
+            self._ax[1].set_ylim(-.5, .5)
 
         self.ax.set(xlim=xlim, ylim=ylim, yticklabels='')
         self.fig.canvas.draw()
