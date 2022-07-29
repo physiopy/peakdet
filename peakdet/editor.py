@@ -38,7 +38,7 @@ class _PhysioEditor():
             self.fig, self._ax = plt.subplots(nrows=2, ncols=1,
                                               tight_layout=True, sharex=True,
                                               gridspec_kw={'height_ratios': [3, 2]})
-        
+
         self.fig.canvas.mpl_connect('scroll_event', self.on_wheel)
         self.fig.canvas.mpl_connect('key_press_event', self.on_key)
 

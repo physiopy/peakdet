@@ -92,7 +92,8 @@ def interpolate_physio(data, target_fs, *, kind='cubic'):
 
     # interpolate data and generate new Physio object
     interp = interpolate.interp1d(t_orig, data, kind=kind)(t_new)
-    interp = utils.new_physio_like(data, interp, fs=target_fs)
+    suppinterp = interpolate.interp1d(t_orig, data.suppdata, kind=kind)(t_new)
+    interp = utils.new_physio_like(data, interp, fs=target_fs, suppdata=suppinterp)
 
     return interp
 
