@@ -162,7 +162,7 @@ class Physio():
         return df
 
     @classmethod
-    def neurokit2phys(cls, neurokit_path, fs, copy_data, copy_peaks, copy_troughs, suppdata=None):
+    def neurokit2phys(cls, neurokit_path, fs, copy_data, copy_peaks, copy_troughs, **kwargs):
         """Neurokit dataframe to phys
 
         Parameters
@@ -206,4 +206,4 @@ class Physio():
         elif 'peaks' in locals() and 'troughs' not in locals():
             metadata = dict(peaks=peaks)
 
-        return cls(data, fs=fs, metadata=metadata, suppdata=suppdata)
+        return cls(data, fs=fs, metadata=metadata, **kwargs)
