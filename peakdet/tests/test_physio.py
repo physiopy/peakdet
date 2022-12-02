@@ -70,3 +70,20 @@ class TestPhysio():
                     assert hasattr(phys, prop)
                 for prop in ['peaks', 'reject', 'troughs']:
                     assert isinstance(phys._metadata.get(prop), np.ndarray)
+
+
+def test_neurokit2phys(path_neurokit):
+    df = pd.read_csv(path_neurokit, sep='\t')
+    phys = Physio.neurokit2phys(path_neurokit, copy_data=True, copy_peaks=True, copy_troughs=True, fs=fs)
+
+    assert all(np.unique(phys.data == np.hstack(df.loc[:, df.columns.str.endswith('Clean')].to_numpy())))
+    assert all(np.unique(phys.peaks == np.where(df.loc[:, df.columns.str.endswith('Peaks')] != 0)[0]))
+    assert phys.fs == fs
+
+
+def test_phys2neurokit(path_phys):
+    phys = load_physio(path_phys, allow_pickle=True)
+    neuro = data.phys2neurokit(copy_data=True, copy_peaks=True, copy_troughs=False, module=module, neurokit_path=path_neurokit)
+
+    assert all(np.unique(phys.data == np.hstack(neuro.loc[:, neuro.columns.str.endswith('Raw')].to_numpy())))
+    assert all(np.unique(phys.peaks == np.where(neuro.loc[:, neuro.columns.str.endswith('Peaks')] != 0)[0]))
