@@ -183,7 +183,7 @@ def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
     return out
 
 
-def check_troughs(data, peaks):
+def check_troughs(data, peaks, troughs=None):
     """
     Confirms that `troughs` exists between every set of `peaks` in `data`
 
@@ -193,14 +193,20 @@ def check_troughs(data, peaks):
         Input data for which `troughs` and `peaks` were detected
     peaks : array-like
         Indices of suspected peak locations in `data`
+    troughs : array-like or None, optional
+        Indices of suspected troughs locations in `data`, if any.
 
     Returns
     -------
     troughs : np.ndarray
         Indices of trough locations in `data`, dependent on `peaks`
     """
-
-    all_troughs = np.zeros(peaks.size - 1, dtype=int)
+    # If there's a through after all peaks, keep it.
+    if troughs is not None and troughs[-1] > peaks[-1]:
+        all_troughs = np.zeros(peaks.size, dtype=int)
+        all_troughs[-1] == troughs[-1]
+    else:
+        all_troughs = np.zeros(peaks.size - 1, dtype=int)
 
     for f in range(peaks.size - 1):
         dp = data[peaks[f]:peaks[f + 1]]
