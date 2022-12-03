@@ -125,5 +125,6 @@ class _PhysioEditor():
             self.deleted.difference_update(peaks['remove'])
 
         self.data._metadata['troughs'] = utils.check_troughs(self.data,
-                                                             self.data.peaks)
+                                                             self.data.peaks,
+                                                             self.data.troughs)
         self.plot_signals()

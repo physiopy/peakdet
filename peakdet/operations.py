@@ -155,7 +155,7 @@ def delete_peaks(data, remove):
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
     data._metadata['peaks'] = np.setdiff1d(data._metadata['peaks'], remove)
-    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks, data.troughs)
 
     return data
 
@@ -177,7 +177,7 @@ def reject_peaks(data, remove):
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
     data._metadata['reject'] = np.append(data._metadata['reject'], remove)
-    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks, data.troughs)
 
     return data
 
