@@ -15,7 +15,7 @@ Requirements
 
 Linux and mac installation
 --------------------------
-The most convenient option is to use ``pip``, as it allows you to automatically download and install the package from [PyPI repository](https://pypi.org/project/peakdet/) and facilitates upgrading or uninstalling it.
+The most convenient option is to use ``pip``, as it allows you to automatically download and install the package from `PyPI repository <https://pypi.org/project/peakdet/>` and facilitates upgrading or uninstalling it.
 
 Install with ``pip``
 ^^^^^^^^^^^^^^^^^^^^
