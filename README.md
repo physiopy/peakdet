@@ -13,7 +13,7 @@ peakdet: A toolbox for physiological peak detection analyses
 [![See the documentation at: http://peakdet.readthedocs.io](https://readthedocs.org/projects/peakdet/badge/?version=latest)](http://peakdet.readthedocs.io/en/latest)
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This package is designed for use in the reproducible processing and analysis of
@@ -61,6 +61,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="25%"><a href="https://github.com/mixue-t"><img src="https://avatars.githubusercontent.com/u/28149789?v=4?s=100" width="100px;" alt="mixue-t"/><br /><sub><b>mixue-t</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/commits?author=mixue-t" title="Code">💻</a> <a href="#userTesting-mixue-t" title="User Testing">📓</a> <a href="#plugin-mixue-t" title="Plugin/utility libraries">🔌</a></td>
+      <td align="center" valign="top" width="25%"><a href="https://github.com/tsalo"><img src="https://avatars.githubusercontent.com/u/8228902?v=4?s=100" width="100px;" alt="Taylor Salo"/><br /><sub><b>Taylor Salo</b></sub></a><br /><a href="#infra-tsalo" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
     </tr>
   </tbody>
 </table>
