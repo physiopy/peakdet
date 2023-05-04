@@ -60,6 +60,17 @@
         "infra",
         "projectManagement"
       ]
+    },
+    {
+      "login": "mixue-t",
+      "name": "mixue-t",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28149789?v=4",
+      "profile": "https://github.com/mixue-t",
+      "contributions": [
+        "code",
+        "userTesting",
+        "plugin"
+      ]
     }
   ]
 }
