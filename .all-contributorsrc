@@ -13,6 +13,16 @@
   "contributorsPerLine": 4,
   "contributors": [
     {
+      "login": "emdupre",
+      "name": "Elizabeth DuPre",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/15017191?v=4",
+      "profile": "https://github.com/emdupre",
+      "contributions": [
+        "code",
+        "infra"
+      ]
+    },
+    {
       "login": "rmarkello",
       "name": "Ross Markello",
       "avatar_url": "https://avatars0.githubusercontent.com/u/14265705?v=4",
@@ -31,12 +41,43 @@
       ]
     },
     {
-      "login": "emdupre",
-      "name": "Elizabeth DuPre",
-      "avatar_url": "https://avatars3.githubusercontent.com/u/15017191?v=4",
-      "profile": "https://github.com/emdupre",
+      "login": "smoia",
+      "name": "Stefano Moia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35300580?v=4",
+      "profile": "https://github.com/smoia",
+      "contributions": [
+        "review",
+        "code",
+        "infra",
+        "projectManagement"
+      ]
+    },
+    {
+      "login": "tsalo",
+      "name": "Taylor Salo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8228902?v=4",
+      "profile": "https://github.com/tsalo",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "mixue-t",
+      "name": "Mi-Xue Tan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28149789?v=4",
+      "profile": "https://github.com/mixue-t",
       "contributions": [
         "code",
+        "userTesting",
+        "plugin"
+      ]
+    },
+    {
+      "login": "eurunuela",
+      "name": "Eneko Uruñuela",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13706448?v=4",
+      "profile": "https://github.com/eurunuela",
+      "contributions": [
         "infra"
       ]
     },

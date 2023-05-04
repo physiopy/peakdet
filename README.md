@@ -13,7 +13,7 @@ peakdet: A toolbox for physiological peak detection analyses
 [![See the documentation at: http://peakdet.readthedocs.io](https://readthedocs.org/projects/peakdet/badge/?version=latest)](http://peakdet.readthedocs.io/en/latest)
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This package is designed for use in the reproducible processing and analysis of
@@ -52,11 +52,19 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 <table>
-  <tr>
-    <td align="center"><a href="https://github.com/rmarkello"><img src="https://avatars0.githubusercontent.com/u/14265705?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ross Markello</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/issues?q=author%3Armarkello" title="Bug reports">🐛</a> <a href="https://github.com/physiopy/peakdet/commits?author=rmarkello" title="Code">💻</a> <a href="https://github.com/physiopy/peakdet/commits?author=rmarkello" title="Documentation">📖</a> <a href="#ideas-rmarkello" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-rmarkello" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-rmarkello" title="Maintenance">🚧</a> <a href="#projectManagement-rmarkello" title="Project Management">📆</a> <a href="https://github.com/physiopy/peakdet/pulls?q=is%3Apr+reviewed-by%3Armarkello" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/physiopy/peakdet/commits?author=rmarkello" title="Tests">⚠️</a> <a href="#tutorial-rmarkello" title="Tutorials">✅</a></td>
-    <td align="center"><a href="https://github.com/emdupre"><img src="https://avatars3.githubusercontent.com/u/15017191?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Elizabeth DuPre</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/commits?author=emdupre" title="Code">💻</a> <a href="#infra-emdupre" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
-    <td align="center"><a href="https://github.com/xl624"><img src="https://avatars0.githubusercontent.com/u/25593301?v=4?s=100" width="100px;" alt=""/><br /><sub><b>xl624</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/commits?author=xl624" title="Code">💻</a></td>
-  </tr>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="25%"><a href="https://github.com/emdupre"><img src="https://avatars3.githubusercontent.com/u/15017191?v=4?s=100" width="100px;" alt="Elizabeth DuPre"/><br /><sub><b>Elizabeth DuPre</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/commits?author=emdupre" title="Code">💻</a> <a href="#infra-emdupre" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="25%"><a href="https://github.com/rmarkello"><img src="https://avatars0.githubusercontent.com/u/14265705?v=4?s=100" width="100px;" alt="Ross Markello"/><br /><sub><b>Ross Markello</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/issues?q=author%3Armarkello" title="Bug reports">🐛</a> <a href="https://github.com/physiopy/peakdet/commits?author=rmarkello" title="Code">💻</a> <a href="https://github.com/physiopy/peakdet/commits?author=rmarkello" title="Documentation">📖</a> <a href="#ideas-rmarkello" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-rmarkello" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-rmarkello" title="Maintenance">🚧</a> <a href="#projectManagement-rmarkello" title="Project Management">📆</a> <a href="https://github.com/physiopy/peakdet/pulls?q=is%3Apr+reviewed-by%3Armarkello" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/physiopy/peakdet/commits?author=rmarkello" title="Tests">⚠️</a> <a href="#tutorial-rmarkello" title="Tutorials">✅</a></td>
+      <td align="center" valign="top" width="25%"><a href="https://github.com/smoia"><img src="https://avatars.githubusercontent.com/u/35300580?v=4?s=100" width="100px;" alt="Stefano Moia"/><br /><sub><b>Stefano Moia</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/pulls?q=is%3Apr+reviewed-by%3Asmoia" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/physiopy/peakdet/commits?author=smoia" title="Code">💻</a> <a href="#infra-smoia" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#projectManagement-smoia" title="Project Management">📆</a></td>
+      <td align="center" valign="top" width="25%"><a href="https://github.com/tsalo"><img src="https://avatars.githubusercontent.com/u/8228902?v=4?s=100" width="100px;" alt="Taylor Salo"/><br /><sub><b>Taylor Salo</b></sub></a><br /><a href="#infra-tsalo" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="25%"><a href="https://github.com/mixue-t"><img src="https://avatars.githubusercontent.com/u/28149789?v=4?s=100" width="100px;" alt="Mi-Xue Tan"/><br /><sub><b>Mi-Xue Tan</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/commits?author=mixue-t" title="Code">💻</a> <a href="#userTesting-mixue-t" title="User Testing">📓</a> <a href="#plugin-mixue-t" title="Plugin/utility libraries">🔌</a></td>
+      <td align="center" valign="top" width="25%"><a href="https://github.com/eurunuela"><img src="https://avatars.githubusercontent.com/u/13706448?v=4?s=100" width="100px;" alt="Eneko Uruñuela"/><br /><sub><b>Eneko Uruñuela</b></sub></a><br /><a href="#infra-eurunuela" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+      <td align="center" valign="top" width="25%"><a href="https://github.com/xl624"><img src="https://avatars0.githubusercontent.com/u/25593301?v=4?s=100" width="100px;" alt="xl624"/><br /><sub><b>xl624</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/commits?author=xl624" title="Code">💻</a></td>
+    </tr>
+  </tbody>
 </table>
 
 <!-- markdownlint-restore -->
