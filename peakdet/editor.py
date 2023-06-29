@@ -40,10 +40,12 @@ class _PhysioEditor():
         delete = functools.partial(self.on_remove, reject=False)
         self.span1 = SpanSelector(self.ax, reject, 'horizontal',
                                   button=1, useblit=True,
-                                  rectprops=dict(facecolor='red', alpha=0.3))
+                                  props=dict(facecolor='red', alpha=0.3))
+        # deprecated matplotlib 3.5 rectprops=dict(facecolor='red', alpha=0.3))
         self.span2 = SpanSelector(self.ax, delete, 'horizontal',
                                   button=3, useblit=True,
-                                  rectprops=dict(facecolor='blue', alpha=0.3))
+                                  props=dict(facecolor='blue', alpha=0.3))
+        # deprecated matplotlib 3.5 rectprops=dict(facecolor='blue', alpha=0.3))
 
         self.plot_signals(False)
 
