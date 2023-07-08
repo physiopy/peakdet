@@ -209,6 +209,29 @@ def add_peaks(data, add):
     return data
 
 
+@utils.make_operation()
+def add_peaks(data, add):
+    """
+    Add `newpeak` to add them in `data`
+
+    Parameters
+    ----------
+    data : Physio_like
+    add : int
+
+    Returns
+    -------
+    data : Physio_like
+    """
+
+    data = utils.check_physio(data, ensure_fs=False, copy=True)
+    idx = np.searchsorted(data._metadata['peaks'], add)
+    data._metadata['peaks'] = np.insert(data._metadata['peaks'], idx, add)
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
+
+    return data
+
+
 def edit_physio(data):
     """
     Opens interactive plot with `data` to permit manual editing of time series
