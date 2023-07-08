@@ -41,9 +41,9 @@ removed. We can do that easily with :py:func:`~.operations.edit_physio`:
 
 This function will open up an interactive viewer, which supports scrolling
 through the time series (with the scroll wheel), rejection of noisy segments of
-data (left click + drag, red highlight), and deleting peaks / troughs that were
+data (left click + drag, blue highlight), and deleting peaks / troughs that were
 erroneously detected and shouldn't be considered at all (right click + drag,
-blue highlight):
+red highlight):
 
 .. image:: physio_edit.gif
 

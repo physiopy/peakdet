@@ -141,12 +141,13 @@ def check_physio(data, ensure_fs=True, copy=False):
     if copy is True:
         return new_physio_like(data, data.data,
                                copy_history=True,
-                               copy_metadata=True)
+                               copy_metadata=True,
+                               copy_suppdata=True)
     return data
 
 
-def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
-                    copy_history=True, copy_metadata=True):
+def new_physio_like(ref_physio, data, *, fs=None, suppdata=None, dtype=None,
+                    copy_history=True, copy_metadata=True, copy_suppdata=True):
     """
     Makes `data` into physio object like `ref_data`
 
@@ -159,10 +160,16 @@ def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
     fs : float, optional
         Sampling rate of `data`. If not supplied, assumed to be the same as
         in `ref_physio`
+    suppdata : array_like, optional
+        New supplementary data. If not supplied, assumed to be the same.
     dtype : data_type, optional
         Data type to convert `data` to, if conversion needed. Default: None
     copy_history : bool, optional
         Copy history from `ref_physio` to new physio object. Default: True
+    copy_metadata : bool, optional
+        Copy metadata from `ref_physio` to new physio object. Default: True
+    copy_suppdata : bool, optional
+        Copy suppdata from `ref_physio` to new physio object. Default: True
 
     Returns
     -------
@@ -177,9 +184,13 @@ def new_physio_like(ref_physio, data, *, fs=None, dtype=None,
     history = list(ref_physio.history) if copy_history else []
     metadata = dict(**ref_physio._metadata) if copy_metadata else None
 
+    if suppdata is None:
+        suppdata = ref_physio._suppdata if copy_suppdata else None
+
     # make new class
     out = ref_physio.__class__(np.array(data, dtype=dtype),
-                               fs=fs, history=history, metadata=metadata)
+                               fs=fs, history=history, metadata=metadata,
+                               suppdata=suppdata)
     return out
 
 

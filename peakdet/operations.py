@@ -92,7 +92,11 @@ def interpolate_physio(data, target_fs, *, kind='cubic'):
 
     # interpolate data and generate new Physio object
     interp = interpolate.interp1d(t_orig, data, kind=kind)(t_new)
-    interp = utils.new_physio_like(data, interp, fs=target_fs)
+    if data.suppdata is None:
+        suppinterp = None
+    else:
+        suppinterp = interpolate.interp1d(t_orig, data.suppdata, kind=kind)(t_new)
+    interp = utils.new_physio_like(data, interp, fs=target_fs, suppdata=suppinterp)
 
     return interp
 
@@ -182,6 +186,52 @@ def reject_peaks(data, remove):
     return data
 
 
+@utils.make_operation()
+def add_peaks(data, add):
+    """
+    Add `newpeak` to add them in `data`
+
+    Parameters
+    ----------
+    data : Physio_like
+    add : int
+
+    Returns
+    -------
+    data : Physio_like
+    """
+
+    data = utils.check_physio(data, ensure_fs=False, copy=True)
+    idx = np.searchsorted(data._metadata['peaks'], add)
+    data._metadata['peaks'] = np.insert(data._metadata['peaks'], idx, add)
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
+
+    return data
+
+
+@utils.make_operation()
+def add_peaks(data, add):
+    """
+    Add `newpeak` to add them in `data`
+
+    Parameters
+    ----------
+    data : Physio_like
+    add : int
+
+    Returns
+    -------
+    data : Physio_like
+    """
+
+    data = utils.check_physio(data, ensure_fs=False, copy=True)
+    idx = np.searchsorted(data._metadata['peaks'], add)
+    data._metadata['peaks'] = np.insert(data._metadata['peaks'], idx, add)
+    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
+
+    return data
+
+
 def edit_physio(data):
     """
     Opens interactive plot with `data` to permit manual editing of time series
@@ -206,13 +256,14 @@ def edit_physio(data):
     # perform manual editing
     edits = editor._PhysioEditor(data)
     plt.show(block=True)
-    delete, reject = sorted(edits.deleted), sorted(edits.rejected)
 
     # replay editing on original provided data object
-    if reject is not None:
-        data = reject_peaks(data, remove=reject)
-    if delete is not None:
-        data = delete_peaks(data, remove=delete)
+    if len(edits.rejected) > 0:
+        data = reject_peaks(data, remove=sorted(edits.rejected))
+    if len(edits.deleted) > 0:
+        data = delete_peaks(data, remove=sorted(edits.deleted))
+    if len(edits.included) > 0:
+        data = add_peaks(data, add=sorted(edits.included))
 
     return data
 
