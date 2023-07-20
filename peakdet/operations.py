@@ -34,13 +34,12 @@ def filter_physio(data, cutoffs, method, *, order=3):
         Filtered input `data`
     """
 
-    _valid_methods = ['lowpass', 'highpass', 'bandpass', 'bandstop']
+    _valid_methods = ['lowpass', 'highpass', 'bandpass', 'bandstop' ]
 
     data = utils.check_physio(data, ensure_fs=True)
     if method not in _valid_methods:
         raise ValueError('Provided method {} is not permitted; must be in {}.'
                          .format(method, _valid_methods))
-
     cutoffs = np.array(cutoffs)
     if method in ['lowpass', 'highpass'] and cutoffs.size != 1:
         raise ValueError('Cutoffs must be length 1 when using {} filter'
@@ -60,6 +59,60 @@ def filter_physio(data, cutoffs, method, *, order=3):
 
     return filtered
 
+@utils.make_operation()
+def neurokit_processing(data, modality, method):
+    """
+    Applies an `order`-order digital `method` Butterworth filter to `data`
+
+    Parameters
+    ----------
+    data : Physio_like
+        Input physiological data to be filtered
+    modality : str
+        Modality of the data. 
+        One of 'ECG', 'PPG', 'RSP', 'EDA',
+    method : str
+        The name of the processing procedure to apply to `data`
+
+    Returns
+    -------
+    clean : :class:`peakdet.Physio`
+        Filtered input `data`
+    """
+    try:
+        import neurokit2 as nk
+    except ImportError:
+        raise ImportError('neurokit2 is required to use this function')
+    modality = modality.upper()
+    if modality not in ['ECG', 'PPG', 'RSP', 'EDA']:
+        raise ValueError('Provided modality {} is not permitted; must be in {}.'
+                         .format(modality, ['ECG', 'PPG', 'RSP', 'EDA']))
+
+    data = utils.check_physio(data, ensure_fs=True)
+    if modality == 'ECG':
+        # NOTE: change for bottenhorn filtering
+        data = filter_physio(data, cutoffs=40, method='lowpass')
+        signal, info = nk.ecg_peaks(data, sampling_rate=data.fs, method=method)
+        info[f'{modality}_Peaks'] = info['ECG_R_Peaks']
+    elif modality == 'PPG':
+        signal, info = nk.ppg_process(data, sampling_rate=data.fs, method=method)
+    elif modality == 'RSP':
+        signal, info = nk.rsp_process(data, sampling_rate=data.fs, method=method)
+    elif modality == 'EDA':
+        signal, info = nk.eda_process(data, sampling_rate=data.fs, method=method)
+        info[f'{modality}_Peaks'] = info['SCR_Peaks']
+    data._metadata['peaks'] = np.array(info[f'{modality}_Peaks'])
+    try:
+        info[f'{modality}_Troughs']
+        data._metadata['troughs'] = np.array(info[f'{modality}_Troughs'])
+        data._metadata['troughs'] = utils.check_troughs(data, data.peaks, data.troughs)
+    except KeyError:
+        pass
+    data._features['info'] = info
+    data._features['signal'] = signal
+    clean = utils.new_physio_like(data, signal[f'{modality}_Clean'].values)
+    # ADD IN OTHER INFO as features
+    return clean
 
 @utils.make_operation()
 def interpolate_physio(data, target_fs, *, kind='cubic'):
@@ -251,6 +304,7 @@ def edit_physio(data):
 
     # no point in manual edits if peaks/troughs aren't defined
     if not (len(data.peaks) and len(data.troughs)):
+        print(data.peaks, data.troughs)
         return
 
     # perform manual editing
