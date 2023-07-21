@@ -300,15 +300,21 @@ def neurokit_processing(data, modality, method, **kwargs):
         import neurokit2 as nk
     except ImportError:
         raise ImportError('neurokit2 is required to use this function')
+
+    # sanity check
     modality = modality.upper()
     if modality not in ['ECG', 'PPG', 'RSP', 'EDA']:
         raise ValueError('Provided modality {} is not permitted; must be in {}.'
                          .format(modality, ['ECG', 'PPG', 'RSP', 'EDA']))
-
+                         
     data = utils.check_physio(data, ensure_fs=True)
+
+    # apply neurokit2 processing to a specific modality
     if modality == 'ECG':
-        data = fmri_ecg_clean(data, method=method, **kwargs)
-        signal, info = nk.ecg_peaks(data, method=method)
+        method_cleaning = kwargs.get('method_cleaning')
+        method_peaks = kwargs.get('method_peaks')
+        data = fmri_ecg_clean(data, method=method_cleaning, **kwargs)
+        signal, info = nk.ecg_peaks(data, data.fs, method=method_peaks, correct_artifacts=True)
         info[f'{modality}_Peaks'] = info['ECG_R_Peaks']
     elif modality == 'PPG':
         signal, info = nk.ppg_process(data, sampling_rate=data.fs, method=method)
