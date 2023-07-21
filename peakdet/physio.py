@@ -78,17 +78,17 @@ class Physio():
                                   troughs=np.empty(0, dtype=int),
                                   reject=np.empty(0, dtype=int))
         if features is not None:
-            if not isinstance(self._features, dict):
+            if not isinstance(features, dict):
                 raise TypeError('Provided features {} must be dict-like.'
                                 .format(self._features))
             for k in ['info', 'signal']:
                 # info must be a  dict and signal must be a dataframe
                 if k == 'info':
-                    if not isinstance(self._features.get(k), dict):
+                    if not isinstance(features.get(k), dict):
                         raise TypeError('Provided features must be dict-like'
                                         'with dict entries.')
                 elif k == 'signal':
-                    if not isinstance(self._features.get(k), pd.DataFrame):
+                    if not isinstance(features.get(k), pd.DataFrame):
                         raise TypeError('Provided features must be dict-like'
                                         'with dataframe entries.')
             self._features = dict(**features)
