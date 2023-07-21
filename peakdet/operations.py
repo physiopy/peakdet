@@ -60,61 +60,6 @@ def filter_physio(data, cutoffs, method, *, order=3):
     return filtered
 
 @utils.make_operation()
-def neurokit_processing(data, modality, method):
-    """
-    Applies an `order`-order digital `method` Butterworth filter to `data`
-
-    Parameters
-    ----------
-    data : Physio_like
-        Input physiological data to be filtered
-    modality : str
-        Modality of the data. 
-        One of 'ECG', 'PPG', 'RSP', 'EDA',
-    method : str
-        The name of the processing procedure to apply to `data`
-
-    Returns
-    -------
-    clean : :class:`peakdet.Physio`
-        Filtered input `data`
-    """
-    try:
-        import neurokit2 as nk
-    except ImportError:
-        raise ImportError('neurokit2 is required to use this function')
-    modality = modality.upper()
-    if modality not in ['ECG', 'PPG', 'RSP', 'EDA']:
-        raise ValueError('Provided modality {} is not permitted; must be in {}.'
-                         .format(modality, ['ECG', 'PPG', 'RSP', 'EDA']))
-
-    data = utils.check_physio(data, ensure_fs=True)
-    if modality == 'ECG':
-        # NOTE: change for bottenhorn filtering
-        data = filter_physio(data, cutoffs=40, method='lowpass')
-        signal, info = nk.ecg_peaks(data, sampling_rate=data.fs, method=method)
-        info[f'{modality}_Peaks'] = info['ECG_R_Peaks']
-    elif modality == 'PPG':
-        signal, info = nk.ppg_process(data, sampling_rate=data.fs, method=method)
-    elif modality == 'RSP':
-        signal, info = nk.rsp_process(data, sampling_rate=data.fs, method=method)
-    elif modality == 'EDA':
-        signal, info = nk.eda_process(data, sampling_rate=data.fs, method=method)
-        info[f'{modality}_Peaks'] = info['SCR_Peaks']
-    data._metadata['peaks'] = np.array(info[f'{modality}_Peaks'])
-    try:
-        info[f'{modality}_Troughs']
-        data._metadata['troughs'] = np.array(info[f'{modality}_Troughs'])
-        data._metadata['troughs'] = utils.check_troughs(data, data.peaks, data.troughs)
-    except KeyError:
-        pass
-    data._features['info'] = info
-    data._features['signal'] = signal
-    clean = utils.new_physio_like(data, signal[f'{modality}_Clean'].values)
-    # ADD IN OTHER INFO as features
-    return clean
-
-@utils.make_operation()
 def interpolate_physio(data, target_fs, *, kind='cubic'):
     """
     Interpolates `data` to desired sampling rate `target_fs`
@@ -351,3 +296,292 @@ def plot_physio(data, *, ax=None):
             time[data.troughs], data[data.troughs], '.g')
 
     return ax
+
+@utils.make_operation()
+def neurokit_processing(data, modality, method, **kwargs):
+    """
+    Applies an `order`-order digital `method` Butterworth filter to `data`
+
+    Parameters
+    ----------
+    data : Physio_like
+        Input physiological data to be filtered
+    modality : str
+        Modality of the data. 
+        One of 'ECG', 'PPG', 'RSP', 'EDA',
+    method : str
+        The processing pipeline to apply, choose from neurokit2 lists
+
+    Returns
+    -------
+    clean : :class:`peakdet.Physio`
+        Filtered input `data`
+    """
+    try:
+        import neurokit2 as nk
+    except ImportError:
+        raise ImportError('neurokit2 is required to use this function')
+    modality = modality.upper()
+    if modality not in ['ECG', 'PPG', 'RSP', 'EDA']:
+        raise ValueError('Provided modality {} is not permitted; must be in {}.'
+                         .format(modality, ['ECG', 'PPG', 'RSP', 'EDA']))
+
+    data = utils.check_physio(data, ensure_fs=True)
+    if modality == 'ECG':
+        data = fmri_ecg_clean(data, method=method_cleaning, **kwargs)
+        signal, info = nk.ecg_peaks(data, method=method_peaks)
+        info[f'{modality}_Peaks'] = info['ECG_R_Peaks']
+    elif modality == 'PPG':
+        signal, info = nk.ppg_process(data, sampling_rate=data.fs, method=method)
+    elif modality == 'RSP':
+        signal, info = nk.rsp_process(data, sampling_rate=data.fs, method=method)
+    elif modality == 'EDA':
+        signal, info = nk.eda_process(data, sampling_rate=data.fs, method=method)
+        info[f'{modality}_Peaks'] = info['SCR_Peaks']
+    data._metadata['peaks'] = np.array(info[f'{modality}_Peaks'])
+    try:
+        info[f'{modality}_Troughs']
+        data._metadata['troughs'] = np.array(info[f'{modality}_Troughs'])
+        data._metadata['troughs'] = utils.check_troughs(data, data.peaks, data.troughs)
+    except KeyError:
+        pass
+    data._features['info'] = info
+    data._features['signal'] = signal
+    clean = utils.new_physio_like(data, signal[f'{modality}_Clean'].values)
+    # ADD IN OTHER INFO as features
+    return clean
+
+# ======================================================================
+# Electrocardiogram (ECG)
+# =======================================================================
+
+@utils.make_operation()
+def fmri_ecg_clean(data, method="biopac", me=False, **kwargs):
+    """
+    Clean an ECG signal.
+
+    Prepare a raw ECG signal for R-peak detection with the specified method.
+
+    Parameters
+    ----------
+    data : Physio_like
+        The raw ECG signal to clean.
+    sampling_rate : float
+        The sampling frequency of `ecg_signal` (in Hz, i.e., samples/second).
+        Default to 10000.
+    method : str
+        The processing pipeline to apply between 'biopac' and 'bottenhorn'.
+        Default to 'biopac'.
+    me : bool
+        Specify if the MRI sequence used was the multi-echo (True)
+        or the single-echo (False).
+        Default to False.
+    downsampling : int
+        The desired sampling frequency (Hz). If None, the signal is not resample.
+        Default to None.
+
+    Returns
+    -------
+    ecg_clean : :class:`peakdet.Physio`
+        The cleaned ECG signal in object.
+    """
+    # check if the TR is specified
+    if "tr" not in kwargs.keys():
+        raise ValueError(
+            "The TR must be specified when using the multi-echo sequence."
+        )
+    tr = kwargs["tr"]
+    # check if the MB factor is specified
+    if "mb" not in kwargs.keys():
+        raise ValueError(
+            "The multiband factor must be specified when using the multi-echo sequence."
+        )
+    mb = kwargs["mb"]
+    # check if the number of slices is specified
+    if "slices" not in kwargs.keys():
+        raise ValueError(
+            "The number of slices must be specified when using the multi-echo sequence."
+        )
+    slices = kwargs["slices"]
+
+    if method in ["biopac"]:
+        data = _ecg_clean_biopac(data, tr=tr, slices=slices)
+    elif method in ["bottenhorn", "bottenhorn2022"]:
+        # Apply comb band pass filter with Bottenhorn correction
+        print("... Applying the corrected comb band pass filter.")
+        ecg_clean = _ecg_clean_bottenhorn(data, tr=tr, mb=mb, slices=slices)
+    else:
+        raise ValueError(
+            "The specified method is not supported. Please choose between 'biopac' and 'bottenhorn'."
+        )
+
+    return ecg_clean
+
+
+# =============================================================================
+# ECG internal : biopac recommendations
+# =============================================================================
+def _ecg_clean_biopac(data, tr=1.49, slices=60, Q=100):
+    """
+    Single-band sequence gradient noise reduction.
+
+    This function is a reverse-engineered appropriation of BIOPAC's application note 242.
+    It only applies to signals polluted by single-band (f)MRI sequence.
+
+    Parameters
+    ----------
+    data : Physio_like
+        The ECG signal in object.
+    sampling_rate: float
+        The sampling frequency of `ecg_signal` (in Hz, i.e., samples/second).
+        Default to 10000.
+    tr : int
+        The time Repetition of the MRI scanner.
+        Default to 1.49.
+    slices :
+        The number of volumes acquired in the tr period.
+        Default to 60.
+    Q : int
+        The filter quality factor.
+        Default to 100.
+
+    Returns
+    -------
+    ecg_clean : array
+        The cleaned ECG signal.
+
+    References
+    ----------
+    Biopac Systems, Inc. Application Notes: application note 242
+        ECG Signal Processing During fMRI
+        https://www.biopac.com/wp-content/uploads/app242x.pdf
+    """
+    # Setting scanner sequence parameters
+    nyquist = np.float64(sampling_rate / 2)
+    notches = {"slices": slices / tr, "tr": 1 / tr}
+    # remove baseline wandering
+    data = filter_physio(
+        data,
+        cutoffs=2,
+        method="highpass",
+    )
+    # Filtering at specific harmonics
+    data = _comb_band_stop(notches, nyquist, data, Q)
+    # bandpass filtering
+    data_clean = filter_physio(
+        data,
+        cutoffs=[2,20],
+        method="bandpass",
+        order=5,
+    )
+
+    return ecg_clean
+
+
+def _ecg_clean_bottenhorn(
+    ecg_signal, sampling_rate=10000.0, tr=1.49, mb=4, slices=60, Q=100
+):
+    """
+    Multiband sequence gradient noise reduction.
+
+    Parameters
+    ----------
+    ecg_signal : array
+        The ECG channel.
+    sampling_rate : float
+        The sampling frequency of `ecg_signal` (in Hz, i.e., samples/second).
+        Default to 10000.
+    tr : float
+        The time Repetition of the MRI scanner.
+        Default to 1.49.
+    mb : 4
+        The multiband acceleration factor.
+        Default to 4.
+    slices : int
+        The number of volumes acquired in the tr period.
+        Default to 60.
+    Q : int
+        The filter quality factor.
+        Default to 100.
+
+    Returns
+    -------
+    ecg_clean : array
+        The cleaned ECG signal.
+
+    References
+    ----------
+    Bottenhorn, K. L., Salo, T., Riedel, M. C., Sutherland, M. T., Robinson, J. L.,
+        Musser, E. D., & Laird, A. R. (2021). Denoising physiological data collected
+        during multi-band, multi-echo EPI sequences. bioRxiv, 2021-04.
+        https://doi.org/10.1101/2021.04.01.437293
+
+    See also
+    --------
+    https://neuropsychology.github.io/NeuroKit/_modules/neurokit2/signal/signal_filter.html#signal_filter
+    """
+    # Setting scanner sequence parameters
+    nyquist = np.float64(sampling_rate / 2)
+    notches = {"slices": slices / mb / tr, "tr": 1 / tr}
+
+    # Remove low frequency artefacts: respiration & baseline wander using high pass butterworth filter (order=2)
+    print("... Applying high pass filter.")
+    ecg_clean = filter_physio(
+        data, cutoffs=2, method="highpass"
+    )
+    # Filtering at fundamental and specific harmonics per Biopac application note #265
+    print("... Applying notch filter.")
+    ecg_clean = _comb_band_stop(notches, nyquist, ecg_clean, Q)
+    # Low pass filtering at 40Hz per Biopac application note #242
+    print("... Applying low pass filtering.")
+    ecg_clean = filter_physio(data, cutoffs=40, method="lowpass")
+    # bandpass filtering
+    ecg_clean = filter_physio(
+        data,
+        cutoffs=[2, 20],
+        method="bandpass",
+        order=5,
+    )
+
+    return ecg_clean
+
+@utils.make_operation()
+def _comb_band_stop(notches, nyquist, filtered, Q):
+    """
+    A serie of notch filters aligned with the scanner gradient's harmonics.
+
+    Parameters
+    ----------
+    notches : dict
+        Frequencies to use in the IIR notch filter.
+    nyquist : float
+        The Nyquist frequency.
+    filtered : Physio_like
+        Data to be filtered.
+    Q : int
+        The filter quality factor.
+
+    Returns
+    -------
+    filtered : Physio_like
+        The filtered signal.
+
+    References
+    ----------
+    Biopac Systems, Inc. Application Notes: application note 242
+        ECG Signal Processing During fMRI
+        https://www.biopac.com/wp-content/uploads/app242x.pdf
+
+    See also
+    --------
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.filtfilt.html
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.iirnotch.html
+    """
+    # band stoping each frequency specified with notches dict
+    for notch in notches:
+        for i in np.arange(1, int(nyquist / notches[notch])):
+            f0 = notches[notch] * i
+            w0 = f0 / nyquist
+            b, a = signal.iirnotch(w0, Q)
+            filtered = utils.new_physio_like(data, signal.filtfilt(b, a, filtered))
+    return filtered
