@@ -2,10 +2,8 @@
 """
 Helper class for holding physiological data and associated metadata inforamtion
 """
-
 import numpy as np
 import pandas as pd
-
 
 
 class Physio():
@@ -22,6 +20,9 @@ class Physio():
         Functions performed on `data`. Default: None
     metadata : dict, optional
         Metadata associated with `data`. Default: None
+    features : dict, optional
+        Features extracted from `data`. Default: None
+        Returned by :func:`operations.neurokit_processing`
     suppdata : array_like, optional
         Support data array. Default: None
 
@@ -148,7 +149,7 @@ class Physio():
     def suppdata(self):
         """ Physiological data """
         return self._suppdata
-    
+
     @property
     def features(self):
         """ Features extracted from physiological data """
@@ -175,7 +176,10 @@ class Physio():
         if neurokit_path is not None:
             df = pd.read_csv(neurokit_path, sep='\t')
         else:
-            df = pd.DataFrame(0, index=np.arange(len(self.data)), columns=['%s_Raw' % module, '%s_Peaks' % module, '%s_Troughs' % module])
+            df = pd.DataFrame(0, index=np.arange(len(self.data)),
+                              columns=['%s_Raw' % module,
+                                       '%s_Peaks' % module,
+                                       '%s_Troughs' % module])
 
         if copy_data:
             df.loc[:, df.columns.str.endswith('Raw')] = self.data

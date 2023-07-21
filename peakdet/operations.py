@@ -34,7 +34,7 @@ def filter_physio(data, cutoffs, method, *, order=3):
         Filtered input `data`
     """
 
-    _valid_methods = ['lowpass', 'highpass', 'bandpass', 'bandstop' ]
+    _valid_methods = ['lowpass', 'highpass', 'bandpass', 'bandstop']
 
     data = utils.check_physio(data, ensure_fs=True)
     if method not in _valid_methods:
@@ -58,6 +58,7 @@ def filter_physio(data, cutoffs, method, *, order=3):
     filtered = utils.new_physio_like(data, signal.filtfilt(b, a, data))
 
     return filtered
+
 
 @utils.make_operation()
 def interpolate_physio(data, target_fs, *, kind='cubic'):
@@ -207,29 +208,6 @@ def add_peaks(data, add):
     return data
 
 
-@utils.make_operation()
-def add_peaks(data, add):
-    """
-    Add `newpeak` to add them in `data`
-
-    Parameters
-    ----------
-    data : Physio_like
-    add : int
-
-    Returns
-    -------
-    data : Physio_like
-    """
-
-    data = utils.check_physio(data, ensure_fs=False, copy=True)
-    idx = np.searchsorted(data._metadata['peaks'], add)
-    data._metadata['peaks'] = np.insert(data._metadata['peaks'], idx, add)
-    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
-
-    return data
-
-
 def edit_physio(data):
     """
     Opens interactive plot with `data` to permit manual editing of time series
@@ -297,6 +275,7 @@ def plot_physio(data, *, ax=None):
 
     return ax
 
+
 @utils.make_operation()
 def neurokit_processing(data, modality, method, **kwargs):
     """
@@ -307,7 +286,7 @@ def neurokit_processing(data, modality, method, **kwargs):
     data : Physio_like
         Input physiological data to be filtered
     modality : str
-        Modality of the data. 
+        Modality of the data.
         One of 'ECG', 'PPG', 'RSP', 'EDA',
     method : str
         The processing pipeline to apply, choose from neurokit2 lists
@@ -328,8 +307,8 @@ def neurokit_processing(data, modality, method, **kwargs):
 
     data = utils.check_physio(data, ensure_fs=True)
     if modality == 'ECG':
-        data = fmri_ecg_clean(data, method=method_cleaning, **kwargs)
-        signal, info = nk.ecg_peaks(data, method=method_peaks)
+        data = fmri_ecg_clean(data, method=method, **kwargs)
+        signal, info = nk.ecg_peaks(data, method=method)
         info[f'{modality}_Peaks'] = info['ECG_R_Peaks']
     elif modality == 'PPG':
         signal, info = nk.ppg_process(data, sampling_rate=data.fs, method=method)
@@ -354,6 +333,7 @@ def neurokit_processing(data, modality, method, **kwargs):
 # ======================================================================
 # Electrocardiogram (ECG)
 # =======================================================================
+
 
 @utils.make_operation()
 def fmri_ecg_clean(data, method="biopac", me=False, **kwargs):
@@ -412,7 +392,8 @@ def fmri_ecg_clean(data, method="biopac", me=False, **kwargs):
         ecg_clean = _ecg_clean_bottenhorn(data, tr=tr, mb=mb, slices=slices)
     else:
         raise ValueError(
-            "The specified method is not supported. Please choose between 'biopac' and 'bottenhorn'."
+            "The specified method is not supported. "
+            "Please choose between 'biopac' and 'bottenhorn'."
         )
 
     return ecg_clean
@@ -457,7 +438,7 @@ def _ecg_clean_biopac(data, tr=1.49, slices=60, Q=100):
         https://www.biopac.com/wp-content/uploads/app242x.pdf
     """
     # Setting scanner sequence parameters
-    nyquist = np.float64(sampling_rate / 2)
+    nyquist = np.float64(data.fs / 2)
     notches = {"slices": slices / tr, "tr": 1 / tr}
     # remove baseline wandering
     data = filter_physio(
@@ -470,16 +451,16 @@ def _ecg_clean_biopac(data, tr=1.49, slices=60, Q=100):
     # bandpass filtering
     data_clean = filter_physio(
         data,
-        cutoffs=[2,20],
+        cutoffs=[2, 20],
         method="bandpass",
         order=5,
     )
 
-    return ecg_clean
+    return data_clean
 
 
 def _ecg_clean_bottenhorn(
-    ecg_signal, sampling_rate=10000.0, tr=1.49, mb=4, slices=60, Q=100
+    data, tr=1.49, mb=4, slices=60, Q=100
 ):
     """
     Multiband sequence gradient noise reduction.
@@ -521,10 +502,11 @@ def _ecg_clean_bottenhorn(
     https://neuropsychology.github.io/NeuroKit/_modules/neurokit2/signal/signal_filter.html#signal_filter
     """
     # Setting scanner sequence parameters
-    nyquist = np.float64(sampling_rate / 2)
+    nyquist = np.float64(data.fs / 2)
     notches = {"slices": slices / mb / tr, "tr": 1 / tr}
 
-    # Remove low frequency artefacts: respiration & baseline wander using high pass butterworth filter (order=2)
+    # Remove low frequency artefacts: respiration & baseline wander using
+    # high pass butterworth filter (order=2)
     print("... Applying high pass filter.")
     ecg_clean = filter_physio(
         data, cutoffs=2, method="highpass"
@@ -545,8 +527,9 @@ def _ecg_clean_bottenhorn(
 
     return ecg_clean
 
+
 @utils.make_operation()
-def _comb_band_stop(notches, nyquist, filtered, Q):
+def _comb_band_stop(notches, nyquist, data, Q):
     """
     A serie of notch filters aligned with the scanner gradient's harmonics.
 
@@ -556,7 +539,7 @@ def _comb_band_stop(notches, nyquist, filtered, Q):
         Frequencies to use in the IIR notch filter.
     nyquist : float
         The Nyquist frequency.
-    filtered : Physio_like
+    data : Physio_like
         Data to be filtered.
     Q : int
         The filter quality factor.
@@ -583,5 +566,6 @@ def _comb_band_stop(notches, nyquist, filtered, Q):
             f0 = notches[notch] * i
             w0 = f0 / nyquist
             b, a = signal.iirnotch(w0, Q)
-            filtered = utils.new_physio_like(data, signal.filtfilt(b, a, filtered))
+            filtered = utils.new_physio_like(data, signal.filtfilt(b, a, data))
+
     return filtered
