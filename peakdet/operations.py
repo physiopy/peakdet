@@ -277,7 +277,7 @@ def plot_physio(data, *, ax=None):
 
 
 @utils.make_operation()
-def neurokit_processing(data, modality, method, **kwargs):
+def neurokit_processing(data, modality, method=None, **kwargs):
     """
     Applies an `order`-order digital `method` Butterworth filter to `data`
 
@@ -306,13 +306,14 @@ def neurokit_processing(data, modality, method, **kwargs):
     if modality not in ['ECG', 'PPG', 'RSP', 'EDA']:
         raise ValueError('Provided modality {} is not permitted; must be in {}.'
                          .format(modality, ['ECG', 'PPG', 'RSP', 'EDA']))
-                         
+
     data = utils.check_physio(data, ensure_fs=True)
 
     # apply neurokit2 processing to a specific modality
     if modality == 'ECG':
         method_cleaning = kwargs.get('method_cleaning')
         method_peaks = kwargs.get('method_peaks')
+        print(method_peaks)
         data = fmri_ecg_clean(data, method=method_cleaning, **kwargs)
         signal, info = nk.ecg_peaks(data, data.fs, method=method_peaks, correct_artifacts=True)
         info[f'{modality}_Peaks'] = info['ECG_R_Peaks']
@@ -332,8 +333,11 @@ def neurokit_processing(data, modality, method, **kwargs):
         pass
     data._features['info'] = info
     data._features['signal'] = signal
-    clean = utils.new_physio_like(data, signal[f'{modality}_Clean'].values)
-    # ADD IN OTHER INFO as features
+    try:
+        clean = utils.new_physio_like(data, signal[f'{modality}_Clean'].values)
+    except KeyError:
+        # data already has the clean signal
+        clean = data
     return clean
 
 # ======================================================================
