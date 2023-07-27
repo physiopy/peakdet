@@ -12,41 +12,14 @@ import datetime
 import pandas as pd
 from pathlib import Path
 from peakdet import _version, Physio, save_physio
+from peakdet import utils
 from peakdet.cli.run import _get_parser
+from peakdet.utils import find_chtrig
 from peakdet.blocks import process_signals, manual_peaks
-from peakdet.operations import filter_physio, peakfind_physio, interpolate_physio
 
-TRIGGER_NAMES = ["trig", "trigger", "ttl"]
-
-FUNCTION_MAPPINGS = {
-    "interpolate_physio": interpolate_physio,
-    "filter_physio": filter_physio,
-    "peakfind_physio": peakfind_physio
-}
 
 LGR = logging.getLogger(__name__)
 LGR.setLevel(logging.INFO)
-
-def find_chtrig(data):
-    joint_match = "§".join(TRIGGER_NAMES)
-    indexes = []
-    for n, case in enumerate(data.columns):
-            name = re.split(r"(\W+|\d|_|\s)", case)
-            name = list(filter(None, name))
-            if re.search("|".join(name), joint_match, re.IGNORECASE):
-                indexes = indexes + [n]
-
-    if indexes:
-        if len(indexes) > 1:
-            raise Exception(
-                "More than one possible trigger channel was automatically found. "
-                "Please run phys2bids specifying the -chtrig argument."
-            )
-        else:
-            return int(indexes[0])
-    else:
-        return None
-
 
 
 def save_bash_call(fname, outdir, outname):
