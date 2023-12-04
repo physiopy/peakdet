@@ -1,0 +1,16 @@
+{
+    "PPG": [
+        {
+            "filter_physio": {
+                "cutoffs": 1.0,
+                "method": "lowpass"
+            }
+        },
+        {
+            "filter_physio": {
+                "cutoffs": 40,
+                "method": "highpass"
+            }
+        }
+    ]
+}
