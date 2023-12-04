@@ -8,8 +8,6 @@ matplotlib.use('WXAgg')
 from gooey import Gooey, GooeyParser
 import peakdet
 
-TARGET = 'pythonw' if sys.platform == 'darwin' else 'python'
-TARGET += ' -u ' + os.path.abspath(__file__)
 
 LOADERS = dict(
     rtpeaks=peakdet.load_rtpeaks,
@@ -45,9 +43,8 @@ ATTR_CONV = {
 
 @Gooey(program_name='Physio pipeline',
        program_description='Physiological processing pipeline',
-       default_size=(800, 600),
-       target=TARGET)
-def get_parser():
+       default_size=(800, 600))
+def _get_parser():
     """ Parser for GUI and command-line arguments """
     parser = GooeyParser()
     parser.add_argument('file_template', metavar='Filename template',
@@ -224,10 +221,10 @@ def workflow(*, file_template, modality, fs, source='MRI', channel=1,
             dest.write(','.join([fname] + outputs) + '\n')
 
 
-def main():
-    opts = get_parser().parse_args()
-    workflow(**vars(opts))
-
-
 if __name__ == '__main__':
-    main()
+    raise RuntimeError(
+        "peakdet/cli/run.py should not be run directly;\n"
+        "Please `pip install` peakdet and use the "
+        "`peakdet` command"
+    )
+
