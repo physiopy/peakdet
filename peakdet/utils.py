@@ -7,8 +7,11 @@ directly but should support wrapper functions stored in `peakdet.operations`.
 from functools import wraps
 import inspect
 import numpy as np
+import re
 from peakdet import physio
 
+
+TRIGGER_NAMES = ["trig", "trigger", "ttl"]
 
 def make_operation(*, exclude=None):
     """
@@ -147,7 +150,7 @@ def check_physio(data, ensure_fs=True, copy=False):
 
 
 def new_physio_like(ref_physio, data, *, fs=None, suppdata=None, dtype=None,
-                    copy_history=True, copy_metadata=True, copy_suppdata=True):
+                    copy_history=True, copy_metadata=True, copy_features=True, copy_suppdata=True):
     """
     Makes `data` into physio object like `ref_data`
 
@@ -168,6 +171,8 @@ def new_physio_like(ref_physio, data, *, fs=None, suppdata=None, dtype=None,
         Copy history from `ref_physio` to new physio object. Default: True
     copy_metadata : bool, optional
         Copy metadata from `ref_physio` to new physio object. Default: True
+    copy_features : bool, optional
+        Copy features from `ref_physio` to new physio object. Default: True
     copy_suppdata : bool, optional
         Copy suppdata from `ref_physio` to new physio object. Default: True
 
@@ -183,6 +188,7 @@ def new_physio_like(ref_physio, data, *, fs=None, suppdata=None, dtype=None,
         dtype = ref_physio.data.dtype
     history = list(ref_physio.history) if copy_history else []
     metadata = dict(**ref_physio._metadata) if copy_metadata else None
+    features = dict(**ref_physio._features) if copy_features else None
 
     if suppdata is None:
         suppdata = ref_physio._suppdata if copy_suppdata else None
@@ -190,7 +196,7 @@ def new_physio_like(ref_physio, data, *, fs=None, suppdata=None, dtype=None,
     # make new class
     out = ref_physio.__class__(np.array(data, dtype=dtype),
                                fs=fs, history=history, metadata=metadata,
-                               suppdata=suppdata)
+                               suppdata=suppdata, features=features)
     return out
 
 
@@ -225,3 +231,38 @@ def check_troughs(data, peaks, troughs=None):
         all_troughs[f] = idx
 
     return all_troughs
+
+
+def find_chtrig(data):
+    """
+    Parameters
+    ----------
+    data : DataFrame
+        DataFrame containing the timeseries
+    Returns
+    -------
+        Trigger channel index
+
+    References
+    ----------
+    Daniel Alcalá, Apoorva Ayyagari, Katie Bottenhorn, Molly Bright, César Caballero-Gaudes, Inés Chavarría, Vicente Ferrer, Soichi Hayashi,    Vittorio Iacovella, François Lespinasse, Ross Markello, Stefano Moia, Robert Oostenveld, Taylor Salo, Rachael Stickland, Eneko Uruñuela, Merel van der Thiel, & Kristina Zvolanek. (2023). physiopy/phys2bids: BIDS formatting of physiological recordings (2.10.0). Zenodo. https://doi.org/10.5281/zenodo.7896344
+    """
+    joint_match = "§".join(TRIGGER_NAMES)
+    indexes = []
+    for n, case in enumerate(data.columns):
+            name = re.split(r"(\W+|\d|_|\s)", case)
+            name = list(filter(None, name))
+            if re.search("|".join(name), joint_match, re.IGNORECASE):
+                indexes = indexes + [n]
+
+    if indexes:
+        if len(indexes) > 1:
+            raise Exception(
+                "More than one possible trigger channel was automatically found. "
+                "Please run phys2bids specifying the -chtrig argument."
+            )
+        else:
+            return int(indexes[0])
+    else:
+        return None
+

@@ -2,9 +2,8 @@
 """
 Helper class for holding physiological data and associated metadata inforamtion
 """
-
 import numpy as np
-
+import pandas as pd
 
 
 class Physio():
@@ -21,6 +20,9 @@ class Physio():
         Functions performed on `data`. Default: None
     metadata : dict, optional
         Metadata associated with `data`. Default: None
+    features : dict, optional
+        Features extracted from `data`. Default: None
+        Returned by :func:`operations.neurokit_processing`
     suppdata : array_like, optional
         Support data array. Default: None
 
@@ -37,11 +39,14 @@ class Physio():
         Indices of peaks in `data`
     troughs : :obj:`numpy.ndarray`
         Indices of troughs in `data`
+    features : dict
+        Dictionary of features extracted from `data`
+        when running  :func:`operations.neurokit_processing`
     suppdata : :obj:`numpy.ndarray`
         Secondary physiological waveform
     """
 
-    def __init__(self, data, fs=None, history=None, metadata=None, suppdata=None):
+    def __init__(self, data, fs=None, history=None, metadata=None, features=None, suppdata=None):
         self._data = np.asarray(data).squeeze()
         if self.data.ndim > 1:
             raise ValueError('Provided data dimensionality {} > 1.'
@@ -72,6 +77,23 @@ class Physio():
             self._metadata = dict(peaks=np.empty(0, dtype=int),
                                   troughs=np.empty(0, dtype=int),
                                   reject=np.empty(0, dtype=int))
+        if features is not None:
+            if not isinstance(features, dict):
+                raise TypeError('Provided features {} must be dict-like.'
+                                .format(self._features))
+            for k in ['info', 'signal']:
+                # info must be a  dict and signal must be a dataframe
+                if k == 'info':
+                    if not isinstance(features.get(k), dict):
+                        raise TypeError('Provided features must be dict-like'
+                                        'with dict entries.')
+                elif k == 'signal':
+                    if not isinstance(features.get(k), pd.DataFrame):
+                        raise TypeError('Provided features must be dict-like'
+                                        'with dataframe entries.')
+            self._features = dict(**features)
+        else:
+            self._features = dict(info=dict(), signal=pd.DataFrame())
         self._suppdata = None if suppdata is None else np.asarray(suppdata).squeeze()
 
     def __array__(self):
@@ -128,6 +150,11 @@ class Physio():
         """ Physiological data """
         return self._suppdata
 
+    @property
+    def features(self):
+        """ Features extracted from physiological data """
+        return self._features
+
     def phys2neurokit(self, copy_data, copy_peaks, copy_troughs, module, neurokit_path=None):
         """ Physio to neurokit dataframe
 
@@ -149,7 +176,10 @@ class Physio():
         if neurokit_path is not None:
             df = pd.read_csv(neurokit_path, sep='\t')
         else:
-            df = pd.DataFrame(0, index=np.arange(len(self.data)), columns=['%s_Raw' % module, '%s_Peaks' % module, '%s_Troughs' % module])
+            df = pd.DataFrame(0, index=np.arange(len(self.data)),
+                              columns=['%s_Raw' % module,
+                                       '%s_Peaks' % module,
+                                       '%s_Troughs' % module])
 
         if copy_data:
             df.loc[:, df.columns.str.endswith('Raw')] = self.data
