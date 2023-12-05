@@ -9,16 +9,9 @@ import inspect
 import numpy as np
 import re
 from peakdet import physio
-from peakdet.operations import filter_physio, peakfind_physio, interpolate_physio
 
 
 TRIGGER_NAMES = ["trig", "trigger", "ttl"]
-
-FUNCTION_MAPPINGS = {
-    "interpolate_physio": interpolate_physio,
-    "filter_physio": filter_physio,
-    "peakfind_physio": peakfind_physio
-}
 
 def make_operation(*, exclude=None):
     """
