@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use('WXAgg')
 from gooey import Gooey, GooeyParser
 import peakdet
+from loguru import logger
 
 TARGET = 'pythonw' if sys.platform == 'darwin' else 'python'
 TARGET += ' -u ' + os.path.abspath(__file__)
@@ -105,6 +106,7 @@ def get_parser():
     return parser
 
 
+@logger.catch
 def workflow(*, file_template, modality, fs, source='MRI', channel=1,
              output='peakdet.csv', savehistory=True, noedit=False, thresh=0.2,
              measurements=ATTR_CONV.keys()):

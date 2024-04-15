@@ -8,6 +8,7 @@ from functools import wraps
 import inspect
 import numpy as np
 from peakdet import physio
+from loguru import logger
 
 
 def make_operation(*, exclude=None):
@@ -108,6 +109,7 @@ def _get_call(*, exclude=None, serializable=True):
     return function, provided
 
 
+@logger.catch
 def check_physio(data, ensure_fs=True, copy=False):
     """
     Checks that `data` is in correct format (i.e., `peakdet.Physio`)

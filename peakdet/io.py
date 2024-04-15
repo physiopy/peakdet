@@ -8,10 +8,12 @@ import os.path as op
 import warnings
 import numpy as np
 from peakdet import physio, utils
+from loguru import logger
 
 EXPECTED = ['data', 'fs', 'history', 'metadata']
 
 
+@logger.catch
 def load_physio(data, *, fs=None, dtype=None, history=None,
                 allow_pickle=False):
     """
@@ -119,6 +121,7 @@ def save_physio(fname, data):
     return fname
 
 
+@logger.catch
 def load_history(file, verbose=False):
     """
     Loads history from `file` and replays it, creating new Physio instance
