@@ -39,9 +39,9 @@ def load_rtpeaks(fname, channel, fs):
     """
 
     if fname.startswith('/'):
-        warnings.warn('Provided file seems to be an absolute path. In order '
-                      'to ensure full reproducibility it is recommended that '
-                      'a relative path is provided.')
+        logger.warning('Provided file seems to be an absolute path. In order '
+                       'to ensure full reproducibility it is recommended that '
+                       'a relative path is provided.')
 
     with open(fname, 'r') as src:
         header = src.readline().strip().split(',')

@@ -142,14 +142,14 @@ def workflow(*, file_template, modality, fs, source='MRI', channel=1,
     """
 
     # output file
-    print('OUTPUT FILE:\t\t{}\n'.format(output))
+    logger.info('OUTPUT FILE:\t\t{}\n'.format(output))
     # grab files from file template
-    print('FILE TEMPLATE:\t{}\n'.format(file_template))
+    logger.info('FILE TEMPLATE:\t{}\n'.format(file_template))
     files = glob.glob(file_template, recursive=True)
 
     # convert measurements to peakdet.HRV attribute friendly names
     try:
-        print('REQUESTED MEASUREMENTS: {}\n'.format(', '.join(measurements)))
+        logger.info('REQUESTED MEASUREMENTS: {}\n'.format(', '.join(measurements)))
     except TypeError:
         raise TypeError('It looks like you didn\'t select any of the options '
                         'specifying desired output measurements. Please '
@@ -168,10 +168,10 @@ def workflow(*, file_template, modality, fs, source='MRI', channel=1,
         # requested on command line, warn and use existing measurements so
         # as not to totally fork up existing file
         if eheader != head:
-            warnings.warn('Desired output file already exists and requested '
-                          'measurements do not match with measurements in '
-                          'existing output file. Using the pre-existing '
-                          'measurements, instead.')
+            logger.warning('Desired output file already exists and requested '
+                           'measurements do not match with measurements in '
+                           'existing output file. Using the pre-existing '
+                           'measurements, instead.')
             measurements = [f.strip() for f in eheader.split(',')[1:]]
         head = ''
     # if output file doesn't exist, nbd
@@ -183,7 +183,7 @@ def workflow(*, file_template, modality, fs, source='MRI', channel=1,
         # iterate through all files and do peak detection with manual editing
         for fname in files:
             fname = os.path.relpath(fname)
-            print('Currently processing {}'.format(fname))
+            logger.info('Currently processing {}'.format(fname))
 
             # if we want to save history, this is the output name it would take
             outname = os.path.join(os.path.dirname(fname),

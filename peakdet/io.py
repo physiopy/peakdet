@@ -66,9 +66,9 @@ def load_physio(data, *, fs=None, dtype=None, history=None,
     # if we got a numpy array, load that into a Physio object
     elif isinstance(data, np.ndarray):
         if history is None:
-            warnings.warn('Loading data from a numpy array without providing a'
-                          'history will render reproducibility functions '
-                          'useless! Continuing anyways.')
+            logger.warning('Loading data from a numpy array without providing a'
+                           'history will render reproducibility functions '
+                           'useless! Continuing anyways.')
         phys = physio.Physio(np.asarray(data, dtype=dtype), fs=fs,
                              history=history)
     # create a new Physio object out of a provided Physio object
@@ -81,7 +81,7 @@ def load_physio(data, *, fs=None, dtype=None, history=None,
     # reset sampling rate, as requested
     if fs is not None and fs != phys.fs:
         if not np.isnan(phys.fs):
-            warnings.warn('Provided sampling rate does not match loaded rate. '
+            logger.warning('Provided sampling rate does not match loaded rate. '
                           'Resetting loaded sampling rate {} to provided {}'
                           .format(phys.fs, fs))
         phys._fs = fs
@@ -151,7 +151,7 @@ def load_history(file, verbose=False):
     data = None
     for (func, kwargs) in history:
         if verbose:
-            print('Rerunning {}'.format(func))
+            logger.info('Rerunning {}'.format(func))
         # loading functions don't have `data` input because it should be the
         # first thing in `history` (when the data was originally loaded!).
         # for safety, check if `data` is None; someone could have potentially
@@ -197,9 +197,9 @@ def save_history(file, data):
 
     data = check_physio(data)
     if len(data.history) == 0:
-        warnings.warn('History of provided Physio object is empty. Saving '
-                      'anyway, but reloading this file will result in an '
-                      'error.')
+        logger.warning('History of provided Physio object is empty. Saving '
+                       'anyway, but reloading this file will result in an '
+                       'error.')
     file += '.json' if not file.endswith('.json') else ''
     with open(file, 'w') as dest:
         json.dump(data.history, dest, indent=4)
