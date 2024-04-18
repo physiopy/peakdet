@@ -27,7 +27,7 @@ Install with ``pip``
 
 To install ``peakdet`` along with the basic required modules just run::
 
-    pip3 install phys2bids
+    pip3 install peakdet
     
 You can now proceed to check your installation and start using ``peakdet``!
 
