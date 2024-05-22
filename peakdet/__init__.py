@@ -12,7 +12,10 @@ from peakdet.operations import (delete_peaks, edit_physio, filter_physio,
                                 interpolate_physio, peakfind_physio,
                                 plot_physio, reject_peaks)
 from peakdet.physio import (Physio)
+from loguru import logger
 
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
+
+logger.disable("peakdet")
