@@ -109,7 +109,7 @@ def get_parser():
 @logger.catch
 def workflow(*, file_template, modality, fs, source='MRI', channel=1,
              output='peakdet.csv', savehistory=True, noedit=False, thresh=0.2,
-             measurements=ATTR_CONV.keys()):
+             measurements=ATTR_CONV.keys(), verbose=True):
     """
     Basic workflow for physiological data
 
@@ -140,7 +140,8 @@ def workflow(*, file_template, modality, fs, source='MRI', channel=1,
         Which HRV-related measurements to save from data. See ``peakdet.HRV``
         for available measurements. Default: all available measurements.
     """
-
+    logger.remove(0)
+    logger.add(sys.stderr, backtrace=verbose, diagnose=verbose)
     # output file
     logger.info('OUTPUT FILE:\t\t{}\n'.format(output))
     # grab files from file template
