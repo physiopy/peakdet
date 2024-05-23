@@ -18,4 +18,5 @@ from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
 
-logger.disable("peakdet")
+# TODO: Loguru does not detect the module's name
+logger.disable(None)

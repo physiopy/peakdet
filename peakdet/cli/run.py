@@ -228,6 +228,7 @@ def workflow(*, file_template, modality, fs, source='MRI', channel=1,
 
 
 def main():
+    logger.enable(None)
     opts = get_parser().parse_args()
     workflow(**vars(opts))
 
