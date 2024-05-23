@@ -19,4 +19,4 @@ __version__ = get_versions()['version']
 del get_versions
 
 # TODO: Loguru does not detect the module's name
-logger.disable(None)
+logger.disable("")

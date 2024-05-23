@@ -9,6 +9,7 @@ import inspect
 import numpy as np
 from peakdet import physio
 from loguru import logger
+import sys
 
 
 def make_operation(*, exclude=None):
@@ -227,3 +228,11 @@ def check_troughs(data, peaks, troughs=None):
         all_troughs[f] = idx
 
     return all_troughs
+
+def enable_logger(diagnose=True, backtrace=True):
+    """
+    Toggles the use of the module's logger and configures it
+    """
+    logger.enable("")
+    logger.remove(0)
+    logger.add(sys.stderr, backtrace=backtrace, diagnose=diagnose)
