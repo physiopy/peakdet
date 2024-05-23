@@ -4,7 +4,6 @@ Helper class for holding physiological data and associated metadata inforamtion
 """
 
 import numpy as np
-from loguru import logger
 
 
 class Physio():

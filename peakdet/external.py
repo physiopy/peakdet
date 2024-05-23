@@ -3,7 +3,6 @@
 Functions for interacting with physiological data acquired by external packages
 """
 
-import warnings
 import numpy as np
 from peakdet import physio, utils
 from loguru import logger

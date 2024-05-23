@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate, signal
 from peakdet import editor, utils
-from loguru import logger
 
 @utils.make_operation()
 def filter_physio(data, cutoffs, method, *, order=3):

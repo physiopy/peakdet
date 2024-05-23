@@ -2,7 +2,6 @@
 import glob
 import os
 import sys
-import warnings
 import matplotlib
 matplotlib.use('WXAgg')
 from gooey import Gooey, GooeyParser

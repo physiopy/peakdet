@@ -5,7 +5,6 @@ Functions for loading and saving data and analyses
 
 import json
 import os.path as op
-import warnings
 import numpy as np
 from peakdet import physio, utils
 from loguru import logger
