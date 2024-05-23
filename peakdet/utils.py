@@ -110,7 +110,6 @@ def _get_call(*, exclude=None, serializable=True):
     return function, provided
 
 
-@logger.catch
 def check_physio(data, ensure_fs=True, copy=False):
     """
     Checks that `data` is in correct format (i.e., `peakdet.Physio`)
