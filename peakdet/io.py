@@ -5,15 +5,16 @@ Functions for loading and saving data and analyses
 
 import json
 import os.path as op
+
 import numpy as np
-from peakdet import physio, utils
 from loguru import logger
 
-EXPECTED = ['data', 'fs', 'history', 'metadata']
+from peakdet import physio, utils
+
+EXPECTED = ["data", "fs", "history", "metadata"]
 
 
-def load_physio(data, *, fs=None, dtype=None, history=None,
-                allow_pickle=False):
+def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
     """
     Returns `Physio` object with provided data
 
@@ -51,37 +52,39 @@ def load_physio(data, *, fs=None, dtype=None, history=None,
                 try:
                     inp[attr] = inp[attr].dtype.type(inp[attr])
                 except KeyError:
-                    raise ValueError('Provided npz file {} must have all of '
-                                     'the following attributes: {}'
-                                     .format(data, EXPECTED))
+                    raise ValueError(
+                        "Provided npz file {} must have all of "
+                        "the following attributes: {}".format(data, EXPECTED)
+                    )
             # fix history, which needs to be list-of-tuple
-            if inp['history'] is not None:
-                inp['history'] = list(map(tuple, inp['history']))
+            if inp["history"] is not None:
+                inp["history"] = list(map(tuple, inp["history"]))
         except (IOError, OSError, ValueError):
-            inp = dict(data=np.loadtxt(data),
-                       history=[utils._get_call(exclude=[])])
+            inp = dict(data=np.loadtxt(data), history=[utils._get_call(exclude=[])])
         phys = physio.Physio(**inp)
     # if we got a numpy array, load that into a Physio object
     elif isinstance(data, np.ndarray):
         if history is None:
-            logger.warning('Loading data from a numpy array without providing a'
-                           'history will render reproducibility functions '
-                           'useless! Continuing anyways.')
-        phys = physio.Physio(np.asarray(data, dtype=dtype), fs=fs,
-                             history=history)
+            logger.warning(
+                "Loading data from a numpy array without providing a"
+                "history will render reproducibility functions "
+                "useless! Continuing anyways."
+            )
+        phys = physio.Physio(np.asarray(data, dtype=dtype), fs=fs, history=history)
     # create a new Physio object out of a provided Physio object
     elif isinstance(data, physio.Physio):
         phys = utils.new_physio_like(data, data.data, fs=fs, dtype=dtype)
         phys._history += [utils._get_call()]
     else:
-        raise TypeError('Cannot load data of type {}'.format(type(data)))
+        raise TypeError("Cannot load data of type {}".format(type(data)))
 
     # reset sampling rate, as requested
     if fs is not None and fs != phys.fs:
         if not np.isnan(phys.fs):
-            logger.warning('Provided sampling rate does not match loaded rate. '
-                          'Resetting loaded sampling rate {} to provided {}'
-                          .format(phys.fs, fs))
+            logger.warning(
+                "Provided sampling rate does not match loaded rate. "
+                "Resetting loaded sampling rate {} to provided {}".format(phys.fs, fs)
+            )
         phys._fs = fs
     # coerce datatype, if needed
     if dtype is not None:
@@ -110,11 +113,12 @@ def save_physio(fname, data):
     from peakdet.utils import check_physio
 
     data = check_physio(data)
-    fname += '.phys' if not fname.endswith('.phys') else ''
-    with open(fname, 'wb') as dest:
+    fname += ".phys" if not fname.endswith(".phys") else ""
+    with open(fname, "wb") as dest:
         hist = data.history if data.history != [] else None
-        np.savez_compressed(dest, data=data.data, fs=data.fs,
-                            history=hist, metadata=data._metadata)
+        np.savez_compressed(
+            dest, data=data.data, fs=data.fs, history=hist, metadata=data._metadata
+        )
 
     return fname
 
@@ -141,29 +145,34 @@ def load_history(file, verbose=False):
     import peakdet
 
     # grab history from provided JSON file
-    with open(file, 'r') as src:
+    with open(file, "r") as src:
         history = json.load(src)
 
     # replay history from beginning and return resultant Physio object
     data = None
-    for (func, kwargs) in history:
+    for func, kwargs in history:
         if verbose:
-            logger.info('Rerunning {}'.format(func))
+            logger.info("Rerunning {}".format(func))
         # loading functions don't have `data` input because it should be the
         # first thing in `history` (when the data was originally loaded!).
         # for safety, check if `data` is None; someone could have potentially
         # called load_physio on a Physio object (which is a valid, albeit
         # confusing, thing to do)
-        if 'load' in func and data is None:
-            if not op.exists(kwargs['data']):
-                if kwargs['data'].startswith('/'):
-                    msg = ('Perhaps you are trying to load a history file '
-                           'that was generated with an absolute path?')
+        if "load" in func and data is None:
+            if not op.exists(kwargs["data"]):
+                if kwargs["data"].startswith("/"):
+                    msg = (
+                        "Perhaps you are trying to load a history file "
+                        "that was generated with an absolute path?"
+                    )
                 else:
-                    msg = ('Perhaps you are trying to load a history file '
-                           'that was generated from a different directory?')
-                raise FileNotFoundError('{} does not exist. {}'
-                                        .format(kwargs['data'], msg))
+                    msg = (
+                        "Perhaps you are trying to load a history file "
+                        "that was generated from a different directory?"
+                    )
+                raise FileNotFoundError(
+                    "{} does not exist. {}".format(kwargs["data"], msg)
+                )
             data = getattr(peakdet, func)(**kwargs)
         else:
             data = getattr(peakdet, func)(data, **kwargs)
@@ -194,11 +203,13 @@ def save_history(file, data):
 
     data = check_physio(data)
     if len(data.history) == 0:
-        logger.warning('History of provided Physio object is empty. Saving '
-                       'anyway, but reloading this file will result in an '
-                       'error.')
-    file += '.json' if not file.endswith('.json') else ''
-    with open(file, 'w') as dest:
+        logger.warning(
+            "History of provided Physio object is empty. Saving "
+            "anyway, but reloading this file will result in an "
+            "error."
+        )
+    file += ".json" if not file.endswith(".json") else ""
+    with open(file, "w") as dest:
         json.dump(data.history, dest, indent=4)
 
     return file
