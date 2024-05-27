@@ -26,7 +26,7 @@ assignees:
 
 ## Specifications
 <!--- Point out the version of peakdet you are running and your OS version -->
-    - Python version: 
+    - Python version:
     - phys2bids version:
     - Platform:
 
