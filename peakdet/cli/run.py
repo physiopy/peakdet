@@ -161,7 +161,7 @@ def workflow(
     noedit=False,
     thresh=0.2,
     measurements=ATTR_CONV.keys(),
-    verbose=True
+    verbose=False
 ):
     """
     Basic workflow for physiological data
@@ -192,6 +192,8 @@ def workflow(
     measurements : list, optional
         Which HRV-related measurements to save from data. See ``peakdet.HRV``
         for available measurements. Default: all available measurements.
+    verbose : bool, optional
+        Whether to include verbose logs when catching exceptions that include diagnostics
     """
     logger.remove(0)
     logger.add(sys.stderr, backtrace=verbose, diagnose=verbose)
