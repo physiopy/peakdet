@@ -107,7 +107,7 @@ def interpolate_physio(data, target_fs, *, kind="cubic"):
 @utils.make_operation()
 def peakfind_physio(data, *, thresh=0.2, dist=None):
     """
-    Performs peak and through detection on `data`
+    Performs peak and trough detection on `data`
 
     Parameters
     ----------
@@ -139,7 +139,7 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
     heights = np.percentile(heights["peak_heights"], 1)
     locs, heights = signal.find_peaks(data[:], distance=cdist, height=heights)
     data._metadata["peaks"] = locs
-    # perform through detection based on detected peaks
+    # perform trough detection based on detected peaks
     data._metadata["troughs"] = utils.check_troughs(data, data.peaks)
 
     return data
