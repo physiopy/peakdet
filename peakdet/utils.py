@@ -225,9 +225,9 @@ def check_troughs(data, peaks, troughs=None):
     Returns
     -------
     troughs : np.ndarray
-        Indices of trough locations in `data`, dependent on `peaks`
+        Indices of through locations in `data`, dependent on `peaks`
     """
-    # If there's a trough after all peaks, keep it.
+    # If there's a through after all peaks, keep it.
     if troughs is not None and troughs[-1] > peaks[-1]:
         all_troughs = np.zeros(peaks.size, dtype=int)
         all_troughs[-1] == troughs[-1]
