@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Helper class for holding physiological data and associated metadata inforamtion
+Helper class for holding physiological data and associated metadata information
 """
 
 import numpy as np
