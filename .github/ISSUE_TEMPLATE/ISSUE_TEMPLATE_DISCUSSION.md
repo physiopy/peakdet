@@ -1,6 +1,6 @@
 ---
 name: Discussion
-about: Use this template to start a discussion issue, i.e. an issue that
+about: Use this template to start a discussion issue, i.e. an issue meant to open a community debate over a topic
 title: ''
 labels: Discussion
 assignees: ''
