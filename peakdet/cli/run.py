@@ -128,6 +128,22 @@ def get_parser():
         type=float,
         help="Threshold for peak detection algorithm.",
     )
+    edit_group.add_argument(
+        "-debug",
+        "--debug",
+        dest="debug",
+        action="store_true",
+        help="Only print debugging info to log file. Default is False.",
+        default=False,
+    )
+    edit_group.add_argument(
+        "-quiet",
+        "--quiet",
+        dest="quiet",
+        action="store_true",
+        help="Only print warnings to log file. Default is False.",
+        default=False,
+    )
 
     return parser
 
@@ -145,7 +161,9 @@ def workflow(
     noedit=False,
     thresh=0.2,
     measurements=ATTR_CONV.keys(),
-    verbose=False
+    verbose=False,
+    debug=False,
+    quiet=False
 ):
     """
     Basic workflow for physiological data
@@ -180,7 +198,13 @@ def workflow(
         Whether to include verbose logs when catching exceptions that include diagnostics
     """
     logger.remove(0)
-    logger.add(sys.stderr, backtrace=verbose, diagnose=verbose)
+    if quiet:
+        logger.add(sys.stderr, level="WARNING", backtrace=verbose, diagnose=verbose)
+    elif debug:
+        logger.add(sys.stderr, level="DEBUG", backtrace=verbose, diagnose=verbose)
+    else:
+        logger.add(sys.stderr, level="INFO", backtrace=verbose, diagnose=verbose)
+
     # output file
     logger.info("OUTPUT FILE:\t\t{}".format(output))
     # grab files from file template
