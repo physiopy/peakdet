@@ -10,6 +10,7 @@ from loguru import logger
 
 # from gooey import Gooey, GooeyParser
 import peakdet
+import argparse
 
 TARGET = "pythonw" if sys.platform == "darwin" else "python"
 TARGET += " -u " + os.path.abspath(__file__)
@@ -41,19 +42,11 @@ ATTR_CONV = {
 }
 
 
-@Gooey(
-    program_name="Physio pipeline",
-    program_description="Physiological processing pipeline",
-    default_size=(800, 600),
-    target=TARGET,
-)
 def get_parser():
     """Parser for GUI and command-line arguments"""
-    parser = GooeyParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         "file_template",
-        metavar="Filename template",
-        widget="FileChooser",
         help="Select a representative file and replace all "
         'subject-specific information with a "?" symbol.'
         "\nFor example, subject_001_data.txt should "
@@ -67,28 +60,24 @@ def get_parser():
     )
     inp_group.add_argument(
         "--modality",
-        metavar="Modality",
         default="ECG",
         choices=list(MODALITIES.keys()),
         help="Modality of input data.",
     )
     inp_group.add_argument(
         "--fs",
-        metavar="Sampling rate",
         default=1000.0,
         type=float,
         help="Sampling rate of input data.",
     )
     inp_group.add_argument(
         "--source",
-        metavar="Source",
         default="rtpeaks",
         choices=list(LOADERS.keys()),
         help="Program used to collect the data.",
     )
     inp_group.add_argument(
         "--channel",
-        metavar="Channel",
         default=1,
         type=int,
         help="Which channel of data to read from data "
@@ -102,7 +91,6 @@ def get_parser():
     out_group.add_argument(
         "-o",
         "--output",
-        metavar="Filename",
         default="peakdet.csv",
         help="Output filename for generated measurements.",
     )
@@ -111,16 +99,13 @@ def get_parser():
         "--measurements",
         metavar="Measurements",
         nargs="+",
-        widget="Listbox",
         choices=list(ATTR_CONV.keys()),
         default=["Average NN intervals", "Standard deviation of NN intervals"],
-        help="Desired physiological measurements.\nChoose "
-        "multiple with shift+click or ctrl+click.",
+        help="Desired physiological measurements",
     )
     out_group.add_argument(
         "-s",
         "--savehistory",
-        metavar="Save history",
         action="store_true",
         help="Whether to save history of data processing " "for each file.",
     )
@@ -132,14 +117,12 @@ def get_parser():
     edit_group.add_argument(
         "-n",
         "--noedit",
-        metavar="Editing",
         action="store_true",
         help="Turn off interactive editing.",
     )
     edit_group.add_argument(
         "-t",
         "--thresh",
-        metavar="Threshold",
         default=0.2,
         type=float,
         help="Threshold for peak detection algorithm.",
@@ -198,9 +181,9 @@ def workflow(
     logger.remove(0)
     logger.add(sys.stderr, backtrace=verbose, diagnose=verbose)
     # output file
-    logger.info("OUTPUT FILE:\t\t{}\n".format(output))
+    logger.info("OUTPUT FILE:\t\t{}".format(output))
     # grab files from file template
-    logger.info("FILE TEMPLATE:\t{}\n".format(file_template))
+    logger.info("FILE TEMPLATE:\t{}".format(file_template))
     files = glob.glob(file_template, recursive=True)
 
     # convert measurements to peakdet.HRV attribute friendly names
