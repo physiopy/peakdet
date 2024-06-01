@@ -244,10 +244,24 @@ def check_troughs(data, peaks, troughs=None):
     return all_troughs
 
 
-def enable_logger(diagnose=True, backtrace=True):
+def enable_logger(loglevel="INFO", diagnose=True, backtrace=True):
     """
     Toggles the use of the module's logger and configures it
+
+    Parameters
+    ----------
+    loglevel : {'INFO', 'DEBUG', 'WARNING', 'ERROR'}
+        Logger log level. Default: "INFO"
     """
+    _valid_loglevels = ["INFO", "DEBUG", "WARNING", "ERROR"]
+
+    if loglevel not in _valid_loglevels:
+        raise ValueError(
+            "Provided log level {} is not permitted; must be in {}.".format(
+                loglevel, _valid_loglevels
+            )
+        )
     logger.enable("")
     logger.remove(0)
-    logger.add(sys.stderr, backtrace=backtrace, diagnose=diagnose)
+    logger.add(sys.stderr, level=loglevel, backtrace=backtrace, diagnose=diagnose)
+    logger.debug("Enabling logger")
