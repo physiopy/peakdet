@@ -7,6 +7,7 @@ import matplotlib
 
 matplotlib.use("WXAgg")
 import argparse
+import datetime
 
 from loguru import logger
 
@@ -163,7 +164,7 @@ def workflow(
     measurements=ATTR_CONV.keys(),
     verbose=False,
     debug=False,
-    quiet=False
+    quiet=False,
 ):
     """
     Basic workflow for physiological data
@@ -197,13 +198,61 @@ def workflow(
     verbose : bool, optional
         Whether to include verbose logs when catching exceptions that include diagnostics
     """
+    outdir = os.path.dirname(output)
+    logger.info(f"Current path is {outdir}")
+
+    # Create logfile name
+    basename = "peakdet"
+    extension = "log"
+    isotime = datetime.datetime.now().strftime("%Y-%m-%dT%H%M%S")
+    logname = os.path.join(outdir, (basename + isotime + "." + extension))
+
     logger.remove(0)
     if quiet:
-        logger.add(sys.stderr, level="WARNING", backtrace=verbose, diagnose=verbose)
+        logger.add(
+            sys.stderr,
+            level="WARNING",
+            colorize=True,
+            backtrace=verbose,
+            diagnose=verbose,
+        )
+        logger.add(
+            logname,
+            level="WARNING",
+            colorize=False,
+            backtrace=verbose,
+            diagnose=verbose,
+        )
     elif debug:
-        logger.add(sys.stderr, level="DEBUG", backtrace=verbose, diagnose=verbose)
+        logger.add(
+            sys.stderr,
+            level="DEBUG",
+            colorize=True,
+            backtrace=verbose,
+            diagnose=verbose,
+        )
+        logger.add(
+            logname,
+            level="DEBUG",
+            colorize=False,
+            backtrace=verbose,
+            diagnose=verbose,
+        )
     else:
-        logger.add(sys.stderr, level="INFO", backtrace=verbose, diagnose=verbose)
+        logger.add(
+            sys.stderr,
+            level="INFO",
+            colorize=True,
+            backtrace=verbose,
+            diagnose=verbose,
+        )
+        logger.add(
+            logname,
+            level="INFO",
+            colorize=False,
+            backtrace=verbose,
+            diagnose=verbose,
+        )
 
     # output file
     logger.info("OUTPUT FILE:\t\t{}".format(output))
