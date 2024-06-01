@@ -44,12 +44,8 @@ class Physio:
     def __init__(self, data, fs=None, history=None, metadata=None, suppdata=None):
         self._data = np.asarray(data).squeeze()
         if self.data.ndim > 1:
-            # raise ValueError('Provided data dimensionality {} > 1.'
-            #                  .format(self.data.ndim))
             raise ValueError(
-                logger.exception(
-                    "Provided data dimensionality {} > 1.".format(self.data.ndim)
-                )
+                "Provided data dimensionality {} > 1.".format(self.data.ndim)
             )
 
         if not np.issubdtype(self.data.dtype, np.number):

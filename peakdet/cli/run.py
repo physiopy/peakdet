@@ -6,11 +6,12 @@ import sys
 import matplotlib
 
 matplotlib.use("WXAgg")
+import argparse
+
 from loguru import logger
 
 # from gooey import Gooey, GooeyParser
 import peakdet
-import argparse
 
 TARGET = "pythonw" if sys.platform == "darwin" else "python"
 TARGET += " -u " + os.path.abspath(__file__)
