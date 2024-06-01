@@ -3,6 +3,7 @@
 Functions for processing and interpreting physiological data
 """
 
+from loguru import logger
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate, signal
@@ -58,6 +59,11 @@ def filter_physio(data, cutoffs, method, *, order=3):
             "frequency for input data with sampling rate {}.".format(cutoffs, data.fs)
         )
 
+    if method in ["lowpass", "highpass"]:
+        logger.info(f"Applying a {method} filter (order: {order}) to the signal, with cutoff frequency at {cutoffs} Hz")
+    elif method in ["bandpass", "bandstop"]:
+        logger.info(f"Applying a {method} filter (order: {order}) to the signal, with cutoff frequencies at {cutoffs[0]} and {cutoffs[1]} Hz")
+    
     b, a = signal.butter(int(order), nyq_cutoff, btype=method)
     filtered = utils.new_physio_like(data, signal.filtfilt(b, a, data))
 
@@ -99,6 +105,8 @@ def interpolate_physio(data, target_fs, *, kind="cubic"):
         suppinterp = None
     else:
         suppinterp = interpolate.interp1d(t_orig, data.suppdata, kind=kind)(t_new)
+
+    logger.info(f"Interpolating the signal at {target_fs} Hz (Interpolation ratio: {factor}).")
     interp = utils.new_physio_like(data, interp, fs=target_fs, suppdata=suppinterp)
 
     return interp
@@ -128,19 +136,21 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
 
     ensure_fs = True if dist is None else False
     data = utils.check_physio(data, ensure_fs=ensure_fs, copy=True)
-
     # first pass peak detection to get approximate distance between peaks
     cdist = data.fs // 4 if dist is None else dist
     thresh = np.squeeze(np.diff(np.percentile(data, [5, 95]))) * thresh
     locs, heights = signal.find_peaks(data[:], distance=cdist, height=thresh)
+    logger.debug(f"First peak detection iteration. Acquiring approximate distance between peaks (Number of peaks: {len(locs)})")
 
     # second, more thorough peak detection
     cdist = np.diff(locs).mean() // 2
     heights = np.percentile(heights["peak_heights"], 1)
     locs, heights = signal.find_peaks(data[:], distance=cdist, height=heights)
     data._metadata["peaks"] = locs
+    logger.debug(f"Second peak detection iteration. Acquiring more precise peak locations (Number of peaks: {len(locs)})")
     # perform trough detection based on detected peaks
     data._metadata["troughs"] = utils.check_troughs(data, data.peaks)
+    logger.debug(f"Trough detection based on detected peaks (Number of troughs: {len(data.troughs)})")
 
     return data
 
@@ -159,7 +169,6 @@ def delete_peaks(data, remove):
     -------
     data : Physio_like
     """
-
     data = utils.check_physio(data, ensure_fs=False, copy=True)
     data._metadata["peaks"] = np.setdiff1d(data._metadata["peaks"], remove)
     data._metadata["troughs"] = utils.check_troughs(data, data.peaks, data.troughs)
@@ -181,7 +190,6 @@ def reject_peaks(data, remove):
     -------
     data : Physio_like
     """
-
     data = utils.check_physio(data, ensure_fs=False, copy=True)
     data._metadata["reject"] = np.append(data._metadata["reject"], remove)
     data._metadata["troughs"] = utils.check_troughs(data, data.peaks, data.troughs)
@@ -203,30 +211,6 @@ def add_peaks(data, add):
     -------
     data : Physio_like
     """
-
-    data = utils.check_physio(data, ensure_fs=False, copy=True)
-    idx = np.searchsorted(data._metadata["peaks"], add)
-    data._metadata["peaks"] = np.insert(data._metadata["peaks"], idx, add)
-    data._metadata["troughs"] = utils.check_troughs(data, data.peaks)
-
-    return data
-
-
-@utils.make_operation()
-def add_peaks(data, add):
-    """
-    Add `newpeak` to add them in `data`
-
-    Parameters
-    ----------
-    data : Physio_like
-    add : int
-
-    Returns
-    -------
-    data : Physio_like
-    """
-
     data = utils.check_physio(data, ensure_fs=False, copy=True)
     idx = np.searchsorted(data._metadata["peaks"], add)
     data._metadata["peaks"] = np.insert(data._metadata["peaks"], idx, add)
@@ -257,6 +241,7 @@ def edit_physio(data):
         return
 
     # perform manual editing
+    logger.info("Opening interactive peak editor")
     edits = editor._PhysioEditor(data)
     plt.show(block=True)
 
@@ -288,7 +273,7 @@ def plot_physio(data, *, ax=None):
     ax : :class:`matplotlib.axes.Axes`
         Axis with plotted `data`
     """
-
+    logger.debug(f"Plotting {data}")
     # generate x-axis time series
     fs = 1 if np.isnan(data.fs) else data.fs
     time = np.arange(0, len(data) / fs, 1 / fs)

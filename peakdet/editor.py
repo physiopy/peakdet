@@ -8,6 +8,7 @@ import numpy as np
 from matplotlib.widgets import SpanSelector
 
 from peakdet import operations, utils
+from loguru import logger
 
 
 class _PhysioEditor:
@@ -142,6 +143,7 @@ class _PhysioEditor:
 
         method accepts 'insert', 'reject', 'delete'
         """
+        logger.debug("Edit")
         if method not in ["insert", "reject", "delete"]:
             raise ValueError(f'Action "{method}" not supported.')
 
