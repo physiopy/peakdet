@@ -145,6 +145,14 @@ def get_parser():
         help="Only print warnings to log file. Default is False.",
         default=False,
     )
+    edit_group.add_argument(
+        "-verbose",
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        help="Print verbose error logs with diagnostics",
+        default=False,
+    )
 
     return parser
 
