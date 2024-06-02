@@ -61,9 +61,11 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
                 inp["history"] = list(map(tuple, inp["history"]))
         except (IOError, OSError, ValueError):
             inp = dict(data=np.loadtxt(data), history=[utils._get_call(exclude=[])])
+        logger.debug("Instantiating Physio object from a file")
         phys = physio.Physio(**inp)
     # if we got a numpy array, load that into a Physio object
     elif isinstance(data, np.ndarray):
+        logger.debug("Instantiating Physio object from numpy array")
         if history is None:
             logger.warning(
                 "Loading data from a numpy array without providing a"
@@ -73,6 +75,7 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
         phys = physio.Physio(np.asarray(data, dtype=dtype), fs=fs, history=history)
     # create a new Physio object out of a provided Physio object
     elif isinstance(data, physio.Physio):
+        logger.debug("Instantiating a new Physio object from the provided Physio object")
         phys = utils.new_physio_like(data, data.data, fs=fs, dtype=dtype)
         phys._history += [utils._get_call()]
     else:
@@ -119,6 +122,7 @@ def save_physio(fname, data):
         np.savez_compressed(
             dest, data=data.data, fs=data.fs, history=hist, metadata=data._metadata
         )
+    logger.info(f"Saved {data} in {fname}")
 
     return fname
 
@@ -149,6 +153,7 @@ def load_history(file, verbose=False):
         history = json.load(src)
 
     # replay history from beginning and return resultant Physio object
+    logger.info(f"Replaying history from {file}")
     data = None
     for func, kwargs in history:
         if verbose:
@@ -211,5 +216,6 @@ def save_history(file, data):
     file += ".json" if not file.endswith(".json") else ""
     with open(file, "w") as dest:
         json.dump(data.history, dest, indent=4)
+    logger.info(f"Saved {data} history in {file}")
 
     return file
