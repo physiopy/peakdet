@@ -10,16 +10,16 @@ from peakdet import io, operations, physio
 from peakdet.tests.utils import get_test_data_path
 
 
-def test_load_physio():
+def test_load_physio(caplog):
     # try loading pickle file (from io.save_physio)
     pckl = io.load_physio(get_test_data_path("ECG.phys"), allow_pickle=True)
     assert isinstance(pckl, physio.Physio)
     assert pckl.data.size == 44611
     assert pckl.fs == 1000.0
-    with pytest.warns(UserWarning):
-        pckl = io.load_physio(
-            get_test_data_path("ECG.phys"), fs=500.0, allow_pickle=True
-        )
+    pckl = io.load_physio(
+        get_test_data_path("ECG.phys"), fs=500.0, allow_pickle=True
+    )
+    assert "WARNING" in caplog.text
     assert pckl.fs == 500.0
 
     # try loading CSV file
@@ -30,8 +30,8 @@ def test_load_physio():
     assert csv.history[0][0] == "load_physio"
 
     # try loading array
-    with pytest.warns(UserWarning):
-        arr = io.load_physio(np.loadtxt(get_test_data_path("ECG.csv")))
+    arr = io.load_physio(np.loadtxt(get_test_data_path("ECG.csv")))
+    assert "WARNING" in caplog.text
     assert isinstance(arr, physio.Physio)
     arr = io.load_physio(
         np.loadtxt(get_test_data_path("ECG.csv")),
@@ -74,7 +74,7 @@ def test_load_history(tmpdir):
     assert filt.fs == replayed.fs
 
 
-def test_save_history(tmpdir):
+def test_save_history(tmpdir, caplog):
     # get paths of data, original history, new history
     fname = get_test_data_path("ECG.csv")
     orig_history = get_test_data_path("history.json")
@@ -82,8 +82,8 @@ def test_save_history(tmpdir):
 
     # make physio object and perform some operations
     phys = physio.Physio(np.loadtxt(fname), fs=1000.0)
-    with pytest.warns(UserWarning):  # no history = warning
-        io.save_history(temp_history, phys)
+    io.save_history(temp_history, phys)
+    assert "WARNING" in caplog.text  # no history = warning
     filt = operations.filter_physio(phys, [5.0, 15.0], "bandpass")
     path = io.save_history(temp_history, filt)  # dump history=
 
