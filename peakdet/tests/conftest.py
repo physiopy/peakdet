@@ -7,7 +7,7 @@ def caplog(caplog: LogCaptureFixture):
     handler_id = logger.add(
         caplog.handler,
         format="{message}",
-        level=0,
+        level=20,
         filter=lambda record: record["level"].no >= caplog.handler.level,
         enqueue=False,
     )

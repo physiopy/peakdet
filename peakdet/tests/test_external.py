@@ -18,4 +18,4 @@ def test_load_rtpeaks(caplog):
             external.load_rtpeaks(
                 testutils.get_test_data_path("ECG.csv"), channel=channel, fs=1000.0
             )
-        assert "WARNING" in caplog.text
+        assert caplog.text.count("WARNING") > 1

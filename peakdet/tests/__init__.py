@@ -3,4 +3,4 @@ from peakdet.utils import enable_logger
 
 __all__ = ["get_test_data_path"]
 
-enable_logger("INFO", True, True)
+enable_logger("DEBUG", True, True)
