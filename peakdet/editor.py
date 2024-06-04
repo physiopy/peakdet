@@ -5,10 +5,10 @@ import functools
 
 import matplotlib.pyplot as plt
 import numpy as np
+from loguru import logger
 from matplotlib.widgets import SpanSelector
 
 from peakdet import operations, utils
-from loguru import logger
 
 
 class _PhysioEditor:

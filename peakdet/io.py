@@ -75,7 +75,9 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
         phys = physio.Physio(np.asarray(data, dtype=dtype), fs=fs, history=history)
     # create a new Physio object out of a provided Physio object
     elif isinstance(data, physio.Physio):
-        logger.debug("Instantiating a new Physio object from the provided Physio object")
+        logger.debug(
+            "Instantiating a new Physio object from the provided Physio object"
+        )
         phys = utils.new_physio_like(data, data.data, fs=fs, dtype=dtype)
         phys._history += [utils._get_call()]
     else:

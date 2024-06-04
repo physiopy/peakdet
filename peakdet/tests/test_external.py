@@ -9,7 +9,7 @@ DATA = testutils.get_test_data_path("rtpeaks.csv")
 
 
 def test_load_rtpeaks(caplog):
-    for channel in [1, 2, 9]:  
+    for channel in [1, 2, 9]:
         hist = dict(fname=DATA, channel=channel, fs=1000.0)
         phys = external.load_rtpeaks(DATA, channel=channel, fs=1000.0)
         assert phys.history == [("load_rtpeaks", hist)]

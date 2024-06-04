@@ -16,9 +16,7 @@ def test_load_physio(caplog):
     assert isinstance(pckl, physio.Physio)
     assert pckl.data.size == 44611
     assert pckl.fs == 1000.0
-    pckl = io.load_physio(
-        get_test_data_path("ECG.phys"), fs=500.0, allow_pickle=True
-    )
+    pckl = io.load_physio(get_test_data_path("ECG.phys"), fs=500.0, allow_pickle=True)
     assert caplog.text.count("WARNING") == 1
     assert pckl.fs == 500.0
 

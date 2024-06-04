@@ -3,9 +3,9 @@
 Functions for processing and interpreting physiological data
 """
 
-from loguru import logger
 import matplotlib.pyplot as plt
 import numpy as np
+from loguru import logger
 from scipy import interpolate, signal
 
 from peakdet import editor, utils
@@ -60,10 +60,14 @@ def filter_physio(data, cutoffs, method, *, order=3):
         )
 
     if method in ["lowpass", "highpass"]:
-        logger.info(f"Applying a {method} filter (order: {order}) to the signal, with cutoff frequency at {cutoffs} Hz")
+        logger.info(
+            f"Applying a {method} filter (order: {order}) to the signal, with cutoff frequency at {cutoffs} Hz"
+        )
     elif method in ["bandpass", "bandstop"]:
-        logger.info(f"Applying a {method} filter (order: {order}) to the signal, with cutoff frequencies at {cutoffs[0]} and {cutoffs[1]} Hz")
-    
+        logger.info(
+            f"Applying a {method} filter (order: {order}) to the signal, with cutoff frequencies at {cutoffs[0]} and {cutoffs[1]} Hz"
+        )
+
     b, a = signal.butter(int(order), nyq_cutoff, btype=method)
     filtered = utils.new_physio_like(data, signal.filtfilt(b, a, data))
 
@@ -106,7 +110,9 @@ def interpolate_physio(data, target_fs, *, kind="cubic"):
     else:
         suppinterp = interpolate.interp1d(t_orig, data.suppdata, kind=kind)(t_new)
 
-    logger.info(f"Interpolating the signal at {target_fs} Hz (Interpolation ratio: {factor}).")
+    logger.info(
+        f"Interpolating the signal at {target_fs} Hz (Interpolation ratio: {factor})."
+    )
     interp = utils.new_physio_like(data, interp, fs=target_fs, suppdata=suppinterp)
 
     return interp
@@ -140,17 +146,23 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
     cdist = data.fs // 4 if dist is None else dist
     thresh = np.squeeze(np.diff(np.percentile(data, [5, 95]))) * thresh
     locs, heights = signal.find_peaks(data[:], distance=cdist, height=thresh)
-    logger.debug(f"First peak detection iteration. Acquiring approximate distance between peaks (Number of peaks: {len(locs)})")
+    logger.debug(
+        f"First peak detection iteration. Acquiring approximate distance between peaks (Number of peaks: {len(locs)})"
+    )
 
     # second, more thorough peak detection
     cdist = np.diff(locs).mean() // 2
     heights = np.percentile(heights["peak_heights"], 1)
     locs, heights = signal.find_peaks(data[:], distance=cdist, height=heights)
     data._metadata["peaks"] = locs
-    logger.debug(f"Second peak detection iteration. Acquiring more precise peak locations (Number of peaks: {len(locs)})")
+    logger.debug(
+        f"Second peak detection iteration. Acquiring more precise peak locations (Number of peaks: {len(locs)})"
+    )
     # perform trough detection based on detected peaks
     data._metadata["troughs"] = utils.check_troughs(data, data.peaks)
-    logger.debug(f"Trough detection based on detected peaks (Number of troughs: {len(data.troughs)})")
+    logger.debug(
+        f"Trough detection based on detected peaks (Number of troughs: {len(data.troughs)})"
+    )
 
     return data
 
