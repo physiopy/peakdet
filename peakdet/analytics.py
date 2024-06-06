@@ -4,7 +4,6 @@ Functions and classes for generating analytics on physiological data
 """
 
 import numpy as np
-from loguru import logger
 from scipy.interpolate import interp1d
 from scipy.signal import welch
 
