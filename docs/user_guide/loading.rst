@@ -9,7 +9,7 @@ with the built-in :py:mod:`peakdet` IO functions.
 
 The :py:meth:`peakdet.load_physio` function is the most simple of these
 functions, and accepts data stored as single-column text file. For example, if
-we have a file `ECG.csv` that we might normally load with :py:mod:`numpy`:
+we have a file ``ECG.csv`` that we might normally load with :py:mod:`numpy`:
 
 .. doctest::
 

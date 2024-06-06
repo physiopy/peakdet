@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Helper class for holding physiological data and associated metadata inforamtion
+Helper class for holding physiological data and associated metadata information
 """
 
 import numpy as np
@@ -48,7 +48,6 @@ class Physio:
             raise ValueError(
                 "Provided data dimensionality {} > 1.".format(self.data.ndim)
             )
-
         if not np.issubdtype(self.data.dtype, np.number):
             raise ValueError(
                 "Provided data of type {} is not numeric.".format(self.data.dtype)

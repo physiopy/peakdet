@@ -49,10 +49,11 @@ class TestPhysio:
                     assert isinstance(phys._metadata.get(prop), np.ndarray)
 
 
+# TODO: Update unit test
 def test_neurokit2phys(path_neurokit):
-    df = pd.read_csv(path_neurokit, sep="\t")
+    df = pd.read_csv(path_neurokit, sep="\t")  # noqa
     phys = Physio.neurokit2phys(
-        path_neurokit, copy_data=True, copy_peaks=True, copy_troughs=True, fs=fs
+        path_neurokit, copy_data=True, copy_peaks=True, copy_troughs=True, fs=fs  # noqa
     )
 
     assert all(
@@ -66,17 +67,18 @@ def test_neurokit2phys(path_neurokit):
             phys.peaks == np.where(df.loc[:, df.columns.str.endswith("Peaks")] != 0)[0]
         )
     )
-    assert phys.fs == fs
+    assert phys.fs == fs  # noqa
 
 
+# TODO: Update unit test
 def test_phys2neurokit(path_phys):
-    phys = load_physio(path_phys, allow_pickle=True)
-    neuro = data.phys2neurokit(
+    phys = load_physio(path_phys, allow_pickle=True)  # noqa
+    neuro = data.phys2neurokit(  # noqa
         copy_data=True,
         copy_peaks=True,
         copy_troughs=False,
-        module=module,
-        neurokit_path=path_neurokit,
+        module=module,  # noqa
+        neurokit_path=path_neurokit,  # noqa
     )
 
     assert all(
