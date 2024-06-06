@@ -7,9 +7,8 @@ import pytest
 from peakdet import editor
 from peakdet.tests.utils import get_peak_data
 
-
-wheel = namedtuple('wheel', ('step'))
-key = namedtuple('key', ('key',))
+wheel = namedtuple("wheel", ("step"))
+key = namedtuple("key", ("key",))
 
 
 def test_PhysioEditor():
@@ -28,14 +27,14 @@ def test_PhysioEditor():
         edits.undo()
 
     # test key undo (and undo when history doesn't exist)
-    edits.on_key(key('ctrl+z'))
+    edits.on_key(key("ctrl+z"))
 
     # redo so that there is history on quit
     edits.on_remove(0, 10, reject=True)
     edits.on_remove(10, 20, reject=False)
 
     # quit editor and clean up edits
-    edits.on_key(key('ctrl+z'))
+    edits.on_key(key("ctrl+z"))
 
     with pytest.raises(TypeError):
         editor._PhysioEditor([0, 1, 2])

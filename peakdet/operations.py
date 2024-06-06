@@ -6,6 +6,7 @@ Functions for processing and interpreting physiological data
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import interpolate, signal
+
 from peakdet import editor, utils
 
 
@@ -34,26 +35,28 @@ def filter_physio(data, cutoffs, method, *, order=3):
         Filtered input `data`
     """
 
-    _valid_methods = ['lowpass', 'highpass', 'bandpass', 'bandstop']
+    _valid_methods = ["lowpass", "highpass", "bandpass", "bandstop"]
 
     data = utils.check_physio(data, ensure_fs=True)
     if method not in _valid_methods:
-        raise ValueError('Provided method {} is not permitted; must be in {}.'
-                         .format(method, _valid_methods))
+        raise ValueError(
+            "Provided method {} is not permitted; must be in {}.".format(
+                method, _valid_methods
+            )
+        )
 
     cutoffs = np.array(cutoffs)
-    if method in ['lowpass', 'highpass'] and cutoffs.size != 1:
-        raise ValueError('Cutoffs must be length 1 when using {} filter'
-                         .format(method))
-    elif method in ['bandpass', 'bandstop'] and cutoffs.size != 2:
-        raise ValueError('Cutoffs must be length 2 when using {} filter'
-                         .format(method))
+    if method in ["lowpass", "highpass"] and cutoffs.size != 1:
+        raise ValueError("Cutoffs must be length 1 when using {} filter".format(method))
+    elif method in ["bandpass", "bandstop"] and cutoffs.size != 2:
+        raise ValueError("Cutoffs must be length 2 when using {} filter".format(method))
 
     nyq_cutoff = cutoffs / (data.fs * 0.5)
     if np.any(nyq_cutoff > 1):
-        raise ValueError('Provided cutoffs {} are outside of the Nyquist '
-                         'frequency for input data with sampling rate {}.'
-                         .format(cutoffs, data.fs))
+        raise ValueError(
+            "Provided cutoffs {} are outside of the Nyquist "
+            "frequency for input data with sampling rate {}.".format(cutoffs, data.fs)
+        )
 
     b, a = signal.butter(int(order), nyq_cutoff, btype=method)
     filtered = utils.new_physio_like(data, signal.filtfilt(b, a, data))
@@ -62,7 +65,7 @@ def filter_physio(data, cutoffs, method, *, order=3):
 
 
 @utils.make_operation()
-def interpolate_physio(data, target_fs, *, kind='cubic'):
+def interpolate_physio(data, target_fs, *, kind="cubic"):
     """
     Interpolates `data` to desired sampling rate `target_fs`
 
@@ -133,11 +136,11 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
 
     # second, more thorough peak detection
     cdist = np.diff(locs).mean() // 2
-    heights = np.percentile(heights['peak_heights'], 1)
+    heights = np.percentile(heights["peak_heights"], 1)
     locs, heights = signal.find_peaks(data[:], distance=cdist, height=heights)
-    data._metadata['peaks'] = locs
+    data._metadata["peaks"] = locs
     # perform trough detection based on detected peaks
-    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
+    data._metadata["troughs"] = utils.check_troughs(data, data.peaks)
 
     return data
 
@@ -158,8 +161,8 @@ def delete_peaks(data, remove):
     """
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    data._metadata['peaks'] = np.setdiff1d(data._metadata['peaks'], remove)
-    data._metadata['troughs'] = utils.check_troughs(data, data.peaks, data.troughs)
+    data._metadata["peaks"] = np.setdiff1d(data._metadata["peaks"], remove)
+    data._metadata["troughs"] = utils.check_troughs(data, data.peaks, data.troughs)
 
     return data
 
@@ -180,8 +183,8 @@ def reject_peaks(data, remove):
     """
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    data._metadata['reject'] = np.append(data._metadata['reject'], remove)
-    data._metadata['troughs'] = utils.check_troughs(data, data.peaks, data.troughs)
+    data._metadata["reject"] = np.append(data._metadata["reject"], remove)
+    data._metadata["troughs"] = utils.check_troughs(data, data.peaks, data.troughs)
 
     return data
 
@@ -202,32 +205,9 @@ def add_peaks(data, add):
     """
 
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    idx = np.searchsorted(data._metadata['peaks'], add)
-    data._metadata['peaks'] = np.insert(data._metadata['peaks'], idx, add)
-    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
-
-    return data
-
-
-@utils.make_operation()
-def add_peaks(data, add):
-    """
-    Add `newpeak` to add them in `data`
-
-    Parameters
-    ----------
-    data : Physio_like
-    add : int
-
-    Returns
-    -------
-    data : Physio_like
-    """
-
-    data = utils.check_physio(data, ensure_fs=False, copy=True)
-    idx = np.searchsorted(data._metadata['peaks'], add)
-    data._metadata['peaks'] = np.insert(data._metadata['peaks'], idx, add)
-    data._metadata['troughs'] = utils.check_troughs(data, data.peaks)
+    idx = np.searchsorted(data._metadata["peaks"], add)
+    data._metadata["peaks"] = np.insert(data._metadata["peaks"], idx, add)
+    data._metadata["troughs"] = utils.check_troughs(data, data.peaks)
 
     return data
 
@@ -292,8 +272,16 @@ def plot_physio(data, *, ax=None):
     if ax is None:
         fig, ax = plt.subplots(1, 1)
     # plot data with peaks + troughs, as appropriate
-    ax.plot(time, data, 'b',
-            time[data.peaks], data[data.peaks], '.r',
-            time[data.troughs], data[data.troughs], '.g')
+    ax.plot(
+        time,
+        data,
+        "b",
+        time[data.peaks],
+        data[data.peaks],
+        ".r",
+        time[data.troughs],
+        data[data.troughs],
+        ".g",
+    )
 
     return ax

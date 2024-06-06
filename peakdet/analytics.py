@@ -4,11 +4,11 @@ Functions and classes for generating analytics on physiological data
 """
 
 import numpy as np
-from scipy.signal import welch
 from scipy.interpolate import interp1d
+from scipy.signal import welch
 
 
-class HRV():
+class HRV:
     """
     Class for calculating various HRV statistics
 
@@ -66,21 +66,20 @@ class HRV():
 
     def __init__(self, data):
         self.data = data
-        func = interp1d(self.rrtime, self.rrint * 1000, kind='cubic')
-        irrt = np.arange(self.rrtime[0], self.rrtime[-1], 1. / 4.)
+        func = interp1d(self.rrtime, self.rrint * 1000, kind="cubic")
+        irrt = np.arange(self.rrtime[0], self.rrtime[-1], 1.0 / 4.0)
         self._irri = func(irrt)
 
     @property
     def rrtime(self):
-        """ Times of R-R intervals (in seconds) """
+        """Times of R-R intervals (in seconds)"""
         if len(self.data.peaks):
-            diff = ((self.data._masked[:-1] + self.data._masked[1:])
-                    / (2 * self.data.fs))
+            diff = (self.data._masked[:-1] + self.data._masked[1:]) / (2 * self.data.fs)
             return diff.compressed()
 
     @property
     def rrint(self):
-        """ Length of R-R intervals (in seconds) """
+        """Length of R-R intervals (in seconds)"""
         if len(self.data.peaks):
             return (np.diff(self.data._masked) / self.data.fs).compressed()
 
@@ -90,7 +89,7 @@ class HRV():
 
     @property
     def _fft(self):
-        return welch(self._irri, nperseg=120, fs=4.0, scaling='spectrum')
+        return welch(self._irri, nperseg=120, fs=4.0, scaling="spectrum")
 
     @property
     def avgnn(self):
@@ -110,7 +109,7 @@ class HRV():
 
     @property
     def nn50(self):
-        return np.argwhere(self._sd > 50.).size
+        return np.argwhere(self._sd > 50.0).size
 
     @property
     def pnn50(self):
@@ -118,7 +117,7 @@ class HRV():
 
     @property
     def nn20(self):
-        return np.argwhere(self._sd > 20.).size
+        return np.argwhere(self._sd > 20.0).size
 
     @property
     def pnn20(self):
@@ -137,7 +136,7 @@ class HRV():
     @property
     def _vlf(self):
         fx, px = self._fft
-        return px[np.logical_and(fx >= 0., fx < 0.04)]
+        return px[np.logical_and(fx >= 0.0, fx < 0.04)]
 
     @property
     def hf(self):

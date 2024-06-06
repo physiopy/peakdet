@@ -9,7 +9,7 @@
 The ``Physio`` data object
 --------------------------
 
-The primary funtionality of :py:mod:`peakdet` relies on its operations being
+The primary functionality of :py:mod:`peakdet` relies on its operations being
 performed on physiological data loaded into a :py:class:`peakdet.Physio`
 object. So, before we get into using :py:mod:`peakdet`, its best to understand
 a little bit about this helper class!

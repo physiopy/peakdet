@@ -4,9 +4,11 @@ Various utilities for processing physiological data. These should not be called
 directly but should support wrapper functions stored in `peakdet.operations`.
 """
 
-from functools import wraps
 import inspect
+from functools import wraps
+
 import numpy as np
+
 from peakdet import physio
 
 
@@ -29,7 +31,7 @@ def make_operation(*, exclude=None):
         @wraps(func)
         def wrapper(data, *args, **kwargs):
             # exclude 'data', by default
-            ignore = ['data'] if exclude is None else exclude
+            ignore = ["data"] if exclude is None else exclude
 
             # grab parameters from `func` by binding signature
             name = func.__name__
@@ -47,17 +49,18 @@ def make_operation(*, exclude=None):
             # attempting to coerce any numpy arrays or pandas dataframes (?!)
             # into serializable objects; this isn't foolproof but gets 80% of
             # the way there
-            provided = {k: params[k] for k in sorted(params.keys())
-                        if k not in ignore}
+            provided = {k: params[k] for k in sorted(params.keys()) if k not in ignore}
             for k, v in provided.items():
-                if hasattr(v, 'tolist'):
+                if hasattr(v, "tolist"):
                     provided[k] = v.tolist()
 
             # append everything to data instance history
             data._history += [(name, provided)]
 
             return data
+
         return wrapper
+
     return get_call
 
 
@@ -82,7 +85,7 @@ def _get_call(*, exclude=None, serializable=True):
         Dictionary of function arguments and provided values
     """
 
-    exclude = ['data'] if exclude is None else exclude
+    exclude = ["data"] if exclude is None else exclude
     if not isinstance(exclude, list):
         exclude = [exclude]
 
@@ -102,7 +105,7 @@ def _get_call(*, exclude=None, serializable=True):
     # to be the main issue with these sorts of things
     if serializable:
         for k, v in provided.items():
-            if hasattr(v, 'tolist'):
+            if hasattr(v, "tolist"):
                 provided[k] = v.tolist()
 
     return function, provided
@@ -137,17 +140,25 @@ def check_physio(data, ensure_fs=True, copy=False):
     if not isinstance(data, physio.Physio):
         data = load_physio(data)
     if ensure_fs and np.isnan(data.fs):
-        raise ValueError('Provided data does not have valid sampling rate.')
+        raise ValueError("Provided data does not have valid sampling rate.")
     if copy is True:
-        return new_physio_like(data, data.data,
-                               copy_history=True,
-                               copy_metadata=True,
-                               copy_suppdata=True)
+        return new_physio_like(
+            data, data.data, copy_history=True, copy_metadata=True, copy_suppdata=True
+        )
     return data
 
 
-def new_physio_like(ref_physio, data, *, fs=None, suppdata=None, dtype=None,
-                    copy_history=True, copy_metadata=True, copy_suppdata=True):
+def new_physio_like(
+    ref_physio,
+    data,
+    *,
+    fs=None,
+    suppdata=None,
+    dtype=None,
+    copy_history=True,
+    copy_metadata=True,
+    copy_suppdata=True
+):
     """
     Makes `data` into physio object like `ref_data`
 
@@ -188,9 +199,13 @@ def new_physio_like(ref_physio, data, *, fs=None, suppdata=None, dtype=None,
         suppdata = ref_physio._suppdata if copy_suppdata else None
 
     # make new class
-    out = ref_physio.__class__(np.array(data, dtype=dtype),
-                               fs=fs, history=history, metadata=metadata,
-                               suppdata=suppdata)
+    out = ref_physio.__class__(
+        np.array(data, dtype=dtype),
+        fs=fs,
+        history=history,
+        metadata=metadata,
+        suppdata=suppdata,
+    )
     return out
 
 
@@ -212,7 +227,7 @@ def check_troughs(data, peaks, troughs=None):
     troughs : np.ndarray
         Indices of trough locations in `data`, dependent on `peaks`
     """
-    # If there's a through after all peaks, keep it.
+    # If there's a trough after all peaks, keep it.
     if troughs is not None and troughs[-1] > peaks[-1]:
         all_troughs = np.zeros(peaks.size, dtype=int)
         all_troughs[-1] == troughs[-1]
@@ -220,7 +235,7 @@ def check_troughs(data, peaks, troughs=None):
         all_troughs = np.zeros(peaks.size - 1, dtype=int)
 
     for f in range(peaks.size - 1):
-        dp = data[peaks[f]:peaks[f + 1]]
+        dp = data[peaks[f] : peaks[f + 1]]
         idx = peaks[f] + np.argwhere(dp == dp.min())[0]
         all_troughs[f] = idx
 
