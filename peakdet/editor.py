@@ -2,13 +2,15 @@
 """Functions and class for performing interactive editing of physiological data."""
 
 import functools
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.widgets import SpanSelector
+
 from peakdet import operations, utils
 
 
-class _PhysioEditor():
+class _PhysioEditor:
     """
     Class for editing physiological data.
 
@@ -32,15 +34,20 @@ class _PhysioEditor():
 
         # make main plot objects depending on supplementary data
         if self.suppdata is None:
-            self.fig, self._ax = plt.subplots(nrows=1, ncols=1,
-                                              tight_layout=True, sharex=True)
+            self.fig, self._ax = plt.subplots(
+                nrows=1, ncols=1, tight_layout=True, sharex=True
+            )
         else:
-            self.fig, self._ax = plt.subplots(nrows=2, ncols=1,
-                                              tight_layout=True, sharex=True,
-                                              gridspec_kw={'height_ratios': [3, 2]})
+            self.fig, self._ax = plt.subplots(
+                nrows=2,
+                ncols=1,
+                tight_layout=True,
+                sharex=True,
+                gridspec_kw={"height_ratios": [3, 2]},
+            )
 
-        self.fig.canvas.mpl_connect('scroll_event', self.on_wheel)
-        self.fig.canvas.mpl_connect('key_press_event', self.on_key)
+        self.fig.canvas.mpl_connect("scroll_event", self.on_wheel)
+        self.fig.canvas.mpl_connect("key_press_event", self.on_key)
 
         # Set axis handler
         self.ax = self._ax if self.suppdata is None else self._ax[0]
@@ -49,18 +56,33 @@ class _PhysioEditor():
         #    1. rejection (central mouse),
         #    2. addition (right mouse), and
         #    3. deletion (left mouse)
-        delete = functools.partial(self.on_edit, method='delete')
-        reject = functools.partial(self.on_edit, method='reject')
-        insert = functools.partial(self.on_edit, method='insert')
-        self.span2 = SpanSelector(self.ax, delete, 'horizontal',
-                                  button=1, useblit=True,
-                                  rectprops=dict(facecolor='red', alpha=0.3))
-        self.span1 = SpanSelector(self.ax, reject, 'horizontal',
-                                  button=2, useblit=True,
-                                  rectprops=dict(facecolor='blue', alpha=0.3))
-        self.span3 = SpanSelector(self.ax, insert, 'horizontal',
-                                  button=3, useblit=True,
-                                  rectprops=dict(facecolor='green', alpha=0.3))
+        delete = functools.partial(self.on_edit, method="delete")
+        reject = functools.partial(self.on_edit, method="reject")
+        insert = functools.partial(self.on_edit, method="insert")
+        self.span2 = SpanSelector(
+            self.ax,
+            delete,
+            "horizontal",
+            button=1,
+            useblit=True,
+            rectprops=dict(facecolor="red", alpha=0.3),
+        )
+        self.span1 = SpanSelector(
+            self.ax,
+            reject,
+            "horizontal",
+            button=2,
+            useblit=True,
+            rectprops=dict(facecolor="blue", alpha=0.3),
+        )
+        self.span3 = SpanSelector(
+            self.ax,
+            insert,
+            "horizontal",
+            button=3,
+            useblit=True,
+            rectprops=dict(facecolor="green", alpha=0.3),
+        )
 
         self.plot_signals(False)
 
@@ -74,17 +96,23 @@ class _PhysioEditor():
 
         # clear old data + redraw, retaining x-/y-axis zooms
         self.ax.clear()
-        self.ax.plot(self.time, self.data, 'b',
-                     self.time[self.data.peaks],
-                     self.data[self.data.peaks], '.r',
-                     self.time[self.data.troughs],
-                     self.data[self.data.troughs], '.g')
+        self.ax.plot(
+            self.time,
+            self.data,
+            "b",
+            self.time[self.data.peaks],
+            self.data[self.data.peaks],
+            ".r",
+            self.time[self.data.troughs],
+            self.data[self.data.troughs],
+            ".g",
+        )
 
         if self.suppdata is not None:
-            self._ax[1].plot(self.time, self.suppdata, 'k', linewidth=0.7)
-            self._ax[1].set_ylim(-.5, .5)
+            self._ax[1].plot(self.time, self.suppdata, "k", linewidth=0.7)
+            self._ax[1].set_ylim(-0.5, 0.5)
 
-        self.ax.set(xlim=xlim, ylim=ylim, yticklabels='')
+        self.ax.set(xlim=xlim, ylim=ylim, yticklabels="")
         self.fig.canvas.draw()
 
     def on_wheel(self, event):
@@ -100,9 +128,9 @@ class _PhysioEditor():
     def on_key(self, event):
         """Undo last span select or quits peak editor."""
         # accept both control or Mac command key as selector
-        if event.key in ['ctrl+z', 'super+d']:
+        if event.key in ["ctrl+z", "super+d"]:
             self.undo()
-        elif event.key in ['ctrl+q', 'super+d']:
+        elif event.key in ["ctrl+q", "super+d"]:
             self.quit()
 
     def on_edit(self, xmin, xmax, *, method):
@@ -114,13 +142,13 @@ class _PhysioEditor():
 
         method accepts 'insert', 'reject', 'delete'
         """
-        if method not in ['insert', 'reject', 'delete']:
+        if method not in ["insert", "reject", "delete"]:
             raise ValueError(f'Action "{method}" not supported.')
 
         tmin, tmax = np.searchsorted(self.time, (xmin, xmax))
         pmin, pmax = np.searchsorted(self.data.peaks, (tmin, tmax))
 
-        if method == 'insert':
+        if method == "insert":
             tmp = np.argmax(self.data.data[tmin:tmax]) if tmin != tmax else 0
             newpeak = tmin + tmp
             if newpeak == tmin:
@@ -132,13 +160,13 @@ class _PhysioEditor():
                 self.plot_signals()
                 return
 
-        if method == 'reject':
+        if method == "reject":
             rej, fcn = self.rejected, operations.reject_peaks
-        elif method == 'delete':
+        elif method == "delete":
             rej, fcn = self.deleted, operations.delete_peaks
 
         # store edits in local history & call function
-        if method == 'insert':
+        if method == "insert":
             self.included.add(newpeak)
             self.data = operations.add_peaks(self.data, newpeak)
         else:
@@ -150,32 +178,32 @@ class _PhysioEditor():
     def undo(self):
         """Reset last span select peak removal."""
         # check if last history entry was a manual reject / delete
-        relevant = ['reject_peaks', 'delete_peaks', 'add_peaks']
+        relevant = ["reject_peaks", "delete_peaks", "add_peaks"]
         if self.data._history[-1][0] not in relevant:
             return
 
         # pop off last edit and delete
         func, peaks = self.data._history.pop()
 
-        if func == 'reject_peaks':
-            self.data._metadata['reject'] = np.setdiff1d(
-                self.data._metadata['reject'], peaks['remove']
+        if func == "reject_peaks":
+            self.data._metadata["reject"] = np.setdiff1d(
+                self.data._metadata["reject"], peaks["remove"]
             )
-            self.rejected.difference_update(peaks['remove'])
-        elif func == 'delete_peaks':
-            self.data._metadata['peaks'] = np.insert(
-                self.data._metadata['peaks'],
-                np.searchsorted(self.data._metadata['peaks'], peaks['remove']),
-                peaks['remove']
+            self.rejected.difference_update(peaks["remove"])
+        elif func == "delete_peaks":
+            self.data._metadata["peaks"] = np.insert(
+                self.data._metadata["peaks"],
+                np.searchsorted(self.data._metadata["peaks"], peaks["remove"]),
+                peaks["remove"],
             )
-            self.deleted.difference_update(peaks['remove'])
-        elif func == 'add_peaks':
-            self.data._metadata['peaks'] = np.delete(
-                self.data._metadata['peaks'],
-                np.searchsorted(self.data._metadata['peaks'], peaks['add']),
+            self.deleted.difference_update(peaks["remove"])
+        elif func == "add_peaks":
+            self.data._metadata["peaks"] = np.delete(
+                self.data._metadata["peaks"],
+                np.searchsorted(self.data._metadata["peaks"], peaks["add"]),
             )
-            self.included.remove(peaks['add'])
-        self.data._metadata['troughs'] = utils.check_troughs(self.data,
-                                                             self.data.peaks,
-                                                             self.data.troughs)
+            self.included.remove(peaks["add"])
+        self.data._metadata["troughs"] = utils.check_troughs(
+            self.data, self.data.peaks, self.data.troughs
+        )
         self.plot_signals()

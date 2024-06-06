@@ -4,7 +4,9 @@ Functions for interacting with physiological data acquired by external packages
 """
 
 import warnings
+
 import numpy as np
+
 from peakdet import physio, utils
 
 
@@ -37,16 +39,18 @@ def load_rtpeaks(fname, channel, fs):
         Loaded physiological data
     """
 
-    if fname.startswith('/'):
-        warnings.warn('Provided file seems to be an absolute path. In order '
-                      'to ensure full reproducibility it is recommended that '
-                      'a relative path is provided.')
+    if fname.startswith("/"):
+        warnings.warn(
+            "Provided file seems to be an absolute path. In order "
+            "to ensure full reproducibility it is recommended that "
+            "a relative path is provided."
+        )
 
-    with open(fname, 'r') as src:
-        header = src.readline().strip().split(',')
+    with open(fname, "r") as src:
+        header = src.readline().strip().split(",")
 
-    col = header.index('channel{}'.format(channel))
-    data = np.loadtxt(fname, usecols=col, skiprows=1, delimiter=',')
+    col = header.index("channel{}".format(channel))
+    data = np.loadtxt(fname, usecols=col, skiprows=1, delimiter=",")
     phys = physio.Physio(data, fs=fs)
 
     return phys
