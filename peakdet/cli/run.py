@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
+import argparse
+import datetime
 import glob
 import os
 import sys
 
 import matplotlib
-
-matplotlib.use("WXAgg")
-import argparse
-import datetime
-
 from loguru import logger
 
 import peakdet
+
+matplotlib.use("WXAgg")
 
 TARGET = "pythonw" if sys.platform == "darwin" else "python"
 TARGET += " -u " + os.path.abspath(__file__)
