@@ -5,12 +5,9 @@ import glob
 import os
 import sys
 
-import matplotlib
 from loguru import logger
 
 import peakdet
-
-matplotlib.use("WXAgg")
 
 TARGET = "pythonw" if sys.platform == "darwin" else "python"
 TARGET += " -u " + os.path.abspath(__file__)
@@ -127,28 +124,26 @@ def get_parser():
         type=float,
         help="Threshold for peak detection algorithm.",
     )
-    edit_group.add_argument(
+
+    log_style_group = parser.add_argument_group(
+        "Logging style arguments (optional and mutually exclusive)",
+        "Options to specify the logging style",
+    )
+    log_style_group_exclusive = log_style_group.add_mutually_exclusive_group()
+    log_style_group_exclusive.add_argument(
         "-debug",
         "--debug",
         dest="debug",
         action="store_true",
-        help="Only print debugging info to log file. Default is False.",
+        help="Print additional debugging info and error diagnostics to log file. Default is False.",
         default=False,
     )
-    edit_group.add_argument(
+    log_style_group_exclusive.add_argument(
         "-quiet",
         "--quiet",
         dest="quiet",
         action="store_true",
         help="Only print warnings to log file. Default is False.",
-        default=False,
-    )
-    edit_group.add_argument(
-        "-verbose",
-        "--verbose",
-        dest="verbose",
-        action="store_true",
-        help="Print verbose error logs with diagnostics",
         default=False,
     )
 
@@ -168,7 +163,6 @@ def workflow(
     noedit=False,
     thresh=0.2,
     measurements=ATTR_CONV.keys(),
-    verbose=False,
     debug=False,
     quiet=False,
 ):
@@ -219,45 +213,45 @@ def workflow(
             sys.stderr,
             level="WARNING",
             colorize=True,
-            backtrace=verbose,
-            diagnose=verbose,
+            backtrace=False,
+            diagnose=False,
         )
         logger.add(
             logname,
             level="WARNING",
             colorize=False,
-            backtrace=verbose,
-            diagnose=verbose,
+            backtrace=False,
+            diagnose=False,
         )
     elif debug:
         logger.add(
             sys.stderr,
             level="DEBUG",
             colorize=True,
-            backtrace=verbose,
-            diagnose=verbose,
+            backtrace=True,
+            diagnose=True,
         )
         logger.add(
             logname,
             level="DEBUG",
             colorize=False,
-            backtrace=verbose,
-            diagnose=verbose,
+            backtrace=True,
+            diagnose=True,
         )
     else:
         logger.add(
             sys.stderr,
             level="INFO",
             colorize=True,
-            backtrace=verbose,
-            diagnose=verbose,
+            backtrace=True,
+            diagnose=False,
         )
         logger.add(
             logname,
             level="INFO",
             colorize=False,
-            backtrace=verbose,
-            diagnose=verbose,
+            backtrace=True,
+            diagnose=False,
         )
 
     # output file
