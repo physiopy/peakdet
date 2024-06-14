@@ -11,7 +11,6 @@ import datetime
 
 from loguru import logger
 
-# from gooey import Gooey, GooeyParser
 import peakdet
 
 TARGET = "pythonw" if sys.platform == "darwin" else "python"
