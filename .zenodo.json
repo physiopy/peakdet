@@ -1,21 +1,21 @@
 {
-    "license": "Apache-2.0", 
+    "license": "Apache-2.0",
     "title": "physiopy/peakdet: A python toolbox for reproducible physiological data analysis",
     "upload_type": "software",
     "creators": [
         {
-            "affiliation": "McGill University", 
+            "affiliation": "McGill University",
             "name": "Elizabeth DuPre"
-        }, 
+        },
         {
-            "affiliation": "McGill University", 
+            "affiliation": "McGill University",
             "name": "Ross Markello"
-        }, 
+        },
         {
-            "orcid": "0000-0002-2553-3327", 
-            "affiliation": "BCBL - Basque Center on Cognition, Brain and Language", 
+            "orcid": "0000-0002-2553-3327",
+            "affiliation": "BCBL - Basque Center on Cognition, Brain and Language",
             "name": "Stefano Moia"
         }
-    ], 
+    ],
     "access_right": "open"
 }
