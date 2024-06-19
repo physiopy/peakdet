@@ -5,9 +5,9 @@ Functions for loading and saving data and analyses
 
 import json
 import os.path as op
-import warnings
 
 import numpy as np
+from loguru import logger
 
 from peakdet import physio, utils
 
@@ -61,11 +61,13 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
                 inp["history"] = list(map(tuple, inp["history"]))
         except (IOError, OSError, ValueError):
             inp = dict(data=np.loadtxt(data), history=[utils._get_call(exclude=[])])
+        logger.debug("Instantiating Physio object from a file")
         phys = physio.Physio(**inp)
     # if we got a numpy array, load that into a Physio object
     elif isinstance(data, np.ndarray):
+        logger.debug("Instantiating Physio object from numpy array")
         if history is None:
-            warnings.warn(
+            logger.warning(
                 "Loading data from a numpy array without providing a"
                 "history will render reproducibility functions "
                 "useless! Continuing anyways."
@@ -73,6 +75,9 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
         phys = physio.Physio(np.asarray(data, dtype=dtype), fs=fs, history=history)
     # create a new Physio object out of a provided Physio object
     elif isinstance(data, physio.Physio):
+        logger.debug(
+            "Instantiating a new Physio object from the provided Physio object"
+        )
         phys = utils.new_physio_like(data, data.data, fs=fs, dtype=dtype)
         phys._history += [utils._get_call()]
     else:
@@ -81,7 +86,7 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
     # reset sampling rate, as requested
     if fs is not None and fs != phys.fs:
         if not np.isnan(phys.fs):
-            warnings.warn(
+            logger.warning(
                 "Provided sampling rate does not match loaded rate. "
                 "Resetting loaded sampling rate {} to provided {}".format(phys.fs, fs)
             )
@@ -119,6 +124,7 @@ def save_physio(fname, data):
         np.savez_compressed(
             dest, data=data.data, fs=data.fs, history=hist, metadata=data._metadata
         )
+    logger.info(f"Saved {data} in {fname}")
 
     return fname
 
@@ -149,10 +155,11 @@ def load_history(file, verbose=False):
         history = json.load(src)
 
     # replay history from beginning and return resultant Physio object
+    logger.info(f"Replaying history from {file}")
     data = None
     for func, kwargs in history:
         if verbose:
-            print("Rerunning {}".format(func))
+            logger.info("Rerunning {}".format(func))
         # loading functions don't have `data` input because it should be the
         # first thing in `history` (when the data was originally loaded!).
         # for safety, check if `data` is None; someone could have potentially
@@ -203,7 +210,7 @@ def save_history(file, data):
 
     data = check_physio(data)
     if len(data.history) == 0:
-        warnings.warn(
+        logger.warning(
             "History of provided Physio object is empty. Saving "
             "anyway, but reloading this file will result in an "
             "error."
@@ -211,5 +218,6 @@ def save_history(file, data):
     file += ".json" if not file.endswith(".json") else ""
     with open(file, "w") as dest:
         json.dump(data.history, dest, indent=4)
+    logger.info(f"Saved {data} history in {file}")
 
     return file

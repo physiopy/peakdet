@@ -5,6 +5,7 @@ import functools
 
 import matplotlib.pyplot as plt
 import numpy as np
+from loguru import logger
 from matplotlib.widgets import SpanSelector
 
 from peakdet import operations, utils
@@ -142,6 +143,7 @@ class _PhysioEditor:
 
         method accepts 'insert', 'reject', 'delete'
         """
+        logger.debug("Edited peaks with action: {}", method)
         if method not in ["insert", "reject", "delete"]:
             raise ValueError(f'Action "{method}" not supported.')
 
@@ -184,6 +186,7 @@ class _PhysioEditor:
 
         # pop off last edit and delete
         func, peaks = self.data._history.pop()
+        logger.debug(f"Undo previous action: {func}")
 
         if func == "reject_peaks":
             self.data._metadata["reject"] = np.setdiff1d(

@@ -3,9 +3,8 @@
 Functions for interacting with physiological data acquired by external packages
 """
 
-import warnings
-
 import numpy as np
+from loguru import logger
 
 from peakdet import physio, utils
 
@@ -40,7 +39,7 @@ def load_rtpeaks(fname, channel, fs):
     """
 
     if fname.startswith("/"):
-        warnings.warn(
+        logger.warning(
             "Provided file seems to be an absolute path. In order "
             "to ensure full reproducibility it is recommended that "
             "a relative path is provided."

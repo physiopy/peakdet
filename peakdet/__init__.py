@@ -16,6 +16,8 @@ __all__ = [
     "__version__",
 ]
 
+from loguru import logger
+
 from peakdet.analytics import HRV
 from peakdet.external import load_rtpeaks
 from peakdet.io import load_history, load_physio, save_history, save_physio
@@ -34,3 +36,5 @@ from ._version import get_versions
 
 __version__ = get_versions()["version"]
 del get_versions
+
+logger.disable("peakdet")

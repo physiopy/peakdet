@@ -5,9 +5,11 @@ directly but should support wrapper functions stored in `peakdet.operations`.
 """
 
 import inspect
+import sys
 from functools import wraps
 
 import numpy as np
+from loguru import logger
 
 from peakdet import physio
 
@@ -157,7 +159,7 @@ def new_physio_like(
     dtype=None,
     copy_history=True,
     copy_metadata=True,
-    copy_suppdata=True
+    copy_suppdata=True,
 ):
     """
     Makes `data` into physio object like `ref_data`
@@ -240,3 +242,87 @@ def check_troughs(data, peaks, troughs=None):
         all_troughs[f] = idx
 
     return all_troughs
+
+
+def enable_logger(loglevel="INFO", diagnose=True, backtrace=True):
+    """
+    Toggles the use of the module's logger and configures it
+
+    Parameters
+    ----------
+    loglevel : {'INFO', 'DEBUG', 'WARNING', 'ERROR'}
+        Logger log level. Default: "INFO"
+    """
+    _valid_loglevels = ["INFO", "DEBUG", "WARNING", "ERROR"]
+
+    if loglevel not in _valid_loglevels:
+        raise ValueError(
+            "Provided log level {} is not permitted; must be in {}.".format(
+                loglevel, _valid_loglevels
+            )
+        )
+    logger.enable("peakdet")
+    try:
+        logger.remove(0)
+    except ValueError:
+        logger.warning(
+            "The logger has been already enabled. If you want to"
+            "change the log level of an existing logger, please"
+            "refer to the change_loglevel() function. (Note: You can"
+            "find the log_handle either from the initial call of this"
+            "function, or the console logs)"
+        )
+        return
+    log_handle = logger.add(
+        sys.stderr, level=loglevel, backtrace=backtrace, diagnose=diagnose
+    )
+    logger.debug(f"Enabling logger with handle_id: {log_handle}")
+    return log_handle
+
+
+def change_loglevel(log_handle, loglevel, diagnose=True, backtrace=True):
+    """
+    Change the loguru logger's log level. The logger needs to
+    be already enabled by `enable_logger()`
+
+    Parameters
+    ----------
+    log_handle : Enabled logger's handle, returned by `enable_logger()`
+    loglevel : {'INFO', 'DEBUG', 'WARNING', 'ERROR'}
+    """
+    _valid_loglevels = ["INFO", "DEBUG", "WARNING", "ERROR"]
+
+    if loglevel not in _valid_loglevels:
+        raise ValueError(
+            "Provided log level {} is not permitted; must be in {}.".format(
+                loglevel, _valid_loglevels
+            )
+        )
+    logger.remove(log_handle)
+    new_log_handle = logger.add(
+        sys.stderr, level=loglevel, backtrace=backtrace, diagnose=diagnose
+    )
+    logger.info(
+        f'Changing the logger log level to "{loglevel}" (New logger handle_id: {new_log_handle})'
+    )
+    return new_log_handle
+
+
+def disable_logger(log_handle=None):
+    """
+    Change the loguru logger's log level. The logger needs to
+    be already enabled by `enable_logger()`
+
+    Parameters
+    ----------
+    log_handle : Enabled logger's handle, returned by `enable_logger()`
+        Default: None
+        If left as None, this function will disable all logger instances
+    """
+    if log_handle is None:
+        logger.info("Disabling all logger instances")
+        logger.remove()
+    else:
+        logger.info(f"Disabling logger with handle_id: {log_handle}")
+        logger.remove(log_handle)
+    logger.disable("peakdet")

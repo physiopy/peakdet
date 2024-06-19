@@ -4,6 +4,7 @@ Helper class for holding physiological data and associated metadata information
 """
 
 import numpy as np
+from loguru import logger
 
 
 class Physio:
@@ -41,6 +42,7 @@ class Physio:
     """
 
     def __init__(self, data, fs=None, history=None, metadata=None, suppdata=None):
+        logger.debug("Initializing new Physio object")
         self._data = np.asarray(data).squeeze()
         if self.data.ndim > 1:
             raise ValueError(
