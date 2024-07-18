@@ -60,13 +60,20 @@ class _PhysioEditor:
         delete = functools.partial(self.on_edit, method="delete")
         reject = functools.partial(self.on_edit, method="reject")
         insert = functools.partial(self.on_edit, method="insert")
+
+        # Check matplotlib version rectprops is deprecated with matplotlib 3.5.0 and then obsolete 
+        if matplotlib.__version__ >= '3.5.0':
+            property_name = 'props'
+        else:
+            property_name = 'rectprops'
+
         self.span2 = SpanSelector(
             self.ax,
             delete,
             "horizontal",
             button=1,
             useblit=True,
-            rectprops=dict(facecolor="red", alpha=0.3),
+            **{property_name: dict(facecolor='red', alpha=0.3)},
         )
         self.span1 = SpanSelector(
             self.ax,
@@ -74,7 +81,7 @@ class _PhysioEditor:
             "horizontal",
             button=2,
             useblit=True,
-            rectprops=dict(facecolor="blue", alpha=0.3),
+            **{property_name: dict(facecolor='blue', alpha=0.3)},
         )
         self.span3 = SpanSelector(
             self.ax,
@@ -82,7 +89,7 @@ class _PhysioEditor:
             "horizontal",
             button=3,
             useblit=True,
-            rectprops=dict(facecolor="green", alpha=0.3),
+            **{property_name: dict(facecolor='green', alpha=0.3)},
         )
 
         self.plot_signals(False)
