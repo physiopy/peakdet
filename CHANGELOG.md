@@ -1,3 +1,15 @@
+# 0.5.0 (Fri Jul 19 2024)
+
+#### 🚀 Enhancement
+
+- Resolve matplotlib deprecation issue [#74](https://github.com/physiopy/peakdet/pull/74) ([@afni-dglen](https://github.com/afni-dglen))
+
+#### Authors: 1
+
+- Daniel Glen ([@afni-dglen](https://github.com/afni-dglen))
+
+---
+
 # 0.4.0 (Wed Jul 17 2024)
 
 :tada: This release contains work from a new contributor! :tada:
