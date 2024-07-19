@@ -3,10 +3,12 @@
 
 import functools
 
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from loguru import logger
 from matplotlib.widgets import SpanSelector
+from packaging.version import Version
 
 from peakdet import operations, utils
 
@@ -61,11 +63,11 @@ class _PhysioEditor:
         reject = functools.partial(self.on_edit, method="reject")
         insert = functools.partial(self.on_edit, method="insert")
 
-        # Check matplotlib version rectprops is deprecated with matplotlib 3.5.0 and then obsolete 
-        if matplotlib.__version__ >= '3.5.0':
-            property_name = 'props'
+        # Check matplotlib version rectprops is deprecated with matplotlib 3.5.0 and then obsolete
+        if Version(matplotlib.__version__) >= Version("3.5.0"):
+            property_name = "props"
         else:
-            property_name = 'rectprops'
+            property_name = "rectprops"
 
         self.span2 = SpanSelector(
             self.ax,
@@ -73,7 +75,7 @@ class _PhysioEditor:
             "horizontal",
             button=1,
             useblit=True,
-            **{property_name: dict(facecolor='red', alpha=0.3)},
+            **{property_name: dict(facecolor="red", alpha=0.3)},
         )
         self.span1 = SpanSelector(
             self.ax,
@@ -81,7 +83,7 @@ class _PhysioEditor:
             "horizontal",
             button=2,
             useblit=True,
-            **{property_name: dict(facecolor='blue', alpha=0.3)},
+            **{property_name: dict(facecolor="blue", alpha=0.3)},
         )
         self.span3 = SpanSelector(
             self.ax,
@@ -89,7 +91,7 @@ class _PhysioEditor:
             "horizontal",
             button=3,
             useblit=True,
-            **{property_name: dict(facecolor='green', alpha=0.3)},
+            **{property_name: dict(facecolor="green", alpha=0.3)},
         )
 
         self.plot_signals(False)
