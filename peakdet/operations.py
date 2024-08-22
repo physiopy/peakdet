@@ -224,7 +224,7 @@ def add_peaks(data, add):
     data : Physio_like
     """
     data = utils.check_physio(data, ensure_fs=False, copy=True)
-    idx = np.searchsorted(data._metadata["peaks"], add)
+    idx = int(np.searchsorted(data._metadata["peaks"], add))
     data._metadata["peaks"] = np.insert(data._metadata["peaks"], idx, add)
     data._metadata["troughs"] = utils.check_troughs(data, data.peaks)
 
