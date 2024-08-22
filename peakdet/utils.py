@@ -53,9 +53,10 @@ def make_operation(*, exclude=None):
             # the way there
             provided = {k: params[k] for k in sorted(params.keys()) if k not in ignore}
             for k, v in provided.items():
+                if isinstance(v, list):
+                    provided[k] = np.array(v).tolist()
                 if hasattr(v, "tolist"):
                     provided[k] = v.tolist()
-
             # append everything to data instance history
             data._history += [(name, provided)]
 
