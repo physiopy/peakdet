@@ -161,7 +161,7 @@ class _PhysioEditor:
 
         if method == "insert":
             tmp = np.argmax(self.data.data[tmin:tmax]) if tmin != tmax else 0
-            newpeak = tmin + tmp
+            newpeak = int(tmin + tmp)
             if newpeak == tmin:
                 self.plot_signals()
                 return
