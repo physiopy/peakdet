@@ -1,3 +1,28 @@
+# 0.5.1 (Tue Aug 27 2024)
+
+:tada: This release contains work from a new contributor! :tada:
+
+Thank you, Marie-Eve Picard ([@me-pic](https://github.com/me-pic)), for all your work!
+
+#### 🐛 Bug Fix
+
+- Fix type errors in exporting history after manually adding peaks [#79](https://github.com/physiopy/peakdet/pull/79) ([@smoia](https://github.com/smoia))
+
+#### 📝 Documentation
+
+- Update contributors [#82](https://github.com/physiopy/peakdet/pull/82) ([@smoia](https://github.com/smoia))
+
+#### 🏠 Internal
+
+- Add contribution [#81](https://github.com/physiopy/peakdet/pull/81) ([@me-pic](https://github.com/me-pic))
+
+#### Authors: 2
+
+- Marie-Eve Picard ([@me-pic](https://github.com/me-pic))
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.5.0 (Fri Jul 19 2024)
 
 #### 🚀 Enhancement
