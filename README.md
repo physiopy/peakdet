@@ -13,7 +13,7 @@ peakdet: A toolbox for physiological peak detection analyses
 [![See the documentation at: http://peakdet.readthedocs.io](https://readthedocs.org/projects/peakdet/badge/?version=latest)](http://peakdet.readthedocs.io/en/latest)
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This package is designed for use in the reproducible processing and analysis of
@@ -67,6 +67,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="25%"><a href="https://github.com/RayStick"><img src="https://avatars.githubusercontent.com/u/50215726?v=4?s=100" width="100px;" alt="Rachael Stickland"/><br /><sub><b>Rachael Stickland</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/commits?author=RayStick" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="25%"><a href="https://github.com/afni-dglen"><img src="https://avatars.githubusercontent.com/u/10454715?v=4?s=100" width="100px;" alt="Daniel Glen"/><br /><sub><b>Daniel Glen</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/issues?q=author%3Aafni-dglen" title="Bug reports">🐛</a> <a href="https://github.com/physiopy/peakdet/commits?author=afni-dglen" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
