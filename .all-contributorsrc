@@ -23,6 +23,31 @@
       ]
     },
     {
+      "login": "afni-dglen",
+      "name": "Daniel Glen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10454715?v=4",
+      "profile": "https://github.com/afni-dglen",
+      "contributions": [
+        "bug",
+        "code",
+        "maintenance"
+      ]
+    },
+    {
+      "login": "maestroque",
+      "name": "George Kikas",
+      "avatar_url": "https://avatars.githubusercontent.com/u/74024609?v=4",
+      "profile": "https://github.com/maestroque",
+      "contributions": [
+        "bug",
+        "code",
+        "ideas",
+        "infra",
+        "review",
+        "test"
+      ]
+    },
+    {
       "login": "rmarkello",
       "name": "Ross Markello",
       "avatar_url": "https://avatars0.githubusercontent.com/u/14265705?v=4",
@@ -34,10 +59,21 @@
         "ideas",
         "infra",
         "maintenance",
+        "mentoring",
         "projectManagement",
         "review",
         "test",
         "tutorial"
+      ]
+    },
+    {
+      "login": "m-miedema",
+      "name": "m-miedema",
+      "avatar_url": "https://avatars.githubusercontent.com/u/39968233?v=4",
+      "profile": "https://github.com/m-miedema",
+      "contributions": [
+        "review",
+        "mentoring"
       ]
     },
     {
@@ -47,9 +83,23 @@
       "profile": "https://github.com/smoia",
       "contributions": [
         "review",
+        "bug",
         "code",
+        "ideas",
         "infra",
+        "mentoring",
         "projectManagement"
+      ]
+    },
+    {
+      "login": "me-pic",
+      "name": "Marie-Eve Picard",
+      "avatar_url": "https://avatars.githubusercontent.com/u/77584086?v=4",
+      "profile": "https://github.com/me-pic",
+      "contributions": [
+        "doc",
+        "review",
+        "mentoring"
       ]
     },
     {
@@ -59,6 +109,17 @@
       "profile": "https://github.com/tsalo",
       "contributions": [
         "infra"
+      ]
+    },
+    {
+      "login": "RayStick",
+      "name": "Rachael Stickland",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50215726?v=4",
+      "profile": "https://github.com/RayStick",
+      "contributions": [
+        "doc",
+        "infra",
+        "test"
       ]
     },
     {

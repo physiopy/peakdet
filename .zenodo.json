@@ -3,24 +3,212 @@
     "title": "physiopy/peakdet: A python toolbox for reproducible physiological data analysis",
     "upload_type": "software",
     "creators": [
-        {
-            "affiliation": "McGill University",
-            "name": "Elizabeth DuPre"
-        },
-        {
-            "affiliation": "McGill University",
-            "name": "Ross Markello"
-        },
-        {
-            "orcid": "0000-0002-2553-3327",
-            "affiliation": "BCBL - Basque Center on Cognition, Brain and Language",
-            "name": "Stefano Moia"
-        },
-        {
-            "orcid": "0009-0001-2412-7829",
-            "affiliation": "Département de psychologie, Université de Montréal",
-            "name": "Marie-Eve Picard"
-        }
+          {
+            "affiliations": [
+              {
+                "name": "Stanford University"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "DuPre",
+              "given_name": "Elizabeth",
+              "identifiers": [
+                {
+                  "identifier": "0000-0003-1358-196X",
+                  "scheme": "orcid"
+                }
+              ],
+              "name": "DuPre, Elizabeth",
+              "type": "personal"
+            }
+          },
+          {
+            "affiliations": [
+              {
+                "name": "National Institute of Mental Health"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "Glen",
+              "given_name": "Daniel",
+              "identifiers": [
+                {
+                  "identifier": "0000-0001-8456-5647",
+                  "scheme": "orcid"
+                }
+              ],
+              "name": "Glen, Daniel",
+              "type": "personal"
+            }
+          },
+          {
+            "affiliations": [
+              {
+                "id": "02j61yw88",
+                "name": "Aristotle University of Thessaloniki"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "Kikas",
+              "given_name": "Georgios",
+              "name": "Kikas, Georgios",
+              "type": "personal"
+            }
+          },
+          {
+            "affiliations": [
+              {
+                "name": "McGill University"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "Markello",
+              "given_name": "Ross",
+              "identifiers": [
+                {
+                  "identifier": "0000-0003-1057-1336",
+                  "scheme": "orcid"
+                }
+              ],
+              "name": "Markello, Ross",
+              "type": "personal"
+            }
+          },
+          {
+            "affiliations": [
+              {
+                "id": "01pxwe438",
+                "name": "McGill University"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "Miedema",
+              "given_name": "Mary",
+              "identifiers": [
+                {
+                  "identifier": "0009-0008-3263-731X",
+                  "scheme": "orcid"
+                }
+              ],
+              "name": "Miedema, Mary",
+              "type": "personal"
+            }
+          },
+          {
+            "affiliations": [
+              {
+                "name": "Maastricht University"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "Moia",
+              "given_name": "Stefano",
+              "identifiers": [
+                {
+                  "identifier": "0000-0002-2553-3327",
+                  "scheme": "orcid"
+                }
+              ],
+              "name": "Moia, Stefano",
+              "type": "personal"
+            }
+          },
+          {
+            "affiliations": [
+              {
+                "name": "Universit\u00e9 de Montr\u00e9al"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "Picard",
+              "given_name": "Marie-\u00c8ve",
+              "identifiers": [
+                {
+                  "identifier": "0000-0002-4316-2830",
+                  "scheme": "orcid"
+                }
+              ],
+              "name": "Picard, Marie-\u00c8ve",
+              "type": "personal"
+            }
+          },
+          {
+            "affiliations": [
+              {
+                "name": "University of Pennsylvania"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "Salo",
+              "given_name": "Taylor",
+              "identifiers": [
+                {
+                  "identifier": "0000-0001-9813-3167",
+                  "scheme": "orcid"
+                }
+              ],
+              "name": "Salo, Taylor",
+              "type": "personal"
+            }
+          },
+          {
+            "affiliations": [
+              {
+                "name": "The Alan Turing Institute"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "Stickland",
+              "given_name": "Rachael",
+              "identifiers": [
+                {
+                  "identifier": "0000-0003-3398-4272",
+                  "scheme": "orcid"
+                }
+              ],
+              "name": "Stickland, Rachael",
+              "type": "personal"
+            }
+          },
+          {
+            "affiliations": [
+              {
+                "name": "University of Geneva"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "Tan",
+              "given_name": "Mi Xue",
+              "identifiers": [
+                {
+                  "identifier": "0000-0002-8214-2146",
+                  "scheme": "orcid"
+                }
+              ],
+              "name": "Tan, Mi Xue",
+              "type": "personal"
+            }
+          },
+          {
+            "affiliations": [
+              {
+                "id": "01a28zg77",
+                "name": "Basque Center on Cognition, Brain and Language"
+              }
+            ],
+            "person_or_org": {
+              "family_name": "Uru\u00f1uela",
+              "given_name": "Eneko",
+              "identifiers": [
+                {
+                  "identifier": "0000-0001-6849-9088",
+                  "scheme": "orcid"
+                }
+              ],
+              "name": "Uru\u00f1uela, Eneko",
+              "type": "personal"
+            }
+          }
     ],
     "access_right": "open"
 }
