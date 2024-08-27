@@ -110,7 +110,9 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/50215726?v=4",
       "profile": "https://github.com/RayStick",
       "contributions": [
-        "doc"
+        "doc",
+        "infra",
+        "test"
       ]
     },
     {
