@@ -13,7 +13,7 @@ peakdet: A toolbox for physiological peak detection analyses
 [![See the documentation at: http://peakdet.readthedocs.io](https://readthedocs.org/projects/peakdet/badge/?version=latest)](http://peakdet.readthedocs.io/en/latest)
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This package is designed for use in the reproducible processing and analysis of
@@ -64,6 +64,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="25%"><a href="https://github.com/eurunuela"><img src="https://avatars.githubusercontent.com/u/13706448?v=4?s=100" width="100px;" alt="Eneko Uruñuela"/><br /><sub><b>Eneko Uruñuela</b></sub></a><br /><a href="#infra-eurunuela" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
       <td align="center" valign="top" width="25%"><a href="https://github.com/xl624"><img src="https://avatars0.githubusercontent.com/u/25593301?v=4?s=100" width="100px;" alt="xl624"/><br /><sub><b>xl624</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/commits?author=xl624" title="Code">💻</a></td>
       <td align="center" valign="top" width="25%"><a href="https://github.com/maestroque"><img src="https://avatars.githubusercontent.com/u/74024609?v=4?s=100" width="100px;" alt="George Kikas"/><br /><sub><b>George Kikas</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/issues?q=author%3Amaestroque" title="Bug reports">🐛</a> <a href="https://github.com/physiopy/peakdet/commits?author=maestroque" title="Code">💻</a> <a href="#ideas-maestroque" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-maestroque" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/physiopy/peakdet/pulls?q=is%3Apr+reviewed-by%3Amaestroque" title="Reviewed Pull Requests">👀</a> <a href="https://github.com/physiopy/peakdet/commits?author=maestroque" title="Tests">⚠️</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="25%"><a href="https://github.com/RayStick"><img src="https://avatars.githubusercontent.com/u/50215726?v=4?s=100" width="100px;" alt="Rachael Stickland"/><br /><sub><b>Rachael Stickland</b></sub></a><br /><a href="https://github.com/physiopy/peakdet/commits?author=RayStick" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
