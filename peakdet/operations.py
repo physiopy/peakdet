@@ -144,8 +144,15 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
     data = utils.check_physio(data, ensure_fs=ensure_fs, copy=True)
     # first pass peak detection to get approximate distance between peaks
     cdist = data.fs // 4 if dist is None else dist
-    thresh = np.squeeze(np.diff(np.percentile(data, [5, 95]))) * thresh
-    locs, heights = signal.find_peaks(data[:], distance=cdist, height=thresh)
+
+    # check if data is negative, if so make it all positive and continue with signal
+    phys_signal = data.data - data.data.min() if data.data.min() < 0 else data.data
+    logger.debug(
+        f"Negative signal detected (min = {data.data.min()}), workgin with positive signal for peak detection."
+    )
+
+    thresh = np.squeeze(np.diff(np.percentile(phys_signal, [5, 95]))) * thresh
+    locs, heights = signal.find_peaks(phys_signal, distance=cdist, height=thresh)
     logger.debug(
         f"First peak detection iteration. Acquiring approximate distance between peaks (Number of peaks: {len(locs)})"
     )
@@ -153,7 +160,7 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
     # second, more thorough peak detection
     cdist = np.diff(locs).mean() // 2
     heights = np.percentile(heights["peak_heights"], 1)
-    locs, heights = signal.find_peaks(data[:], distance=cdist, height=heights)
+    locs, heights = signal.find_peaks(phys_signal, distance=cdist, height=heights)
     data._metadata["peaks"] = locs
     logger.debug(
         f"Second peak detection iteration. Acquiring more precise peak locations (Number of peaks: {len(locs)})"
