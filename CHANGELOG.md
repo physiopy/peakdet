@@ -1,3 +1,20 @@
+# 0.5.2 (Wed Oct 09 2024)
+
+#### 🐛 Bug Fix
+
+- Make sure peak detection works with negative signals [#84](https://github.com/physiopy/peakdet/pull/84) ([@smoia](https://github.com/smoia))
+
+#### 🏠 Internal
+
+- [pre-commit.ci] pre-commit autoupdate [#75](https://github.com/physiopy/peakdet/pull/75) ([@pre-commit-ci[bot]](https://github.com/pre-commit-ci[bot]))
+
+#### Authors: 2
+
+- [@pre-commit-ci[bot]](https://github.com/pre-commit-ci[bot])
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.5.1 (Tue Aug 27 2024)
 
 :tada: This release contains work from a new contributor! :tada:
