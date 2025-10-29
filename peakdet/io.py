@@ -1,6 +1,4 @@
-"""
-Functions for loading and saving data and analyses
-"""
+"""Functions for loading and saving data and analyses."""
 
 import json
 import os.path as op
@@ -15,7 +13,7 @@ EXPECTED = ["data", "fs", "history", "metadata"]
 
 def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
     """
-    Returns `Physio` object with provided data
+    Return `Physio` object with provided data.
 
     Parameters
     ----------
@@ -98,7 +96,7 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
 
 def save_physio(fname, data):
     """
-    Saves `data` to `fname`
+    Save `data` to `fname`.
 
     Parameters
     ----------
@@ -128,7 +126,7 @@ def save_physio(fname, data):
 
 def load_history(file, verbose=False):
     """
-    Loads history from `file` and replays it, creating new Physio instance
+    Load history from `file` and replays it, creating new Physio instance.
 
     Parameters
     ----------
@@ -185,7 +183,7 @@ def load_history(file, verbose=False):
 
 def save_history(file, data):
     """
-    Saves history of physiological `data` to `file`
+    Save history of physiological `data` to `file`.
 
     Saved file can be replayed with `peakdet.load_history`
 

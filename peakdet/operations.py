@@ -1,6 +1,4 @@
-"""
-Functions for processing and interpreting physiological data
-"""
+"""Functions for processing and interpreting physiological data."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,7 +11,7 @@ from peakdet import editor, utils
 @utils.make_operation()
 def filter_physio(data, cutoffs, method, *, order=3):
     """
-    Applies an `order`-order digital `method` Butterworth filter to `data`
+    Apply an `order`-order digital `method` Butterworth filter to `data`.
 
     Parameters
     ----------
@@ -57,11 +55,13 @@ def filter_physio(data, cutoffs, method, *, order=3):
 
     if method in ["lowpass", "highpass"]:
         logger.info(
-            f"Applying a {method} filter (order: {order}) to the signal, with cutoff frequency at {cutoffs} Hz"
+            f"Applying a {method} filter (order: {order}) to the signal, with cutoff "
+            f"frequency at {cutoffs} Hz"
         )
     elif method in ["bandpass", "bandstop"]:
         logger.info(
-            f"Applying a {method} filter (order: {order}) to the signal, with cutoff frequencies at {cutoffs[0]} and {cutoffs[1]} Hz"
+            f"Applying a {method} filter (order: {order}) to the signal, with cutoff "
+            f"frequencies at {cutoffs[0]} and {cutoffs[1]} Hz"
         )
 
     b, a = signal.butter(int(order), nyq_cutoff, btype=method)
@@ -73,7 +73,7 @@ def filter_physio(data, cutoffs, method, *, order=3):
 @utils.make_operation()
 def interpolate_physio(data, target_fs, *, kind="cubic"):
     """
-    Interpolates `data` to desired sampling rate `target_fs`
+    Interpolate `data` to desired sampling rate `target_fs`.
 
     Parameters
     ----------
@@ -116,7 +116,7 @@ def interpolate_physio(data, target_fs, *, kind="cubic"):
 @utils.make_operation()
 def peakfind_physio(data, *, thresh=0.2, dist=None):
     """
-    Performs peak and trough detection on `data`
+    Perform peak and trough detection on `data`.
 
     Parameters
     ----------
@@ -142,13 +142,15 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
     # check if data is negative, if so make it all positive and continue with signal
     phys_signal = data.data - data.data.min() if data.data.min() < 0 else data.data
     logger.debug(
-        f"Negative signal detected (min = {data.data.min()}), workgin with positive signal for peak detection."
+        f"Negative signal detected (min = {data.data.min()}), workgin with positive "
+        "signal for peak detection."
     )
 
     thresh = np.squeeze(np.diff(np.percentile(phys_signal, [5, 95]))) * thresh
     locs, heights = signal.find_peaks(phys_signal, distance=cdist, height=thresh)
     logger.debug(
-        f"First peak detection iteration. Acquiring approximate distance between peaks (Number of peaks: {len(locs)})"
+        f"First peak detection iteration. Acquiring approximate distance between peaks "
+        f"(Number of peaks: {len(locs)})"
     )
 
     # second, more thorough peak detection
@@ -157,12 +159,14 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
     locs, heights = signal.find_peaks(phys_signal, distance=cdist, height=heights)
     data._metadata["peaks"] = locs
     logger.debug(
-        f"Second peak detection iteration. Acquiring more precise peak locations (Number of peaks: {len(locs)})"
+        f"Second peak detection iteration. Acquiring more precise peak locations "
+        f"(Number of peaks: {len(locs)})"
     )
     # perform trough detection based on detected peaks
     data._metadata["troughs"] = utils.check_troughs(data, data.peaks)
     logger.debug(
-        f"Trough detection based on detected peaks (Number of troughs: {len(data.troughs)})"
+        f"Trough detection based on detected peaks (Number of troughs: "
+        f"{len(data.troughs)})"
     )
 
     return data
@@ -171,7 +175,7 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
 @utils.make_operation()
 def delete_peaks(data, remove):
     """
-    Deletes peaks in `remove` from peaks stored in `data`
+    Delete peaks in `remove` from peaks stored in `data`.
 
     Parameters
     ----------
@@ -192,7 +196,7 @@ def delete_peaks(data, remove):
 @utils.make_operation()
 def reject_peaks(data, remove):
     """
-    Marks peaks in `remove` as rejected artifacts in `data`
+    Mark peaks in `remove` as rejected artifacts in `data`.
 
     Parameters
     ----------
@@ -213,7 +217,7 @@ def reject_peaks(data, remove):
 @utils.make_operation()
 def add_peaks(data, add):
     """
-    Add `newpeak` to add them in `data`
+    Add `newpeak` to add them in `data`.
 
     Parameters
     ----------
@@ -234,7 +238,7 @@ def add_peaks(data, add):
 
 def edit_physio(data):
     """
-    Opens interactive plot with `data` to permit manual editing of time series
+    Open interactive plot with `data` to permit manual editing of time series.
 
     Parameters
     ----------
@@ -270,7 +274,7 @@ def edit_physio(data):
 
 def plot_physio(data, *, ax=None):
     """
-    Plots `data` and associated peaks / troughs
+    Plot `data` and associated peaks / troughs.
 
     Parameters
     ----------

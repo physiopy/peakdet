@@ -1,6 +1,8 @@
 """
-Various utilities for processing physiological data. These should not be called
-directly but should support wrapper functions stored in `peakdet.operations`.
+Various utilities for processing physiological data.
+
+These should not be called directly but should support wrapper functions stored in
+`peakdet.operations`.
 """
 
 import inspect
@@ -15,7 +17,7 @@ from peakdet import physio
 
 def make_operation(*, exclude=None):
     """
-    Wrapper to make functions into Physio operations
+    Wrap functions into Physio operations.
 
     Wrapped functions should accept a :class:`peakdet.Physio` instance, `data`,
     as their first parameter, and should return a :class:`peakdet.Physio`
@@ -67,7 +69,7 @@ def make_operation(*, exclude=None):
 
 def _get_call(*, exclude=None, serializable=True):
     """
-    Returns calling function name and dict of provided arguments (name : value)
+    Return calling function name and dict of provided arguments (name : value).
 
     Parameters
     ----------
@@ -113,7 +115,7 @@ def _get_call(*, exclude=None, serializable=True):
 
 def check_physio(data, ensure_fs=True, copy=False):
     """
-    Checks that `data` is in correct format (i.e., `peakdet.Physio`)
+    Check that `data` is in correct format (i.e., `peakdet.Physio`).
 
     Parameters
     ----------
@@ -159,7 +161,7 @@ def new_physio_like(
     copy_suppdata=True,
 ):
     """
-    Makes `data` into physio object like `ref_data`
+    Make `data` into physio object like `ref_data`.
 
     Parameters
     ----------
@@ -209,7 +211,7 @@ def new_physio_like(
 
 def check_troughs(data, peaks, troughs=None):
     """
-    Confirms that `troughs` exists between every set of `peaks` in `data`
+    Confirm that `troughs` exists between every set of `peaks` in `data`.
 
     Parameters
     ----------
@@ -228,7 +230,7 @@ def check_troughs(data, peaks, troughs=None):
     # If there's a trough after all peaks, keep it.
     if troughs is not None and troughs[-1] > peaks[-1]:
         all_troughs = np.zeros(peaks.size, dtype=int)
-        all_troughs[-1] == troughs[-1]
+        assert all_troughs[-1] == troughs[-1]
     else:
         all_troughs = np.zeros(peaks.size - 1, dtype=int)
 
@@ -242,7 +244,7 @@ def check_troughs(data, peaks, troughs=None):
 
 def enable_logger(loglevel="INFO", diagnose=True, backtrace=True):
     """
-    Toggles the use of the module's logger and configures it
+    Toggle the use of the module's logger and configures it.
 
     Parameters
     ----------
@@ -253,7 +255,8 @@ def enable_logger(loglevel="INFO", diagnose=True, backtrace=True):
 
     if loglevel not in _valid_loglevels:
         raise ValueError(
-            f"Provided log level {loglevel} is not permitted; must be in {_valid_loglevels}."
+            f"Provided log level {loglevel} is not permitted; must be in "
+            f"{_valid_loglevels}."
         )
     logger.enable("peakdet")
     try:
@@ -276,8 +279,9 @@ def enable_logger(loglevel="INFO", diagnose=True, backtrace=True):
 
 def change_loglevel(log_handle, loglevel, diagnose=True, backtrace=True):
     """
-    Change the loguru logger's log level. The logger needs to
-    be already enabled by `enable_logger()`
+    Change the loguru logger's log level.
+
+    The logger needs to be already enabled by `enable_logger()`.
 
     Parameters
     ----------
@@ -288,22 +292,25 @@ def change_loglevel(log_handle, loglevel, diagnose=True, backtrace=True):
 
     if loglevel not in _valid_loglevels:
         raise ValueError(
-            f"Provided log level {loglevel} is not permitted; must be in {_valid_loglevels}."
+            f"Provided log level {loglevel} is not permitted; must be in "
+            f"{_valid_loglevels}."
         )
     logger.remove(log_handle)
     new_log_handle = logger.add(
         sys.stderr, level=loglevel, backtrace=backtrace, diagnose=diagnose
     )
     logger.info(
-        f'Changing the logger log level to "{loglevel}" (New logger handle_id: {new_log_handle})'
+        f'Changing the logger log level to "{loglevel}" (New logger handle_id: '
+        f"{new_log_handle})"
     )
     return new_log_handle
 
 
 def disable_logger(log_handle=None):
     """
-    Change the loguru logger's log level. The logger needs to
-    be already enabled by `enable_logger()`
+    Change the loguru logger's log level.
+
+    The logger needs to be already enabled by `enable_logger()`.
 
     Parameters
     ----------

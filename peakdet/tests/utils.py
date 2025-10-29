@@ -17,10 +17,12 @@ def get_call_func(
     *,
     kwarg1=10,
     kwarg2=20,
-    exclude=["exclude", "serializable"],
+    exclude=None,
     serializable=True,
 ):
     """Function for testing `peakdet.utils._get_call()`"""
+    if exclude is None:
+        exclude = ["exclude", "serializable"]
     if arg1 > 10:
         kwarg1 = kwarg1 + arg1
     if arg2 > 20:
