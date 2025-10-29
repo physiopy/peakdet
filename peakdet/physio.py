@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Helper class for holding physiological data and associated metadata information
-"""
+"""Helper class for holding physiological data and associated metadata information."""
 
 import numpy as np
 from loguru import logger
@@ -9,7 +6,7 @@ from loguru import logger
 
 class Physio:
     """
-    Class to hold physiological data and relevant information
+    Class to hold physiological data and relevant information.
 
     Parameters
     ----------
@@ -42,30 +39,25 @@ class Physio:
     """
 
     def __init__(self, data, fs=None, history=None, metadata=None, suppdata=None):
+        """Initialise object."""
         logger.debug("Initializing new Physio object")
         self._data = np.asarray(data).squeeze()
         if self.data.ndim > 1:
-            raise ValueError(
-                "Provided data dimensionality {} > 1.".format(self.data.ndim)
-            )
+            raise ValueError(f"Provided data dimensionality {self.data.ndim} > 1.")
         if not np.issubdtype(self.data.dtype, np.number):
-            raise ValueError(
-                "Provided data of type {} is not numeric.".format(self.data.dtype)
-            )
+            raise ValueError(f"Provided data of type {self.data.dtype} is not numeric.")
         self._fs = np.float64(fs)
         self._history = [] if history is None else history
         if not isinstance(self._history, list) or any(
             [not isinstance(f, tuple) for f in self._history]
         ):
             raise TypeError(
-                "Provided history {} must be a list-of-tuples. "
-                "Please check inputs.".format(history)
+                f"Provided history {history} must be a list-of-tuples. "
+                "Please check inputs."
             )
         if metadata is not None:
             if not isinstance(metadata, dict):
-                raise TypeError(
-                    "Provided metadata {} must be dict-like.".format(metadata)
-                )
+                raise TypeError(f"Provided metadata {metadata} must be dict-like.")
             for k in ["peaks", "troughs", "reject"]:
                 metadata.setdefault(k, np.empty(0, dtype=int))
                 if not isinstance(metadata.get(k), np.ndarray):
@@ -85,45 +77,43 @@ class Physio:
             )
         self._suppdata = None if suppdata is None else np.asarray(suppdata).squeeze()
 
-    def __array__(self):
+    def __array__(self):  # noqa
         return self.data
 
-    def __getitem__(self, slicer):
+    def __getitem__(self, slicer):  # noqa
         return self.data[slicer]
 
-    def __len__(self):
+    def __len__(self):  # noqa
         return len(self.data)
 
-    def __str__(self):
-        return "{name}(size={size}, fs={fs})".format(
-            name=self.__class__.__name__, size=self.data.size, fs=self.fs
-        )
+    def __str__(self):  # noqa
+        return f"{self.__class__.__name__}(size={self.data.size}, fs={self.fs})"
 
     __repr__ = __str__
 
     @property
     def data(self):
-        """Physiological data"""
+        """Physiological data."""
         return self._data
 
     @property
     def fs(self):
-        """Sampling rate of data (Hz)"""
+        """Sampling rate of data (Hz)."""
         return self._fs
 
     @property
     def history(self):
-        """Functions that have been performed on / modified `data`"""
+        """Functions that have been performed on / modified `data`."""
         return self._history
 
     @property
     def peaks(self):
-        """Indices of detected peaks in `data`"""
+        """Indices of detected peaks in `data`."""
         return self._masked.compressed()
 
     @property
     def troughs(self):
-        """Indices of detected troughs in `data`"""
+        """Indices of detected troughs in `data`."""
         return self._metadata["troughs"]
 
     @property
@@ -135,13 +125,13 @@ class Physio:
 
     @property
     def suppdata(self):
-        """Physiological data"""
+        """Physiological data."""
         return self._suppdata
 
     def phys2neurokit(
         self, copy_data, copy_peaks, copy_troughs, module, neurokit_path=None
     ):
-        """Physio to neurokit dataframe
+        """Physio to neurokit dataframe.
 
         Parameters
         ----------
@@ -164,7 +154,7 @@ class Physio:
             df = pd.DataFrame(
                 0,
                 index=np.arange(len(self.data)),
-                columns=["%s_Raw" % module, "%s_Peaks" % module, "%s_Troughs" % module],
+                columns=[f"{module}_Raw", f"{module}_Peaks", f"{module}_Troughs"],
             )
 
         if copy_data:
@@ -186,7 +176,7 @@ class Physio:
     def neurokit2phys(
         cls, neurokit_path, fs, copy_data, copy_peaks, copy_troughs, **kwargs
     ):
-        """Neurokit dataframe to phys
+        """Neurokit dataframe to phys.
 
         Parameters
         ----------
@@ -208,7 +198,8 @@ class Physio:
         df = pd.read_csv(neurokit_path, sep="\t")
 
         if copy_data:
-            # if cleaned data exists, substitute 'data' with cleaned data, else use raw data
+            # if cleaned data exists, substitute 'data' with cleaned data
+            # else use raw data
             if df.columns.str.endswith("Clean").any():
                 data = np.hstack(df.loc[:, df.columns.str.endswith("Clean")].to_numpy())
             elif df.columns.str.endswith("Raw").any():

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Functions and class for performing interactive editing of physiological data."""
 
 import functools
@@ -63,7 +62,8 @@ class _PhysioEditor:
         reject = functools.partial(self.on_edit, method="reject")
         insert = functools.partial(self.on_edit, method="insert")
 
-        # Check matplotlib version rectprops is deprecated with matplotlib 3.5.0 and then obsolete
+        # Check matplotlib version rectprops is deprecated with matplotlib 3.5.0
+        # and then obsolete
         if Version(matplotlib.__version__) >= Version("3.5.0"):
             property_name = "props"
         else:
