@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Various utilities for processing physiological data. These should not be called
 directly but should support wrapper functions stored in `peakdet.operations`.
@@ -86,7 +85,6 @@ def _get_call(*, exclude=None, serializable=True):
     provided : dict
         Dictionary of function arguments and provided values
     """
-
     exclude = ["data"] if exclude is None else exclude
     if not isinstance(exclude, list):
         exclude = [exclude]
@@ -136,7 +134,6 @@ def check_physio(data, ensure_fs=True, copy=False):
     ValueError
         If `ensure_fs` is set and `data` doesn't have valid sampling rate
     """
-
     from peakdet.io import load_physio
 
     if not isinstance(data, physio.Physio):
@@ -189,7 +186,6 @@ def new_physio_like(
     data : peakdet.Physio
         Loaded physio object with provided `data`
     """
-
     if fs is None:
         fs = ref_physio.fs
     if dtype is None:
@@ -257,9 +253,7 @@ def enable_logger(loglevel="INFO", diagnose=True, backtrace=True):
 
     if loglevel not in _valid_loglevels:
         raise ValueError(
-            "Provided log level {} is not permitted; must be in {}.".format(
-                loglevel, _valid_loglevels
-            )
+            f"Provided log level {loglevel} is not permitted; must be in {_valid_loglevels}."
         )
     logger.enable("peakdet")
     try:
@@ -294,9 +288,7 @@ def change_loglevel(log_handle, loglevel, diagnose=True, backtrace=True):
 
     if loglevel not in _valid_loglevels:
         raise ValueError(
-            "Provided log level {} is not permitted; must be in {}.".format(
-                loglevel, _valid_loglevels
-            )
+            f"Provided log level {loglevel} is not permitted; must be in {_valid_loglevels}."
         )
     logger.remove(log_handle)
     new_log_handle = logger.add(

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import numpy as np
 import pytest
 
@@ -53,7 +51,11 @@ class TestPhysio:
 def test_neurokit2phys(path_neurokit):
     df = pd.read_csv(path_neurokit, sep="\t")  # noqa
     phys = Physio.neurokit2phys(
-        path_neurokit, copy_data=True, copy_peaks=True, copy_troughs=True, fs=fs  # noqa
+        path_neurokit,
+        copy_data=True,
+        copy_peaks=True,
+        copy_troughs=True,
+        fs=fs,  # noqa
     )
 
     assert all(

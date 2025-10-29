@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Functions for processing and interpreting physiological data
 """
@@ -35,28 +34,25 @@ def filter_physio(data, cutoffs, method, *, order=3):
     filtered : :class:`peakdet.Physio`
         Filtered input `data`
     """
-
     _valid_methods = ["lowpass", "highpass", "bandpass", "bandstop"]
 
     data = utils.check_physio(data, ensure_fs=True)
     if method not in _valid_methods:
         raise ValueError(
-            "Provided method {} is not permitted; must be in {}.".format(
-                method, _valid_methods
-            )
+            f"Provided method {method} is not permitted; must be in {_valid_methods}."
         )
 
     cutoffs = np.array(cutoffs)
     if method in ["lowpass", "highpass"] and cutoffs.size != 1:
-        raise ValueError("Cutoffs must be length 1 when using {} filter".format(method))
+        raise ValueError(f"Cutoffs must be length 1 when using {method} filter")
     elif method in ["bandpass", "bandstop"] and cutoffs.size != 2:
-        raise ValueError("Cutoffs must be length 2 when using {} filter".format(method))
+        raise ValueError(f"Cutoffs must be length 2 when using {method} filter")
 
     nyq_cutoff = cutoffs / (data.fs * 0.5)
     if np.any(nyq_cutoff > 1):
         raise ValueError(
-            "Provided cutoffs {} are outside of the Nyquist "
-            "frequency for input data with sampling rate {}.".format(cutoffs, data.fs)
+            f"Provided cutoffs {cutoffs} are outside of the Nyquist "
+            f"frequency for input data with sampling rate {data.fs}."
         )
 
     if method in ["lowpass", "highpass"]:
@@ -94,7 +90,6 @@ def interpolate_physio(data, target_fs, *, kind="cubic"):
     interp : :class:`peakdet.Physio`
         Interpolated input `data`
     """
-
     data = utils.check_physio(data, ensure_fs=True)
 
     factor = target_fs / data.fs
@@ -139,7 +134,6 @@ def peakfind_physio(data, *, thresh=0.2, dist=None):
     peaks : :class:`peakdet.Physio`
         Input `data` with detected peaks and troughs
     """
-
     ensure_fs = True if dist is None else False
     data = utils.check_physio(data, ensure_fs=ensure_fs, copy=True)
     # first pass peak detection to get approximate distance between peaks
@@ -252,7 +246,6 @@ def edit_physio(data):
     edited : :class:`peakdet.Physio`
         Input `data` with manual edits
     """
-
     data = utils.check_physio(data, ensure_fs=True)
 
     # no point in manual edits if peaks/troughs aren't defined

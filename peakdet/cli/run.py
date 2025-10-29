@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import argparse
 import datetime
 import glob
@@ -53,7 +52,7 @@ def get_parser():
     )
 
     inp_group = parser.add_argument_group(
-        "Inputs", "Options to specify " "format of input files"
+        "Inputs", "Options to specify format of input files"
     )
     inp_group.add_argument(
         "--modality",
@@ -83,7 +82,7 @@ def get_parser():
     )
 
     out_group = parser.add_argument_group(
-        "Outputs", "Options to specify " "format of output files"
+        "Outputs", "Options to specify format of output files"
     )
     out_group.add_argument(
         "-o",
@@ -104,12 +103,12 @@ def get_parser():
         "-s",
         "--savehistory",
         action="store_true",
-        help="Whether to save history of data processing " "for each file.",
+        help="Whether to save history of data processing for each file.",
     )
 
     edit_group = parser.add_argument_group(
         "Workflow arguments (optional!)",
-        "Options to specify modifications " "to workflow",
+        "Options to specify modifications to workflow",
     )
     edit_group.add_argument(
         "-n",
@@ -255,9 +254,9 @@ def workflow(
         )
 
     # output file
-    logger.info("OUTPUT FILE:\t\t{}".format(output))
+    logger.info(f"OUTPUT FILE:\t\t{output}")
     # grab files from file template
-    logger.info("FILE TEMPLATE:\t{}".format(file_template))
+    logger.info(f"FILE TEMPLATE:\t{file_template}")
     files = glob.glob(file_template, recursive=True)
 
     # convert measurements to peakdet.HRV attribute friendly names
@@ -277,7 +276,7 @@ def workflow(
     # check if output file exists -- if so, ensure headers will match
     head = "filename," + ",".join(measurements)
     if os.path.exists(output):
-        with open(output, "r") as src:
+        with open(output) as src:
             eheader = src.readlines()[0]
         # if existing output file does not have same measurements are those
         # requested on command line, warn and use existing measurements so
@@ -300,7 +299,7 @@ def workflow(
         # iterate through all files and do peak detection with manual editing
         for fname in files:
             fname = os.path.relpath(fname)
-            logger.info("Currently processing {}".format(fname))
+            logger.info(f"Currently processing {fname}")
 
             # if we want to save history, this is the output name it would take
             outname = os.path.join(

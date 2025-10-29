@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from peakdet import analytics
 from peakdet.tests.utils import get_peak_data
 

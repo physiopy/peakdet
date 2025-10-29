@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import json
 import os
 
@@ -86,8 +84,8 @@ def test_save_history(tmpdir, caplog):
     path = io.save_history(temp_history, filt)  # dump history=
 
     # load both original and new json and ensure equality
-    with open(path, "r") as src:
+    with open(path) as src:
         hist = json.load(src)
-    with open(orig_history, "r") as src:
+    with open(orig_history) as src:
         orig = json.load(src)
     assert hist == orig

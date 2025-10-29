@@ -18,7 +18,7 @@ def get_call_func(
     kwarg1=10,
     kwarg2=20,
     exclude=["exclude", "serializable"],
-    serializable=True
+    serializable=True,
 ):
     """Function for testing `peakdet.utils._get_call()`"""
     if arg1 > 10:

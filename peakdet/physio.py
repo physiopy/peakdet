@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Helper class for holding physiological data and associated metadata information
 """
@@ -45,27 +44,21 @@ class Physio:
         logger.debug("Initializing new Physio object")
         self._data = np.asarray(data).squeeze()
         if self.data.ndim > 1:
-            raise ValueError(
-                "Provided data dimensionality {} > 1.".format(self.data.ndim)
-            )
+            raise ValueError(f"Provided data dimensionality {self.data.ndim} > 1.")
         if not np.issubdtype(self.data.dtype, np.number):
-            raise ValueError(
-                "Provided data of type {} is not numeric.".format(self.data.dtype)
-            )
+            raise ValueError(f"Provided data of type {self.data.dtype} is not numeric.")
         self._fs = np.float64(fs)
         self._history = [] if history is None else history
         if not isinstance(self._history, list) or any(
             [not isinstance(f, tuple) for f in self._history]
         ):
             raise TypeError(
-                "Provided history {} must be a list-of-tuples. "
-                "Please check inputs.".format(history)
+                f"Provided history {history} must be a list-of-tuples. "
+                "Please check inputs."
             )
         if metadata is not None:
             if not isinstance(metadata, dict):
-                raise TypeError(
-                    "Provided metadata {} must be dict-like.".format(metadata)
-                )
+                raise TypeError(f"Provided metadata {metadata} must be dict-like.")
             for k in ["peaks", "troughs", "reject"]:
                 metadata.setdefault(k, np.empty(0, dtype=int))
                 if not isinstance(metadata.get(k), np.ndarray):
@@ -95,9 +88,7 @@ class Physio:
         return len(self.data)
 
     def __str__(self):
-        return "{name}(size={size}, fs={fs})".format(
-            name=self.__class__.__name__, size=self.data.size, fs=self.fs
-        )
+        return f"{self.__class__.__name__}(size={self.data.size}, fs={self.fs})"
 
     __repr__ = __str__
 
