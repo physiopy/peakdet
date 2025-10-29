@@ -1,0 +1,55 @@
+[tool.coverage.report]
+exclude_lines = [
+  'if __name__ == .__main__.:',
+  'if TYPE_CHECKING:',
+  'pragma: no cover',
+]
+precision = 2
+
+[tool.coverage.run]
+branch = true
+cover_pylib = false
+omit = [
+  '**/__init__.py',
+  '**/conftest.py',
+  '**/peakdet/_version.py',
+  '**/peakdet/cli/*',
+  '**/peakdet/due.py',
+  '**/tests/**',
+]
+
+[tool.ruff]
+extend-exclude = ['docs', 'versioneer.py', 'setup.py']
+line-length = 88
+target-version = 'py38'
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = 'lf'
+
+[tool.ruff.lint]
+ignore = []
+select = ['A', 'B', 'E', 'D', 'F', 'I', 'UP', 'W']
+
+[tool.ruff.lint.pydocstyle]
+convention = 'numpy'
+
+[tool.ruff.lint.per-file-ignores]
+'*' = [
+  'B904', # 'Within an except clause, raise exceptions with raise ... from ...'
+  'UP007', # 'Use `X | Y` for type annotations', requires python 3.10
+]
+'*.pyi' = ['E501']
+'__init__.py' = ['F401']
+'_version.py' = ['UP031']
+'peakdet/tests/*' = ['D']
+'peakdet/__init__.py' = ['F401', 'D']
+'peakdet/*/__init__.py' = ['F401', 'D']
+'peakdet/_version.py' = ['UP031', 'D']
+'peakdet/conftest.py' = ['D']
+'peakdet/due.py' = ['D']
+
+
+# ignore = E126, E402, W503, W401, W811
+# extend-ignore = E203, E501
+# extend-select = B950
