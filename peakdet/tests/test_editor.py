@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from collections import namedtuple
 
 import pytest
@@ -18,12 +16,12 @@ def test_PhysioEditor():
     edits.on_wheel(wheel(10))
 
     # test reject / delete functionality
-    for m in range(2):
+    for _m in range(2):
         edits.on_remove(0, 10, reject=True)
         edits.on_remove(10, 20, reject=False)
 
     # undo delete + reject
-    for m in range(2):
+    for _m in range(2):
         edits.undo()
 
     # test key undo (and undo when history doesn't exist)

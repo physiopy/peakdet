@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Functions for interacting with physiological data acquired by external packages
-"""
+"""Functions for interacting with physiological data acquired by external packages."""
 
 import numpy as np
 from loguru import logger
@@ -12,7 +9,7 @@ from peakdet import physio, utils
 @utils.make_operation(exclude=[])
 def load_rtpeaks(fname, channel, fs):
     """
-    Loads data file as obtained from the ``rtpeaks`` Python module
+    Load data file as obtained from the ``rtpeaks`` Python module.
 
     Data file `fname` should have a single, comma-delimited header of format:
 
@@ -37,7 +34,6 @@ def load_rtpeaks(fname, channel, fs):
     data : :class:`peakdet.Physio`
         Loaded physiological data
     """
-
     if fname.startswith("/"):
         logger.warning(
             "Provided file seems to be an absolute path. In order "
@@ -45,10 +41,10 @@ def load_rtpeaks(fname, channel, fs):
             "a relative path is provided."
         )
 
-    with open(fname, "r") as src:
+    with open(fname) as src:
         header = src.readline().strip().split(",")
 
-    col = header.index("channel{}".format(channel))
+    col = header.index(f"channel{channel}")
     data = np.loadtxt(fname, usecols=col, skiprows=1, delimiter=",")
     phys = physio.Physio(data, fs=fs)
 

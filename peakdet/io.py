@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Functions for loading and saving data and analyses
-"""
+"""Functions for loading and saving data and analyses."""
 
 import json
 import os.path as op
@@ -16,7 +13,7 @@ EXPECTED = ["data", "fs", "history", "metadata"]
 
 def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
     """
-    Returns `Physio` object with provided data
+    Return `Physio` object with provided data.
 
     Parameters
     ----------
@@ -42,7 +39,6 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
     TypeError
         If provided `data` is unable to be loaded
     """
-
     # first check if the file was made with `save_physio`; otherwise, try to
     # load it as a plain text file and instantiate a history
     if isinstance(data, str):
@@ -53,13 +49,13 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
                     inp[attr] = inp[attr].dtype.type(inp[attr])
                 except KeyError:
                     raise ValueError(
-                        "Provided npz file {} must have all of "
-                        "the following attributes: {}".format(data, EXPECTED)
+                        f"Provided npz file {data} must have all of "
+                        f"the following attributes: {EXPECTED}"
                     )
             # fix history, which needs to be list-of-tuple
             if inp["history"] is not None:
                 inp["history"] = list(map(tuple, inp["history"]))
-        except (IOError, OSError, ValueError):
+        except (OSError, ValueError):
             inp = dict(data=np.loadtxt(data), history=[utils._get_call(exclude=[])])
         logger.debug("Instantiating Physio object from a file")
         phys = physio.Physio(**inp)
@@ -81,14 +77,14 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
         phys = utils.new_physio_like(data, data.data, fs=fs, dtype=dtype)
         phys._history += [utils._get_call()]
     else:
-        raise TypeError("Cannot load data of type {}".format(type(data)))
+        raise TypeError(f"Cannot load data of type {type(data)}")
 
     # reset sampling rate, as requested
     if fs is not None and fs != phys.fs:
         if not np.isnan(phys.fs):
             logger.warning(
                 "Provided sampling rate does not match loaded rate. "
-                "Resetting loaded sampling rate {} to provided {}".format(phys.fs, fs)
+                f"Resetting loaded sampling rate {phys.fs} to provided {fs}"
             )
         phys._fs = fs
     # coerce datatype, if needed
@@ -100,7 +96,7 @@ def load_physio(data, *, fs=None, dtype=None, history=None, allow_pickle=False):
 
 def save_physio(fname, data):
     """
-    Saves `data` to `fname`
+    Save `data` to `fname`.
 
     Parameters
     ----------
@@ -114,7 +110,6 @@ def save_physio(fname, data):
     fname : str
         Full filepath to saved output
     """
-
     from peakdet.utils import check_physio
 
     data = check_physio(data)
@@ -131,7 +126,7 @@ def save_physio(fname, data):
 
 def load_history(file, verbose=False):
     """
-    Loads history from `file` and replays it, creating new Physio instance
+    Load history from `file` and replays it, creating new Physio instance.
 
     Parameters
     ----------
@@ -145,13 +140,12 @@ def load_history(file, verbose=False):
     file : str
         Full filepath to saved output
     """
-
     # import inside function for safety!
     # we'll likely be replaying some functions from within this module...
     import peakdet
 
     # grab history from provided JSON file
-    with open(file, "r") as src:
+    with open(file) as src:
         history = json.load(src)
 
     # replay history from beginning and return resultant Physio object
@@ -159,7 +153,7 @@ def load_history(file, verbose=False):
     data = None
     for func, kwargs in history:
         if verbose:
-            logger.info("Rerunning {}".format(func))
+            logger.info(f"Rerunning {func}")
         # loading functions don't have `data` input because it should be the
         # first thing in `history` (when the data was originally loaded!).
         # for safety, check if `data` is None; someone could have potentially
@@ -189,7 +183,7 @@ def load_history(file, verbose=False):
 
 def save_history(file, data):
     """
-    Saves history of physiological `data` to `file`
+    Save history of physiological `data` to `file`.
 
     Saved file can be replayed with `peakdet.load_history`
 
@@ -205,7 +199,6 @@ def save_history(file, data):
     file : str
         Full filepath to saved output
     """
-
     from peakdet.utils import check_physio
 
     data = check_physio(data)
