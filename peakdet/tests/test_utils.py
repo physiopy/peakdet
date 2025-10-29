@@ -69,7 +69,7 @@ def test_new_physio_like():
     assert new_data.fs == 50
     assert new_data.data.dtype == int
     assert new_data.history == []
-    for k, v in new_data._metadata.items():
+    for _k, v in new_data._metadata.items():
         assert v.size == 0
 
 

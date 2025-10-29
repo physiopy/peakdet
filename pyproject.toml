@@ -42,12 +42,14 @@ convention = 'numpy'
 '*.pyi' = ['E501']
 '__init__.py' = ['F401']
 '_version.py' = ['UP031']
+'conftest.py' = ['D']
+'due.py' = ['D']
 'peakdet/tests/*' = ['D']
 'peakdet/__init__.py' = ['F401', 'D']
 'peakdet/*/__init__.py' = ['F401', 'D']
 'peakdet/_version.py' = ['UP031', 'D']
-'peakdet/conftest.py' = ['D']
-'peakdet/due.py' = ['D']
+'peakdet/modalities.py' = ['D']
+'peakdet/analytics.py' = ['D']
 
 
 # ignore = E126, E402, W503, W401, W811
