@@ -1,3 +1,29 @@
+# 0.6.0 (Tue Nov 25 2025)
+
+#### 🚀 Enhancement
+
+- Make peaks (and troughs) addition more robust to spanning issues and support newer python versions [#94](https://github.com/physiopy/peakdet/pull/94) ([@smoia](https://github.com/smoia))
+
+#### ⚠️ Tests
+
+- Move to Ruff and insert more automation on updates [#89](https://github.com/physiopy/peakdet/pull/89) ([@smoia](https://github.com/smoia) [@pre-commit-ci[bot]](https://github.com/pre-commit-ci[bot]))
+
+#### 🏠 Internal
+
+- Bump toshimaru/auto-author-assign from 2.1.0 to 2.1.1 [#93](https://github.com/physiopy/peakdet/pull/93) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- [pre-commit.ci] pre-commit autoupdate [#83](https://github.com/physiopy/peakdet/pull/83) ([@pre-commit-ci[bot]](https://github.com/pre-commit-ci[bot]) [@smoia](https://github.com/smoia))
+- Bump actions/setup-python from 5 to 6 [#91](https://github.com/physiopy/peakdet/pull/91) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actions/checkout from 4 to 5 [#92](https://github.com/physiopy/peakdet/pull/92) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump actions/labeler from 5 to 6 [#90](https://github.com/physiopy/peakdet/pull/90) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+#### Authors: 3
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- [@pre-commit-ci[bot]](https://github.com/pre-commit-ci[bot])
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.5.2 (Wed Oct 09 2024)
 
 #### 🐛 Bug Fix
