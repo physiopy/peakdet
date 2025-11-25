@@ -1,3 +1,15 @@
+# 0.6.1 (Tue Nov 25 2025)
+
+#### 🐛 Bug Fix
+
+- fix: Fix new add_peaks behavior when multiple peaks are added ([@smoia](https://github.com/smoia))
+
+#### Authors: 1
+
+- Stefano Moia ([@smoia](https://github.com/smoia))
+
+---
+
 # 0.6.0 (Tue Nov 25 2025)
 
 #### 🚀 Enhancement
