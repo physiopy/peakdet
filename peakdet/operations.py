@@ -222,7 +222,7 @@ def add_peaks(data, add):
     Parameters
     ----------
     data : Physio_like
-    add : int
+    add : list of int
 
     Returns
     -------
@@ -231,12 +231,20 @@ def add_peaks(data, add):
     data = utils.check_physio(data, ensure_fs=False, copy=True)
     peaks = data._metadata["peaks"]
 
-    if add in peaks or np.any(np.abs(peaks - add) == 1):
-        logger.warning(f"Added peak {add} is too close to an existing peak. Skipping.")
-    else:
-        idx = np.searchsorted(data._metadata["peaks"], add)
-        data._metadata["peaks"] = np.insert(data._metadata["peaks"], idx, add)
-        data._metadata["troughs"] = utils.check_troughs(data, data.peaks)
+    if np.isscalar(add):
+        add = [add]
+
+    add = np.asarray(add, dtype=int)
+
+    for val in add:
+        if val in peaks or np.any(np.abs(peaks - val) == 1):
+            logger.warning(
+                f"Added peak {val} is too close to an existing peak. Skipping."
+            )
+        else:
+            idx = np.searchsorted(data._metadata["peaks"], val)
+            data._metadata["peaks"] = np.insert(data._metadata["peaks"], idx, val)
+            data._metadata["troughs"] = utils.check_troughs(data, data.peaks)
 
     return data
 
