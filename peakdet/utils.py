@@ -236,8 +236,10 @@ def check_troughs(data, peaks, troughs=None):
 
     for f in range(peaks.size - 1):
         dp = data[peaks[f] : peaks[f + 1]]
-        idx = peaks[f] + np.argwhere(dp == dp.min())[0]
-        all_troughs[f] = idx
+
+        if dp.size > 0:
+            idx = peaks[f] + np.argwhere(dp == dp.min())[0]
+            all_troughs[f] = idx
 
     return all_troughs
 
