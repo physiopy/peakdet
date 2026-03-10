@@ -249,6 +249,19 @@ def add_peaks(data, add):
     return data
 
 
+@utils.make_operation()
+def annotate_segments(data, segment):
+    if isinstance(segment, tuple):
+        segment = [segment]
+    for s in segment:
+        data = utils.check_physio(data, ensure_fs=False, copy=True)
+        segments = utils.check_segment(data, np.array([s], dtype=data._metadata["segments"].dtype))
+    
+        data._metadata["segments"] = np.unique(segments)
+
+    return data
+
+
 def edit_physio(data):
     """
     Open interactive plot with `data` to permit manual editing of time series.
@@ -281,6 +294,8 @@ def edit_physio(data):
         data = delete_peaks(data, remove=sorted(edits.deleted))
     if len(edits.included) > 0:
         data = add_peaks(data, add=sorted(edits.included))
+    if len(edits.annotated) > 0:
+        data = annotate_segments(data, segment=sorted(edits.annotated))
 
     return data
 

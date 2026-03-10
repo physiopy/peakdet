@@ -32,7 +32,7 @@ class _PhysioEditor:
 
         # we need to create these variables in case someone doesn't "quit"
         # the plot appropriately (i.e., clicks X instead of pressing ctrl+q)
-        self.deleted, self.rejected, self.included = set(), set(), set()
+        self.deleted, self.rejected, self.included, self.annotated = set(), set(), set(), set()
 
         # make main plot objects depending on supplementary data
         if self.suppdata is None:
@@ -57,8 +57,8 @@ class _PhysioEditor:
         # three selectors for:
         #    1. rejection (central mouse),
         #    2. addition (right mouse), and
-        #    3. deletion (left mouse)
-        delete = functools.partial(self.on_edit, method="delete")
+        #    3. deletion or annotation (left mouse)
+        self.mode = "delete"
         reject = functools.partial(self.on_edit, method="reject")
         insert = functools.partial(self.on_edit, method="insert")
 
@@ -71,7 +71,7 @@ class _PhysioEditor:
 
         self.span2 = SpanSelector(
             self.ax,
-            delete,
+            self._span_callback,
             "horizontal",
             button=1,
             useblit=True,
@@ -118,6 +118,21 @@ class _PhysioEditor:
             ".g",
         )
 
+        if self.data.segments.shape[0]>0:
+            for segment in self.data.segments:
+                ymin, ymax = self.ax.get_ylim()
+                height = ymax - ymin
+                width = self.time[int(segment[1])] - self.time[int(segment[0])]
+
+                rect = plt.Rectangle(
+                    [self.time[int(segment[0])], ymin], 
+                    width, 
+                    height,
+                    alpha=0.3,
+                    facecolor='y'
+                )
+                self.ax.add_patch(rect)
+
         if self.suppdata is not None:
             self._ax[1].plot(self.time, self.suppdata, "k", linewidth=0.7)
             self._ax[1].set_ylim(-0.5, 0.5)
@@ -142,6 +157,13 @@ class _PhysioEditor:
             self.undo()
         elif event.key in ["ctrl+q", "super+d"]:
             self.quit()
+        elif event.key in ["ctrl+a"]:
+            self.annotate_mode()
+        elif event.key in ["ctrl+e"]:
+            self.edit_mode()
+
+    def _span_callback(self, xmin, xmax):
+        self.on_edit(xmin, xmax, method=self.mode)
 
     def on_edit(self, xmin, xmax, *, method):
         """
@@ -150,10 +172,10 @@ class _PhysioEditor:
         Removes specified peaks by either rejection / deletion, OR
         Include one peak by finding the max in the selection.
 
-        method accepts 'insert', 'reject', 'delete'
+        method accepts 'insert', 'reject', 'delete', 'annotate'
         """
         logger.debug("Edited peaks with action: {}", method)
-        if method not in ["insert", "reject", "delete"]:
+        if method not in ["insert", "reject", "delete", "annotate"]:
             raise ValueError(f'Action "{method}" not supported.')
 
         tmin, tmax = np.searchsorted(self.time, (xmin, xmax))
@@ -165,6 +187,8 @@ class _PhysioEditor:
             if newpeak == tmin:
                 self.plot_signals()
                 return
+        elif method == "annotate":
+            segment = (tmin, tmax)
         else:
             bad = np.arange(pmin, pmax, dtype=int)
             if len(bad) == 0:
@@ -180,6 +204,11 @@ class _PhysioEditor:
         if method == "insert":
             self.included.add(newpeak)
             self.data = operations.add_peaks(self.data, newpeak)
+        elif method == "annotate":
+            self.data = operations.annotate_segments(self.data, segment)
+            self.annotated = set()
+            for s in self.data.segments:
+                self.annotated.add((s[0], s[1]))
         else:
             rej.update(self.data.peaks[bad].tolist())
             self.data = fcn(self.data, self.data.peaks[bad])
@@ -189,7 +218,7 @@ class _PhysioEditor:
     def undo(self):
         """Reset last span select peak removal."""
         # check if last history entry was a manual reject / delete
-        relevant = ["reject_peaks", "delete_peaks", "add_peaks"]
+        relevant = ["reject_peaks", "delete_peaks", "add_peaks", "annotate_segments"]
         if self.data._history[-1][0] not in relevant:
             return
 
@@ -215,7 +244,20 @@ class _PhysioEditor:
                 np.searchsorted(self.data._metadata["peaks"], peaks["add"]),
             )
             self.included.remove(peaks["add"])
+        elif func == "annotate_segments":
+            self.data._metadata["segments"] = np.delete(
+                self.data._metadata["segments"],
+                -1,
+                axis=0
+            )
+            self.annotated.pop()
         self.data._metadata["troughs"] = utils.check_troughs(
             self.data, self.data.peaks, self.data.troughs
         )
         self.plot_signals()
+
+    def annotate_mode(self):
+        self.mode = "annotate"
+
+    def edit_mode(self):
+        self.mode = "delete"
