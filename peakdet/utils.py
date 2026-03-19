@@ -230,7 +230,7 @@ def check_troughs(data, peaks, troughs=None):
     # If there's a trough after all peaks, keep it.
     if troughs is not None and troughs[-1] > peaks[-1]:
         all_troughs = np.zeros(peaks.size, dtype=int)
-        assert all_troughs[-1] == troughs[-1]
+        assert all_troughs[-1] = troughs[-1]
     else:
         all_troughs = np.zeros(peaks.size - 1, dtype=int)
 
