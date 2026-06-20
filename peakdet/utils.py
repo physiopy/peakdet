@@ -231,7 +231,7 @@ def check_troughs(data, peaks, troughs=None):
         return np.array([])
     if len(peaks) == 1:
         return np.array([])
-        
+
     # If there's a trough after all peaks, keep it.
     if troughs is not None and troughs[-1] > peaks[-1]:
         all_troughs = np.zeros(peaks.size, dtype=int)
