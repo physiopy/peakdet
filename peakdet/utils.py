@@ -227,10 +227,15 @@ def check_troughs(data, peaks, troughs=None):
     troughs : np.ndarray
         Indices of trough locations in `data`, dependent on `peaks`
     """
+    if peaks is None or len(peaks) == 0:
+        return np.array([])
+    if len(peaks) == 1:
+        return np.array([])
+
     # If there's a trough after all peaks, keep it.
     if troughs is not None and troughs[-1] > peaks[-1]:
         all_troughs = np.zeros(peaks.size, dtype=int)
-        assert all_troughs[-1] == troughs[-1]
+        all_troughs[-1] = troughs[-1]
     else:
         all_troughs = np.zeros(peaks.size - 1, dtype=int)
 
