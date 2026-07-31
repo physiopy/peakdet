@@ -32,7 +32,12 @@ class _PhysioEditor:
 
         # we need to create these variables in case someone doesn't "quit"
         # the plot appropriately (i.e., clicks X instead of pressing ctrl+q)
-        self.deleted, self.rejected, self.included, self.annotated = set(), set(), set(), set()
+        self.deleted, self.rejected, self.included, self.annotated = (
+            set(),
+            set(),
+            set(),
+            set(),
+        )
 
         # make main plot objects depending on supplementary data
         if self.suppdata is None:
@@ -118,18 +123,18 @@ class _PhysioEditor:
             ".g",
         )
 
-        if self.data.segments.shape[0]>0:
+        if self.data.segments.shape[0] > 0:
             for segment in self.data.segments:
                 ymin, ymax = self.ax.get_ylim()
                 height = ymax - ymin
                 width = self.time[int(segment[1])] - self.time[int(segment[0])]
 
                 rect = plt.Rectangle(
-                    [self.time[int(segment[0])], ymin], 
-                    width, 
+                    [self.time[int(segment[0])], ymin],
+                    width,
                     height,
                     alpha=0.3,
-                    facecolor='y'
+                    facecolor="y",
                 )
                 self.ax.add_patch(rect)
 
@@ -246,9 +251,7 @@ class _PhysioEditor:
             self.included.remove(peaks["add"])
         elif func == "annotate_segments":
             self.data._metadata["segments"] = np.delete(
-                self.data._metadata["segments"],
-                -1,
-                axis=0
+                self.data._metadata["segments"], -1, axis=0
             )
             self.annotated.pop()
         self.data._metadata["troughs"] = utils.check_troughs(
