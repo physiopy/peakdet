@@ -74,7 +74,7 @@ class Physio:
                 peaks=np.empty(0, dtype=int),
                 troughs=np.empty(0, dtype=int),
                 reject=np.empty(0, dtype=int),
-                segments=np.empty(0, dtype=[('onset', 'f8'), ('offset', 'f8')])
+                segments=np.empty(0, dtype=[("onset", "f8"), ("offset", "f8")]),
             )
         self._suppdata = None if suppdata is None else np.asarray(suppdata).squeeze()
 
@@ -116,10 +116,10 @@ class Physio:
     def troughs(self):
         """Indices of detected troughs in `data`."""
         return self._metadata["troughs"]
-    
+
     @property
     def segments(self):
-        """Indices marking the onset and offset of annotated segments"""
+        """Indices marking the onset and offset of annotated segments."""
         return self._metadata["segments"]
 
     @property

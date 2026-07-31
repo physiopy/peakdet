@@ -251,12 +251,26 @@ def add_peaks(data, add):
 
 @utils.make_operation()
 def annotate_segments(data, segment):
+    """
+    Save onset and offset of selected segments.
+
+    Parameters
+    ----------
+    data : Physio_like
+    segment: tuple or list
+
+    Returns
+    -------
+    data : Physio_like
+    """
     if isinstance(segment, tuple):
         segment = [segment]
     for s in segment:
         data = utils.check_physio(data, ensure_fs=False, copy=True)
-        segments = utils.check_segment(data, np.array([s], dtype=data._metadata["segments"].dtype))
-    
+        segments = utils.check_segment(
+            data, np.array([s], dtype=data._metadata["segments"].dtype)
+        )
+
         data._metadata["segments"] = np.unique(segments)
 
     return data
