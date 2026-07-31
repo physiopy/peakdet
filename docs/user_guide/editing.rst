@@ -47,11 +47,21 @@ red highlight):
 
 .. image:: physio_edit.gif
 
+It is also possible to annotate segments. To do so, you will need to enter the
+'annotation mode' by doing ``ctrl+a``. Once you are in that mode, segments could
+be selected (left click + drag). A yellow window will appear on your timeserie.
+Added segments will be track in the Physio instance history. Return back in
+'edit mode' (to delete peak) with ``ctrl+e``.
+
+.. image:: physio_edit_segment.gif
+
+NOTE: Currently overlap in segments are not permitted.
+
 If you accidentally reject or delete peaks, you can undo the selection with
-``ctrl+z`` (or ``command+z`` if you're on a Mac). The interactive viewer will
-track your history of edits as long as it is open, so you can undo multiple
-selections, if desired. Once done, you can close the interactive viewer by
-pressing ``ctrl+q`` (``command+q``).
+``ctrl+z`` (or ``command+z`` if you're on a Mac). This is also applicable to
+selected segments. The interactive viewer will track your history of edits as
+long as it is open, so you can undo multiple selections, if desired. Once done,
+you can close the interactive viewer by pressing ``ctrl+q`` (``command+q``).
 
 All edits performed in the editor are stored in the :py:attr:`~.Physio.history`
 of the data object, as with other operations, ensuring a record of your manual
