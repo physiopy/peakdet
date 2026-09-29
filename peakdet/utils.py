@@ -261,8 +261,7 @@ def check_troughs(data, peaks, troughs=None):
 
 def check_segment(data, segment):
     """
-    Confirms that segments are not overlapping. The last segment specified 
-    as precedence over the overlapping ones.
+    Check segment.
 
     Parameters
     ----------
@@ -270,7 +269,7 @@ def check_segment(data, segment):
         Input data for which `troughs` and `peaks` were detected
     segments : array-like
         Array containing the onset and offset of segments to annotate
-    
+
     Returns
     -------
     segments : np.ndarray
@@ -280,12 +279,7 @@ def check_segment(data, segment):
     if tmp_segment.shape[0] == 0:
         return segment
     else:
-        new_segment = segment[0]
-        for idx, s in enumerate(tmp_segment):
-            if (new_segment[1] > s[0] and new_segment[1] <= s[1]) or (new_segment[0] >= s[0] and new_segment[0] < s[1]):
-                tmp_segment[idx] = new_segment
-            else:
-                tmp_segment = np.append(tmp_segment, segment)
+        tmp_segment = np.append(tmp_segment, segment)
         return tmp_segment
 
 

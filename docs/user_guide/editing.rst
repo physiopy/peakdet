@@ -55,8 +55,6 @@ Added segments will be track in the Physio instance history. Return back in
 
 .. image:: physio_edit_segment.gif
 
-NOTE: Currently overlap in segments are not permitted.
-
 If you accidentally reject or delete peaks, you can undo the selection with
 ``ctrl+z`` (or ``command+z`` if you're on a Mac). This is also applicable to
 selected segments. The interactive viewer will track your history of edits as
