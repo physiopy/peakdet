@@ -273,7 +273,7 @@ def check_segment(data, segment):
     Returns
     -------
     segments : np.ndarray
-        Array containing validated (non-overlapping) segments
+        Array containing validated segments
     """
     tmp_segment = data.segments
     if tmp_segment.shape[0] == 0:
