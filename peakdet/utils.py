@@ -69,6 +69,8 @@ def make_operation(*, exclude=None):
                     duplicate.update(new_segments)
 
                     tmp_history.append((name, {"segment": new_segments}))
+                elif name == "delete_segments":
+                    tmp_history.append((name, value))
                 else:
                     tmp_history.append((name, value))
 

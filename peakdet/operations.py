@@ -276,6 +276,37 @@ def annotate_segments(data, segment):
     return data
 
 
+@utils.make_operation()
+def delete_segments(data, remove_segment):
+    """
+    Delete segments in `remove_segment` from segments stored in `data`.
+
+    Parameters
+    ----------
+    data : Physio_like
+    remove_segment : array_like
+
+    Returns
+    -------
+    data : Physio_like
+    """
+    # Define segment buffer for segment removal evaluation
+    segment_buffer = data.fs * 0.5
+
+    data = utils.check_physio(data, ensure_fs=False, copy=True)
+    for s in data._metadata["segments"]:
+        # Make sure `remove_segment` matches a previously annotated segment
+        if (s[0] - segment_buffer) <= remove_segment[0] <= (s[0] + segment_buffer) and (
+            s[1] - segment_buffer
+        ) <= remove_segment[1] <= (s[1] + segment_buffer):
+            data._metadata["segments"] = np.setdiff1d(
+                data._metadata["segments"],
+                np.array([s], dtype=data._metadata["segments"].dtype),
+            )
+
+    return data
+
+
 def edit_physio(data):
     """
     Open interactive plot with `data` to permit manual editing of time series.
@@ -310,6 +341,9 @@ def edit_physio(data):
         data = add_peaks(data, add=sorted(edits.included))
     if len(edits.annotated) > 0:
         data = annotate_segments(data, segment=sorted(edits.annotated))
+    if len(edits.delete_annotated) > 0:
+        for d in edits.delete_annotated:
+            data = delete_segments(data, remove_segment=d)
 
     return data
 

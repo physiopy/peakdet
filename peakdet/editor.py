@@ -32,12 +32,13 @@ class _PhysioEditor:
 
         # we need to create these variables in case someone doesn't "quit"
         # the plot appropriately (i.e., clicks X instead of pressing ctrl+q)
-        self.deleted, self.rejected, self.included, self.annotated = (
-            set(),
-            set(),
-            set(),
-            set(),
-        )
+        (
+            self.deleted,
+            self.rejected,
+            self.included,
+            self.annotated,
+            self.delete_annotated,
+        ) = (set(), set(), set(), set(), set())
 
         # make main plot objects depending on supplementary data
         if self.suppdata is None:
@@ -64,8 +65,6 @@ class _PhysioEditor:
         #    2. addition (right mouse), and
         #    3. deletion or annotation (left mouse)
         self.mode = "delete"
-        reject = functools.partial(self.on_edit, method="reject")
-        insert = functools.partial(self.on_edit, method="insert")
 
         # Check matplotlib version rectprops is deprecated with matplotlib 3.5.0
         # and then obsolete
@@ -76,7 +75,7 @@ class _PhysioEditor:
 
         self.span2 = SpanSelector(
             self.ax,
-            self._span_callback,
+            self._span_left,
             "horizontal",
             button=1,
             useblit=True,
@@ -84,7 +83,7 @@ class _PhysioEditor:
         )
         self.span1 = SpanSelector(
             self.ax,
-            reject,
+            functools.partial(self.on_edit, method="reject"),
             "horizontal",
             button=2,
             useblit=True,
@@ -92,7 +91,7 @@ class _PhysioEditor:
         )
         self.span3 = SpanSelector(
             self.ax,
-            insert,
+            self._span_right,
             "horizontal",
             button=3,
             useblit=True,
@@ -167,8 +166,17 @@ class _PhysioEditor:
         elif event.key in ["ctrl+e"]:
             self.edit_mode()
 
-    def _span_callback(self, xmin, xmax):
-        self.on_edit(xmin, xmax, method=self.mode)
+    def _span_left(self, xmin, xmax):
+        if self.mode == "delete":
+            self.on_edit(xmin, xmax, method=self.mode)
+        elif self.mode == "annotate":
+            self.on_edit(xmin, xmax, method="delete_annotate")
+
+    def _span_right(self, xmin, xmax):
+        if self.mode == "delete":
+            self.on_edit(xmin, xmax, method="insert")
+        elif self.mode == "annotate":
+            self.on_edit(xmin, xmax, method=self.mode)
 
     def on_edit(self, xmin, xmax, *, method):
         """
@@ -177,10 +185,10 @@ class _PhysioEditor:
         Removes specified peaks by either rejection / deletion, OR
         Include one peak by finding the max in the selection.
 
-        method accepts 'insert', 'reject', 'delete', 'annotate'
+        method accepts 'insert', 'reject', 'delete', 'annotate', 'delete_annotate'
         """
         logger.debug("Edited peaks with action: {}", method)
-        if method not in ["insert", "reject", "delete", "annotate"]:
+        if method not in ["insert", "reject", "delete", "annotate", "delete_annotate"]:
             raise ValueError(f'Action "{method}" not supported.')
 
         tmin, tmax = np.searchsorted(self.time, (xmin, xmax))
@@ -192,7 +200,7 @@ class _PhysioEditor:
             if newpeak == tmin:
                 self.plot_signals()
                 return
-        elif method == "annotate":
+        elif method in ["annotate", "delete_annotate"]:
             segment = (tmin, tmax)
         else:
             bad = np.arange(pmin, pmax, dtype=int)
@@ -214,6 +222,9 @@ class _PhysioEditor:
             self.annotated = set()
             for s in self.data.segments:
                 self.annotated.add((s[0], s[1]))
+        elif method == "delete_annotate":
+            self.delete_annotated.update([segment])
+            self.data = operations.delete_segments(self.data, segment)
         else:
             rej.update(self.data.peaks[bad].tolist())
             self.data = fcn(self.data, self.data.peaks[bad])
@@ -260,7 +271,7 @@ class _PhysioEditor:
         self.plot_signals()
 
     def annotate_mode(self):
-        self.mode = "annotate"
+        self.mode = "annotate"  # "delete_annotate"
 
     def edit_mode(self):
         self.mode = "delete"
