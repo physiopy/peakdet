@@ -49,8 +49,9 @@ red highlight):
 
 It is also possible to annotate segments. To do so, you will need to enter the
 'annotation mode' by doing ``ctrl+a``. Once you are in that mode, segments could
-be selected (left click + drag). A yellow window will appear on your timeserie.
-Added segments will be track in the Physio instance history. Return back in
+be selected (right click + drag). A yellow window will appear on your timeserie.
+Added segments will be track in the Physio instance history. To remove a previously
+annotated segment, left click + drag over the full width of the window. Return back in
 'edit mode' (to delete peak) with ``ctrl+e``.
 
 .. image:: physio_edit_segment.gif
