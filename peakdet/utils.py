@@ -60,6 +60,23 @@ def make_operation(*, exclude=None):
             # append everything to data instance history
             data._history += [(name, provided)]
 
+            # clean duplicates from history
+            tmp_history, duplicate = [], set()
+            for name, value in data._history:
+                if name == "annotate_segments":
+                    segments = value.get("segment", [])
+                    new_segments = [s for s in segments if s not in duplicate]
+                    duplicate.update(new_segments)
+
+                    tmp_history.append((name, {"segment": new_segments}))
+                elif name == "delete_segments":
+                    tmp_history.append((name, value))
+                else:
+                    tmp_history.append((name, value))
+
+            if len(tmp_history) > 0:
+                data._history = tmp_history
+
             return data
 
         return wrapper
@@ -242,6 +259,30 @@ def check_troughs(data, peaks, troughs=None):
             all_troughs[f] = idx
 
     return all_troughs
+
+
+def check_segment(data, segment):
+    """
+    Check segment.
+
+    Parameters
+    ----------
+    data : array-like
+        Input data for which `troughs` and `peaks` were detected
+    segments : array-like
+        Array containing the onset and offset of segments to annotate
+
+    Returns
+    -------
+    segments : np.ndarray
+        Array containing validated segments
+    """
+    tmp_segment = data.segments
+    if tmp_segment.shape[0] == 0:
+        return segment
+    else:
+        tmp_segment = np.append(tmp_segment, segment)
+        return tmp_segment
 
 
 def enable_logger(loglevel="INFO", diagnose=True, backtrace=True):
